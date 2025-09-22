@@ -1,5 +1,4 @@
-
-using ASMS.Repositories;
+using ASMS.Repositories.Data;
 using ASMS.Services;
 using Microsoft.EntityFrameworkCore;
 

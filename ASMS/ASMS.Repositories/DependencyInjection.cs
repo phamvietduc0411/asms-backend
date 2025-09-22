@@ -1,4 +1,4 @@
-﻿using ASMS.Repositories;
+﻿using ASMS.Repositories.Data;
 using ASMS.Repositories.Infrastructures;
 using Microsoft.Extensions.DependencyInjection;
 
