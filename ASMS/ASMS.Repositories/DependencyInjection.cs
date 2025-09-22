@@ -1,4 +1,5 @@
-﻿using ASMS.Repositories.Infrastructures;
+﻿using ASMS.Repositories;
+using ASMS.Repositories.Infrastructures;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ASMS.Services
@@ -9,6 +10,7 @@ namespace ASMS.Services
         public static IServiceCollection ConfigureRepositoryServices(
             this IServiceCollection services)
         {
+            services.AddScoped<AsmsContext>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             return services;

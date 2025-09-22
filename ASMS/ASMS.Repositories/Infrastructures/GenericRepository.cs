@@ -3,34 +3,38 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace ASMS.Repositories.Infrastructures
 {
     public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEntity : class
     {
-        public Task AddEntities(ICollection<TEntity> entities)
-        {
-            throw new NotImplementedException();
-        }
+        protected AsmsContext _context;
+        protected DbSet<TEntity> _dbSet;
+        protected readonly ILogger _logger;
 
-        public TEntity AddEntity(TEntity entity)
+        public GenericRepository(
+            AsmsContext context,
+            ILogger logger)
         {
-            throw new NotImplementedException();
+            _context = context;
+            _logger = logger;
+            _dbSet = _context.Set<TEntity>();
         }
+        public virtual TEntity AddEntity(TEntity entity) => _dbSet.Add(entity).Entity;
 
-        public Task<ICollection<TEntity>> GetAllEntitiesAsync()
-        {
-            throw new NotImplementedException();
-        }
+        public void UpdateEntity(TEntity entity) => _context.Update(entity).State = EntityState.Modified;
 
-        public Task<TEntity?> GetEntityByIdAsync(int id)
+        public virtual async Task<TEntity?> GetEntityByIdAsync(int id)
         {
-            throw new NotImplementedException();
-        }
+            var result = await _dbSet.FindAsync(id);
+            if (result != null)
+            {
+                return result;
+            }
 
-        public void UpdateEntity(TEntity entity)
-        {
-            throw new NotImplementedException();
+            return null;
         }
     }
 }
