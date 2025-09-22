@@ -14,8 +14,8 @@ namespace ASMS.Repositories.Infrastructures
 
         void UpdateEntity(TEntity entity);
 
-        Task<ICollection<TEntity>> GetAllEntitiesAsync();
+        //Task<ICollection<TEntity>> GetAllEntitiesAsync();
 
-        Task AddEntities(ICollection<TEntity> entities);
+        //Task AddEntities(ICollection<TEntity> entities);
     }
 }

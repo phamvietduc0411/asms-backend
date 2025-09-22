@@ -1,5 +1,7 @@
 
+using ASMS.Repositories;
 using ASMS.Services;
+using Microsoft.EntityFrameworkCore;
 
 namespace ASMS.API
 {
@@ -10,6 +12,28 @@ namespace ASMS.API
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
+
+            builder.Services.AddDbContext<AsmsContext>(options =>
+            {
+                //options.UseSqlServer(builder.Configuration.GetConnectionString("DeployConnection"));
+
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+
+                options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+            }
+            );
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAllOrigins", builder =>
+                {
+                    builder.AllowAnyOrigin()
+                           .AllowAnyMethod()
+                           .AllowAnyHeader();
+                });
+            });
+            builder.Services.AddHttpClient();
+            builder.Services.AddHttpContextAccessor();
+
             builder.Services.ConfigureServicesLayers().ConfigureRepositoryServices();
 
             builder.Services.AddControllers();
@@ -19,13 +43,18 @@ namespace ASMS.API
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
+            if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
             {
                 app.UseSwagger();
-                app.UseSwaggerUI();
+                app.UseSwaggerUI(c =>
+                {
+                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API");
+                });
             }
 
             app.UseHttpsRedirection();
+            app.UseAuthentication();
+            app.UseCors("AllowAllOrigins");
 
             app.UseAuthorization();
 
