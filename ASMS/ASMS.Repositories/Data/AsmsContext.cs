@@ -1,8 +1,7 @@
-﻿using ASMS.Repositories.Entities;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using ASMS.Repositories.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace ASMS.Repositories.Data;
 
@@ -48,17 +47,6 @@ public partial class AsmsContext : DbContext
     public virtual DbSet<WorkflowStep> WorkflowSteps { get; set; }
 
     public virtual DbSet<WorkflowTemplate> WorkflowTemplates { get; set; }
-
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    { optionsBuilder.UseSqlServer(GetConnectionString()); }
-
-    private string GetConnectionString()
-    {
-        IConfiguration configuration = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", true, true).Build();
-        return configuration["ConnectionStrings:DefaultConnection"];
-    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
