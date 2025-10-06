@@ -14,13 +14,10 @@ namespace ASMS.API
 
             builder.Services.AddDbContext<AsmsContext>(options =>
             {
-                //options.UseSqlServer(builder.Configuration.GetConnectionString("DeployConnection"));
-
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
-
                 options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
-            }
-            );
+            });
+
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowAllOrigins", builder =>
