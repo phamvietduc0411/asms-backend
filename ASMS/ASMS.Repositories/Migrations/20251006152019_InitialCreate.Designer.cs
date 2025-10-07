@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace ASMS.Repositories.Migrations
 {
-    [DbContext(typeof(AsmsContext))]
+    [DbContext(typeof(VstorageContext))]
     [Migration("20251006152019_InitialCreate")]
     partial class InitialCreate
     {

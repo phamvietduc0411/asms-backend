@@ -11,12 +11,12 @@ namespace ASMS.Repositories.Infrastructures
 {
     public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEntity : class
     {
-        protected AsmsContext _context;
+        protected VstorageContext _context;
         protected DbSet<TEntity> _dbSet;
         protected readonly ILogger _logger;
 
         public GenericRepository(
-            AsmsContext context,
+            VstorageContext context,
             ILogger logger)
         {
             _context = context;

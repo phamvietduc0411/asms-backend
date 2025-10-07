@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace ASMS.Repositories.Migrations
 {
-    [DbContext(typeof(AsmsContext))]
+    [DbContext(typeof(VstorageContext))]
     partial class AsmsContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)

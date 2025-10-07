@@ -10,7 +10,7 @@ namespace ASMS.Services
         public static IServiceCollection ConfigureRepositoryServices(
             this IServiceCollection services)
         {
-            services.AddScoped<AsmsContext>();
+            services.AddScoped<VstorageContext>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             return services;
