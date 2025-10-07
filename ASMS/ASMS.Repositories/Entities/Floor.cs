@@ -7,7 +7,7 @@ public partial class Floor
 {
     public string FloorCode { get; set; } = null!;
 
-    public string? BuildingCode { get; set; }
+    public string? ShelfCode { get; set; }
 
     public int? FloorNumber { get; set; }
 
@@ -15,7 +15,15 @@ public partial class Floor
 
     public bool? IsActive { get; set; }
 
-    public virtual Building? BuildingCodeNavigation { get; set; }
+    public decimal? Length { get; set; }
 
-    public virtual ICollection<Room> Rooms { get; set; } = new List<Room>();
+    public decimal? Width { get; set; }
+
+    public decimal? Height { get; set; }
+
+    public virtual ICollection<Container> Containers { get; set; } = new List<Container>();
+
+    public virtual ICollection<FloorBlock> FloorBlocks { get; set; } = new List<FloorBlock>();
+
+    public virtual Shelf? ShelfCodeNavigation { get; set; }
 }

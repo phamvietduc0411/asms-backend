@@ -9,7 +9,7 @@ public partial class Employee
 
     public int? EmployeeRoleId { get; set; }
 
-    public string? EmployeeName { get; set; }
+    public string? Name { get; set; }
 
     public string? BuildingCode { get; set; }
 

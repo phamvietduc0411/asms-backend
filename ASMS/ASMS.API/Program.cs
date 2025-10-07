@@ -12,7 +12,7 @@ namespace ASMS.API
 
             // Add services to the container.
 
-            builder.Services.AddDbContext<AsmsContext>(options =>
+            builder.Services.AddDbContext<VstorageContext>(options =>
             {
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
                 options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);

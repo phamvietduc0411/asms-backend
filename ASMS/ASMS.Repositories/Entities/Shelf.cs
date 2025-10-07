@@ -3,17 +3,15 @@ using System.Collections.Generic;
 
 namespace ASMS.Repositories.Entities;
 
-public partial class Cell
+public partial class Shelf
 {
-    public string CellCode { get; set; } = null!;
+    public string ShelfCode { get; set; } = null!;
 
-    public string? RoomCode { get; set; }
+    public string? StorageCode { get; set; }
 
     public string? Status { get; set; }
 
     public bool? IsActive { get; set; }
-
-    public decimal? Price { get; set; }
 
     public decimal? Length { get; set; }
 
@@ -21,7 +19,7 @@ public partial class Cell
 
     public decimal? Height { get; set; }
 
-    public virtual ICollection<Box> Boxes { get; set; } = new List<Box>();
+    public virtual ICollection<Floor> Floors { get; set; } = new List<Floor>();
 
-    public virtual Room? RoomCodeNavigation { get; set; }
+    public virtual Storage? StorageCodeNavigation { get; set; }
 }

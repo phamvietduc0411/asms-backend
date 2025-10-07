@@ -9,11 +9,13 @@ public partial class OrderDetail
 
     public string? OrderCode { get; set; }
 
-    public string? RoomCode { get; set; }
+    public string? StorageCode { get; set; }
 
-    public string? BoxCode { get; set; }
+    public string? ContainerCode { get; set; }
 
     public int? ServiceId { get; set; }
+
+    public decimal? Price { get; set; }
 
     public string? Quantity { get; set; }
 
@@ -23,11 +25,11 @@ public partial class OrderDetail
 
     public string? Image { get; set; }
 
-    public virtual Box? BoxCodeNavigation { get; set; }
+    public virtual Container? ContainerCodeNavigation { get; set; }
 
     public virtual Order? OrderCodeNavigation { get; set; }
 
-    public virtual Room? RoomCodeNavigation { get; set; }
-
     public virtual Service? Service { get; set; }
+
+    public virtual Storage? StorageCodeNavigation { get; set; }
 }

@@ -13,14 +13,14 @@ namespace ASMS.Repositories.Infrastructures
 {
     public class UnitOfWork : IUnitOfWork
     {
-        private readonly AsmsContext _context;
+        private readonly VstorageContext _context;
 
         private readonly ILogger _logger;
 
         public IEmployeeRoleRepository EmployeeRoles { get; private set; }
 
         public UnitOfWork(
-            AsmsContext context,
+            VstorageContext context,
             ILoggerFactory loggerFactory)
         {
             _context = context;
