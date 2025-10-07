@@ -3,9 +3,11 @@ using System.Collections.Generic;
 
 namespace ASMS.Repositories.Entities;
 
-public partial class Box
+public partial class FloorBlock
 {
-    public string BoxCode { get; set; } = null!;
+    public string FloorBlockCode { get; set; } = null!;
+
+    public string? FloorCode { get; set; }
 
     public decimal? Length { get; set; }
 
@@ -17,9 +19,5 @@ public partial class Box
 
     public bool? IsActive { get; set; }
 
-    public string? CellCode { get; set; }
-
-    public virtual Cell? CellCodeNavigation { get; set; }
-
-    public virtual ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
+    public virtual Floor? FloorCodeNavigation { get; set; }
 }

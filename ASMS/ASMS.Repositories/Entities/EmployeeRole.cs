@@ -7,7 +7,7 @@ public partial class EmployeeRole
 {
     public int EmployeeRoleId { get; set; }
 
-    public string? EmployeeRole1 { get; set; }
+    public string? Name { get; set; }
 
     public bool? IsActive { get; set; }
 
