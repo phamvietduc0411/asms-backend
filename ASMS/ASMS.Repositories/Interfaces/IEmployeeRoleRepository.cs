@@ -10,5 +10,6 @@ namespace ASMS.Repositories.Interfaces
     public interface IEmployeeRoleRepository
     {
         Task<EmployeeRole?> GetEntityByIdAsync(int id);
+        Task<EmployeeRole> AddAsync(EmployeeRole role);
     }
 }

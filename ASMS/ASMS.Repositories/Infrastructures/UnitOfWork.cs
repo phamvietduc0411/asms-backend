@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ASMS.Repositories.Data;
+﻿using ASMS.Repositories.Data;
 using ASMS.Repositories.Interfaces;
 using ASMS.Repositories.Repositories;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace ASMS.Repositories.Infrastructures

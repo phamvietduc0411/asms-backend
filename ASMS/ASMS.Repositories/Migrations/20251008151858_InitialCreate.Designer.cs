@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ASMS.Repositories.Migrations
 {
     [DbContext(typeof(VstorageContext))]
-    [Migration("20251007064835_InitialCreate")]
+    [Migration("20251008151858_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -287,8 +287,11 @@ namespace ASMS.Repositories.Migrations
             modelBuilder.Entity("ASMS.Repositories.Entities.EmployeeRole", b =>
                 {
                     b.Property<int>("EmployeeRoleId")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .HasColumnName("EmployeeRoleID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("EmployeeRoleId"));
 
                     b.Property<bool?>("IsActive")
                         .HasColumnType("bit")

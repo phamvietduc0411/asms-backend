@@ -1,13 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using ASMS.Repositories.Entities;
+using ASMS.Services.Model;
 using AutoMapper;
 
 namespace ASMS.Services.Mappings
 {
     public class MappingProfiles : Profile
     {
+        public MappingProfiles()
+        {
+            #region Role
+            CreateMap<CreateRoleRequest, EmployeeRole>().ForMember(e => e.EmployeeRoleId, opt => opt.Ignore());
+            #endregion
+        }
     }
 }

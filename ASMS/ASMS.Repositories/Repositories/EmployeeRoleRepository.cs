@@ -18,5 +18,7 @@ namespace ASMS.Repositories.Repositories
             ILogger logger) : base(context, logger)
         {
         }
+
     }
 }
+

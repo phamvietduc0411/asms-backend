@@ -284,8 +284,11 @@ namespace ASMS.Repositories.Migrations
             modelBuilder.Entity("ASMS.Repositories.Entities.EmployeeRole", b =>
                 {
                     b.Property<int>("EmployeeRoleId")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .HasColumnName("EmployeeRoleID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("EmployeeRoleId"));
 
                     b.Property<bool?>("IsActive")
                         .HasColumnType("bit")
