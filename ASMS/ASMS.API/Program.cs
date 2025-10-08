@@ -1,5 +1,6 @@
 using ASMS.Repositories.Data;
 using ASMS.Services;
+using ASMS.Services.Mappings;
 using Microsoft.EntityFrameworkCore;
 
 namespace ASMS.API
@@ -11,6 +12,8 @@ namespace ASMS.API
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
+            builder.Services.ConfigureServicesLayers();
+            builder.Services.ConfigureRepositoryServices();
 
             builder.Services.AddDbContext<VstorageContext>(options =>
             {
@@ -44,17 +47,13 @@ namespace ASMS.API
                 app.UseSwagger();
                 app.UseSwaggerUI(c =>
                 {
-                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API");
+                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "VStorage API");
                 });
             }
-
             app.UseHttpsRedirection();
             app.UseAuthentication();
             app.UseCors("AllowAllOrigins");
-
             app.UseAuthorization();
-
-
             app.MapControllers();
 
             app.Run();

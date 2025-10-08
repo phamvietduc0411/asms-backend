@@ -49,7 +49,8 @@ namespace ASMS.Repositories.Migrations
                 name: "EmployeeRole",
                 columns: table => new
                 {
-                    EmployeeRoleID = table.Column<int>(type: "int", nullable: false),
+                    EmployeeRoleID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: true),
                     isActive = table.Column<bool>(type: "bit", nullable: true)
                 },

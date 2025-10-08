@@ -6,15 +6,20 @@ using System.Threading.Tasks;
 using ASMS.Repositories.Entities;
 using ASMS.Repositories.Infrastructures;
 using ASMS.Services.Interfaces;
+using ASMS.Services.Model;
+using AutoMapper;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ASMS.Services.Services
 {
     public class EmployeeRoleService : IEmployeeRoleService
     {
         private readonly IUnitOfWork _unitOfWork;
-        public EmployeeRoleService(IUnitOfWork unitOfWork)
+        private readonly IMapper _mapper;
+        public EmployeeRoleService(IUnitOfWork unitOfWork,IMapper mapper)
         {
             _unitOfWork = unitOfWork;   
+            _mapper = mapper;
         }
         public async Task<EmployeeRole?> GetByIdAsync(int id)
         {
@@ -26,5 +31,17 @@ namespace ASMS.Services.Services
 
             return employeeRole;
         }
+
+
+        public async Task<EmployeeRole> AddRoleAsync(CreateRoleRequest role)
+        {
+            var entity = _mapper.Map<EmployeeRole>(role);
+
+            await _unitOfWork.EmployeeRoles.AddAsync(entity);
+            await _unitOfWork.CompleteAsync();
+
+            return entity;
+        }
+
     }
 }

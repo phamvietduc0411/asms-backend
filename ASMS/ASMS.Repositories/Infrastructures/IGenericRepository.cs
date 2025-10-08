@@ -9,10 +9,9 @@ namespace ASMS.Repositories.Infrastructures
     public interface IGenericRepository<TEntity> where TEntity : class
     {
         Task<TEntity?> GetEntityByIdAsync(int id);
+        Task<TEntity> AddAsync(TEntity entity);
 
-        TEntity AddEntity(TEntity entity);
-
-        void UpdateEntity(TEntity entity);
+        void UpdateAsync(TEntity entity);
 
         //Task<ICollection<TEntity>> GetAllEntitiesAsync();
 
