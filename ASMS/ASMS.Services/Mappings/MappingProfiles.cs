@@ -9,7 +9,8 @@ namespace ASMS.Services.Mappings
         public MappingProfiles()
         {
             #region Role
-            CreateMap<CreateRoleRequest, EmployeeRole>().ForMember(e => e.EmployeeRoleId, opt => opt.Ignore());
+            CreateMap<CreateRoleRequest, EmployeeRole>();
+            CreateMap<UpdateRoleRequest, EmployeeRole>();
             #endregion
         }
     }

@@ -22,7 +22,7 @@ namespace ASMS.API.Controllers
         public async Task<IActionResult> GetByIdAsync(int id)
         {
             var employeeRole = await _employeeRoleService.GetByIdAsync(id);
-            if (employeeRole == null) 
+            if (employeeRole == null)
                 return NotFound(new { message = $"Role with ID {id} not found." });
 
             return Ok(employeeRole);
@@ -34,7 +34,7 @@ namespace ASMS.API.Controllers
             try
             {
                 var result = await _employeeRoleService.AddRoleAsync(createRoleRequest);
-                return Ok(result); 
+                return Ok(result);
             }
             catch (Exception ex)
             {
@@ -45,6 +45,46 @@ namespace ASMS.API.Controllers
                 });
             }
         }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateByIdAsync(int id, [FromBody] UpdateRoleRequest newRole)
+        {
+            if (newRole == null)
+                return BadRequest(new { message = "Invalid data." });
+
+            var existingRole = await _employeeRoleService.GetByIdAsync(id);
+            if (existingRole == null)
+                return NotFound(new { message = $"Role with id {id} not found." });
+            existingRole.Name = newRole.RoleName;
+            existingRole.IsActive = newRole.IsActive;
+
+            var updatedRole = await _employeeRoleService.UpdateRoleAsync(existingRole);
+
+            if (updatedRole == null)
+                return StatusCode(500, new { message = "Failed to update employee role." });
+
+            return Ok(new
+            {
+                message = "Update successful.",
+                data = updatedRole
+            });
+        }
+
+        [HttpPut("{id}/delete")]
+        public async Task<IActionResult> SoftDeleteAsync(int id)
+        {
+            var existingRole = await _employeeRoleService.GetByIdAsync(id);
+            if (existingRole == null)
+                return NotFound(new { message = "Not found" });
+            existingRole.IsActive = false;
+            var deleteRole = await _employeeRoleService.UpdateRoleAsync(existingRole);
+
+            if (deleteRole == null)
+                return StatusCode(500, new { message = "Failed to delete employee role." });
+
+            return Ok(new { message = "Marked as deleted." });
+        }
+
 
         #endregion
 

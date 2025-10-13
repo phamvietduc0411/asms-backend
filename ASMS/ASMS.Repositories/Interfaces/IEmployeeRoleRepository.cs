@@ -11,5 +11,6 @@ namespace ASMS.Repositories.Interfaces
     {
         Task<EmployeeRole?> GetEntityByIdAsync(int id);
         Task<EmployeeRole> AddAsync(EmployeeRole role);
+        Task<EmployeeRole> UpdateAsync(EmployeeRole role);
     }
 }

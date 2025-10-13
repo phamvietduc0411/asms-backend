@@ -1,7 +1,9 @@
 using ASMS.Repositories.Data;
+using ASMS.Repositories.Entities;
 using ASMS.Services;
 using ASMS.Services.Mappings;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ASMS.API
 {
@@ -14,6 +16,10 @@ namespace ASMS.API
             // Add services to the container.
             builder.Services.ConfigureServicesLayers();
             builder.Services.ConfigureRepositoryServices();
+
+            //Auto Mapper
+            var mapperKey = builder.Configuration["KeyAutoMapper:Key"];
+            builder.Services.AddAutoMapper(cfg => cfg.LicenseKey = mapperKey, typeof(Program));
 
             builder.Services.AddDbContext<VstorageContext>(options =>
             {

@@ -12,5 +12,6 @@ namespace ASMS.Services.Interfaces
     {
         Task<EmployeeRole?> GetByIdAsync(int id);
         Task<EmployeeRole> AddRoleAsync(CreateRoleRequest role);
+        Task<EmployeeRole> UpdateRoleAsync(EmployeeRole role);
     }
 }

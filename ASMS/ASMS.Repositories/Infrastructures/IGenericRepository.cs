@@ -10,8 +10,7 @@ namespace ASMS.Repositories.Infrastructures
     {
         Task<TEntity?> GetEntityByIdAsync(int id);
         Task<TEntity> AddAsync(TEntity entity);
-
-        void UpdateAsync(TEntity entity);
+        Task<TEntity> UpdateAsync(TEntity entity);
 
         //Task<ICollection<TEntity>> GetAllEntitiesAsync();
 

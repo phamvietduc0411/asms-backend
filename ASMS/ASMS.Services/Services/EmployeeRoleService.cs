@@ -28,20 +28,22 @@ namespace ASMS.Services.Services
             {
                 return null;
             }
-
             return employeeRole;
         }
-
 
         public async Task<EmployeeRole> AddRoleAsync(CreateRoleRequest role)
         {
             var entity = _mapper.Map<EmployeeRole>(role);
-
             await _unitOfWork.EmployeeRoles.AddAsync(entity);
             await _unitOfWork.CompleteAsync();
-
             return entity;
         }
 
+        public async Task<EmployeeRole> UpdateRoleAsync(EmployeeRole role)
+        {
+            await _unitOfWork.EmployeeRoles.UpdateAsync(role);
+            await _unitOfWork.CompleteAsync();
+            return role;
+        }
     }
 }
