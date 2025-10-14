@@ -1,14 +1,11 @@
 ﻿using ASMS.Repositories.Entities;
 using ASMS.Services.Model;
+using ASMS.Services.Model.Building;
 using ASMS.Services.Model.Services;
 using ASMS.Services.Model.StorageBlocks;
 using ASMS.Services.Model.TrackingHistories;
 using ASMS.Services.Model.WorkflowSteps;
 using ASMS.Services.Model.WorkflowTemplates;
-using ASMS.Services.Model.Building;
-using ASMS.Services.Model.Role;
-using ASMS.Services.Model;
-using ASMS.Services.Model.Building;
 using AutoMapper;
 
 namespace ASMS.Services.Mappings
@@ -79,6 +76,7 @@ namespace ASMS.Services.Mappings
                 .ForMember(d => d.StorageBlockCode, o => o.Ignore())
                 .ForMember(d => d.StorageCodeNavigation, o => o.Ignore())
                 .ForAllMembers(o => o.Condition((src, dest, srcMember) => srcMember != null));
+            #endregion
             #region Building
             CreateMap<CreateBuildingRequest, Building>()
                 .ForMember(b => b.BuildingCode, bl => bl.MapFrom(src => src.BuildingCode));

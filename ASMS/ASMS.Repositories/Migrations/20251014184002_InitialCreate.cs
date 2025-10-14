@@ -233,7 +233,8 @@ namespace ASMS.Repositories.Migrations
                 name: "TrackingHistory",
                 columns: table => new
                 {
-                    TrackingHistoryID = table.Column<int>(type: "int", nullable: false),
+                    TrackingHistoryID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     OrderDetailCode = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
                     OldStatus = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
                     NewStatus = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
@@ -302,7 +303,8 @@ namespace ASMS.Repositories.Migrations
                 name: "WorkflowStep",
                 columns: table => new
                 {
-                    WorkflowStepID = table.Column<int>(type: "int", nullable: false),
+                    WorkflowStepID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     WorkflowTemplateID = table.Column<int>(type: "int", nullable: true),
                     Name = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
                     StepNumber = table.Column<int>(type: "int", nullable: true)

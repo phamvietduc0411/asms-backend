@@ -15,7 +15,6 @@ namespace ASMS.Repositories.Infrastructures
         public IServiceRepository Services { get; private set; }
         public ITrackingHistoryRepository TrackingHistories { get; private set; }
         public IStorageBlockRepository StorageBlocks { get; private set; }  
-        public IStorageBlockRepository StorageBlocks { get; private set; }
         public IBuildingRepository Building { get; private set; }
 
 

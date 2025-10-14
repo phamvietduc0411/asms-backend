@@ -686,8 +686,11 @@ namespace ASMS.Repositories.Migrations
             modelBuilder.Entity("ASMS.Repositories.Entities.TrackingHistory", b =>
                 {
                     b.Property<int>("TrackingHistoryId")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .HasColumnName("TrackingHistoryID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TrackingHistoryId"));
 
                     b.Property<string>("ActionType")
                         .HasMaxLength(20)
@@ -743,8 +746,11 @@ namespace ASMS.Repositories.Migrations
             modelBuilder.Entity("ASMS.Repositories.Entities.WorkflowStep", b =>
                 {
                     b.Property<int>("WorkflowStepId")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .HasColumnName("WorkflowStepID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("WorkflowStepId"));
 
                     b.Property<string>("Name")
                         .HasMaxLength(50)
