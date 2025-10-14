@@ -19,7 +19,7 @@ public partial class VstorageContext : DbContext
     {
         if (!optionsBuilder.IsConfigured)
         {
-            optionsBuilder.UseSqlServer("Server=ROG-ZEPHYRUS-G1\\VIETDUC;Database=VStorage;Uid=sa;Pwd=123456;Trusted_Connection=True;TrustServerCertificate=True");
+            //optionsBuilder.UseSqlServer("Server=ROG-ZEPHYRUS-G1\\VIETDUC;Database=VStorage;Uid=sa;Pwd=123456;Trusted_Connection=True;TrustServerCertificate=True");
             optionsBuilder.UseSqlServer("Server=LAPTOP-39B7IASC\\SQLEXPRESS;Database=VStorage;Uid=sa;Pwd=1;Trusted_Connection=True;TrustServerCertificate=True");
             
         }
@@ -512,7 +512,7 @@ public partial class VstorageContext : DbContext
             entity.ToTable("TrackingHistory");
 
             entity.Property(e => e.TrackingHistoryId)
-                .ValueGeneratedNever()
+                .ValueGeneratedOnAdd()
                 .HasColumnName("TrackingHistoryID");
             entity.Property(e => e.ActionType)
                 .HasMaxLength(20)
@@ -551,7 +551,7 @@ public partial class VstorageContext : DbContext
             entity.ToTable("WorkflowStep");
 
             entity.Property(e => e.WorkflowStepId)
-                .ValueGeneratedNever()
+                .ValueGeneratedOnAdd()
                 .HasColumnName("WorkflowStepID");
             entity.Property(e => e.Name)
                 .HasMaxLength(50)
