@@ -8,6 +8,7 @@ using ASMS.Services.Model.WorkflowTemplates;
 using ASMS.Services.Model.Building;
 using ASMS.Services.Model.Role;
 using ASMS.Services.Model;
+using ASMS.Services.Model.Building;
 using AutoMapper;
 
 namespace ASMS.Services.Mappings

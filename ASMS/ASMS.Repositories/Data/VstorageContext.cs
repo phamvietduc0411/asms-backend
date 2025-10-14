@@ -69,23 +69,31 @@ public partial class VstorageContext : DbContext
     {
         modelBuilder.Entity<Building>(entity =>
         {
-            entity.HasKey(e => e.BuildingCode).HasName("PK__Building__D4DA0325D3A2B9AB");
+            entity.HasKey(e => e.BuildingId).HasName("PK_Building");
 
             entity.ToTable("Building");
+
+            entity.Property(e => e.BuildingId)
+                .ValueGeneratedOnAdd();
 
             entity.Property(e => e.BuildingCode)
                 .HasMaxLength(50)
                 .IsUnicode(false);
+
             entity.Property(e => e.Address)
                 .HasMaxLength(200)
                 .IsUnicode(false);
+
             entity.Property(e => e.Area)
                 .HasMaxLength(20)
                 .IsUnicode(false);
+
             entity.Property(e => e.IsActive).HasColumnName("isActive");
+
             entity.Property(e => e.Name)
                 .HasMaxLength(50)
                 .IsUnicode(false);
+
             entity.Property(e => e.Status)
                 .HasMaxLength(10)
                 .IsUnicode(false);
@@ -208,7 +216,7 @@ public partial class VstorageContext : DbContext
             entity.Property(e => e.Address)
                 .HasMaxLength(100)
                 .IsUnicode(false);
-            entity.Property(e => e.BuildingCode)
+            entity.Property(e => e.BuildingId)
                 .HasMaxLength(50)
                 .IsUnicode(false);
             entity.Property(e => e.EmployeeRoleId).HasColumnName("EmployeeRoleID");
@@ -230,7 +238,7 @@ public partial class VstorageContext : DbContext
                 .IsUnicode(false);
 
             entity.HasOne(d => d.BuildingCodeNavigation).WithMany(p => p.Employees)
-                .HasForeignKey(d => d.BuildingCode)
+                .HasForeignKey(d => d.BuildingId)
                 .HasConstraintName("FK__Employee__Buildi__7D439ABD");
 
             entity.HasOne(d => d.EmployeeRole).WithMany(p => p.Employees)
@@ -440,7 +448,7 @@ public partial class VstorageContext : DbContext
             entity.Property(e => e.StorageCode)
                 .HasMaxLength(50)
                 .IsUnicode(false);
-            entity.Property(e => e.BuildingCode)
+            entity.Property(e => e.BuildingId)
                 .HasMaxLength(50)
                 .IsUnicode(false);
             entity.Property(e => e.Height).HasColumnType("decimal(18, 0)");
@@ -454,7 +462,7 @@ public partial class VstorageContext : DbContext
             entity.Property(e => e.Width).HasColumnType("decimal(18, 0)");
 
             entity.HasOne(d => d.BuildingCodeNavigation).WithMany(p => p.Storages)
-                .HasForeignKey(d => d.BuildingCode)
+                .HasForeignKey(d => d.BuildingId)
                 .HasConstraintName("FK__Storage__Buildin__5535A963");
 
             entity.HasOne(d => d.ProductType).WithMany(p => p.Storages)

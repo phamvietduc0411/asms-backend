@@ -9,9 +9,6 @@ namespace ASMS.Repositories.Infrastructures
     {
         private readonly VstorageContext _context;
         private readonly ILogger _logger;
-
-        private readonly ILogger _logger;
-
         public IEmployeeRoleRepository EmployeeRoles { get; private set; }
         public IWorkflowTemplateRepository WorkflowTemplates { get; private set; }
         public IWorkflowStepRepository WorkflowSteps { get; private set; }
@@ -20,6 +17,7 @@ namespace ASMS.Repositories.Infrastructures
         public IStorageBlockRepository StorageBlocks { get; private set; }  
         public IStorageBlockRepository StorageBlocks { get; private set; }
         public IBuildingRepository Building { get; private set; }
+
 
         public UnitOfWork(
             VstorageContext context,
