@@ -14,7 +14,7 @@ namespace ASMS.Repositories.Repositories
     public class EmployeeRoleRepository : GenericRepository<EmployeeRole>, IEmployeeRoleRepository
     {
         public EmployeeRoleRepository(
-            VstorageContext context) : base(context)
+            VstorageContext context, ILogger logger) : base(context,logger)
         {
         }
 

@@ -16,6 +16,11 @@ namespace ASMS.Repositories.Infrastructures
         ITrackingHistoryRepository TrackingHistories { get; }
         IStorageBlockRepository StorageBlocks { get; }
         IBuildingRepository Building { get; }
+        IWorkflowTemplateRepository WorkflowTemplates { get; }
+        IWorkflowStepRepository WorkflowSteps { get; }
+        IServiceRepository Services { get; } 
+        ITrackingHistoryRepository TrackingHistories { get; }
+        IStorageBlockRepository StorageBlocks { get; }
         Task CompleteAsync();
     }
 }

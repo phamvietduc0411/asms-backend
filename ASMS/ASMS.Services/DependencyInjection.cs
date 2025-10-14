@@ -12,6 +12,7 @@ namespace ASMS.Services
         public static IServiceCollection ConfigureServicesLayers(this IServiceCollection services)
         {
             services.AddAutoMapper(cfg => { }, typeof(MappingProfiles).Assembly);
+            services.AddScoped<IBuildingService, BuildingService>();
             services.AddScoped<IEmployeeRoleService, EmployeeRoleService>();
             services.AddScoped<IServiceService, ServiceService>();
             services.AddScoped<IStorageBlockService, StorageBlockService>();

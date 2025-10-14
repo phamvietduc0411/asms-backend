@@ -7,6 +7,7 @@ namespace ASMS.Repositories.Infrastructures
     public class UnitOfWork : IUnitOfWork
     {
         private readonly VstorageContext _context;
+        private readonly ILogger _logger;
 
         public IEmployeeRoleRepository EmployeeRoles { get; private set; }
         public IWorkflowTemplateRepository WorkflowTemplates { get; private set; }
@@ -14,11 +15,11 @@ namespace ASMS.Repositories.Infrastructures
         public IServiceRepository Services { get; private set; }
         public ITrackingHistoryRepository TrackingHistories { get; private set; }
         public IStorageBlockRepository StorageBlocks { get; private set; }  
-
+        public IStorageBlockRepository StorageBlocks { get; private set; }
         public IBuildingRepository Building { get; private set; }
 
         public UnitOfWork(
-            VstorageContext context)
+            VstorageContext context, ILoggerFactory loggerFactory)
         {
             _context = context;
             _logger = loggerFactory.CreateLogger("logs");
@@ -28,8 +29,7 @@ namespace ASMS.Repositories.Infrastructures
             Services = new ServiceRepository(_context, _logger);
             TrackingHistories = new TrackingHistoryRepository(_context, _logger);   
             StorageBlocks = new StorageBlockRepository(_context, _logger);  
-            EmployeeRoles = new EmployeeRoleRepository(_context);
-            Building = new BuildingRepository(_context);
+            Building = new BuildingRepository(_context, _logger);
         }
         public async Task CompleteAsync() => await _context.SaveChangesAsync();
     }
