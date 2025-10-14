@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ASMS.Repositories.Entities;
-using ASMS.Services.Model.Role;
+using ASMS.Services.Model;
 
 namespace ASMS.Services.Interfaces
 {

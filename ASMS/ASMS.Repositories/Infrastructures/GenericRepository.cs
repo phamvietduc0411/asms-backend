@@ -11,14 +11,16 @@ namespace ASMS.Repositories.Infrastructures
 {
     public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEntity : class
     {
-        protected readonly VstorageContext _context;
-        protected readonly DbSet<TEntity> _dbSet; 
+        protected VstorageContext _context;
+        protected DbSet<TEntity> _dbSet;
         protected readonly ILogger _logger;
 
         public GenericRepository(
-            VstorageContext context, ILogger logger)
+            VstorageContext context,
+            ILogger logger)
         {
             _context = context;
+            _logger = logger;
             _dbSet = _context.Set<TEntity>();
         }
         public virtual async Task<TEntity> AddAsync(TEntity entity)

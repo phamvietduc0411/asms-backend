@@ -7,7 +7,7 @@ public partial class Storage
 {
     public string StorageCode { get; set; } = null!;
 
-    public int BuildingId { get; set; }
+    public string? BuildingCode { get; set; }
 
     public int? StorageTypeId { get; set; }
 

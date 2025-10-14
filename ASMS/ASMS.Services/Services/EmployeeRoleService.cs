@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using ASMS.Repositories.Entities;
 using ASMS.Repositories.Infrastructures;
 using ASMS.Services.Interfaces;
-using ASMS.Services.Model.Role;
+using ASMS.Services.Model;
 using AutoMapper;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -33,10 +33,10 @@ namespace ASMS.Services.Services
 
         public async Task<EmployeeRole> AddRoleAsync(CreateRoleRequest role)
         {
-            var newRole = _mapper.Map<EmployeeRole>(role);
-            await _unitOfWork.EmployeeRoles.AddAsync(newRole);
+            var entity = _mapper.Map<EmployeeRole>(role);
+            await _unitOfWork.EmployeeRoles.AddAsync(entity);
             await _unitOfWork.CompleteAsync();
-            return newRole;
+            return entity;
         }
 
         public async Task<EmployeeRole> UpdateRoleAsync(EmployeeRole role)

@@ -1,12 +1,15 @@
 ﻿using ASMS.Repositories.Data;
 using ASMS.Repositories.Interfaces;
 using ASMS.Repositories.Repositories;
+using Microsoft.Extensions.Logging;
 
 namespace ASMS.Repositories.Infrastructures
 {
     public class UnitOfWork : IUnitOfWork
     {
         private readonly VstorageContext _context;
+        private readonly ILogger _logger;
+
         private readonly ILogger _logger;
 
         public IEmployeeRoleRepository EmployeeRoles { get; private set; }
@@ -19,7 +22,8 @@ namespace ASMS.Repositories.Infrastructures
         public IBuildingRepository Building { get; private set; }
 
         public UnitOfWork(
-            VstorageContext context, ILoggerFactory loggerFactory)
+            VstorageContext context,
+            ILoggerFactory loggerFactory)
         {
             _context = context;
             _logger = loggerFactory.CreateLogger("logs");
@@ -30,6 +34,7 @@ namespace ASMS.Repositories.Infrastructures
             TrackingHistories = new TrackingHistoryRepository(_context, _logger);   
             StorageBlocks = new StorageBlockRepository(_context, _logger);  
             Building = new BuildingRepository(_context, _logger);
+
         }
         public async Task CompleteAsync() => await _context.SaveChangesAsync();
     }

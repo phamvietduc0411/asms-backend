@@ -24,11 +24,10 @@ namespace ASMS.Repositories.Migrations
 
             modelBuilder.Entity("ASMS.Repositories.Entities.Building", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    b.Property<string>("BuildingCode")
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
 
                     b.Property<string>("Address")
                         .HasMaxLength(200)
@@ -39,12 +38,6 @@ namespace ASMS.Repositories.Migrations
                         .HasMaxLength(20)
                         .IsUnicode(false)
                         .HasColumnType("varchar(20)");
-
-                    b.Property<string>("BuildingCode")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(50)");
 
                     b.Property<int?>("FloorQuantity")
                         .HasColumnType("int");
@@ -63,8 +56,8 @@ namespace ASMS.Repositories.Migrations
                         .IsUnicode(false)
                         .HasColumnType("varchar(10)");
 
-                    b.HasKey("Id")
-                        .HasName("PK__Building__ID");
+                    b.HasKey("BuildingCode")
+                        .HasName("PK__Building__D4DA0325D3A2B9AB");
 
                     b.ToTable("Building", (string)null);
                 });
@@ -240,9 +233,10 @@ namespace ASMS.Repositories.Migrations
                         .IsUnicode(false)
                         .HasColumnType("varchar(100)");
 
-                    b.Property<int?>("BuildingId")
-                        .HasColumnType("int")
-                        .HasColumnName("BuildingId");
+                    b.Property<string>("BuildingCode")
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
 
                     b.Property<int?>("EmployeeRoleId")
                         .HasColumnType("int")
@@ -280,7 +274,7 @@ namespace ASMS.Repositories.Migrations
                     b.HasKey("EmployeeCode")
                         .HasName("PK__Employee__1F642549B4A50CB4");
 
-                    b.HasIndex("BuildingId");
+                    b.HasIndex("BuildingCode");
 
                     b.HasIndex("EmployeeRoleId");
 
@@ -584,9 +578,10 @@ namespace ASMS.Repositories.Migrations
                         .IsUnicode(false)
                         .HasColumnType("varchar(50)");
 
-                    b.Property<int>("BuildingId")
-                        .HasColumnType("int")
-                        .HasColumnName("BuildingId");
+                    b.Property<string>("BuildingCode")
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
 
                     b.Property<decimal?>("Height")
                         .HasColumnType("decimal(18, 0)");
@@ -617,7 +612,7 @@ namespace ASMS.Repositories.Migrations
                     b.HasKey("StorageCode")
                         .HasName("PK__Storage__AD8F8BC7D5ABE087");
 
-                    b.HasIndex("BuildingId");
+                    b.HasIndex("BuildingCode");
 
                     b.HasIndex("ProductTypeId");
 
@@ -826,7 +821,7 @@ namespace ASMS.Repositories.Migrations
                 {
                     b.HasOne("ASMS.Repositories.Entities.Building", "BuildingCodeNavigation")
                         .WithMany("Employees")
-                        .HasForeignKey("BuildingId")
+                        .HasForeignKey("BuildingCode")
                         .HasConstraintName("FK__Employee__Buildi__7D439ABD");
 
                     b.HasOne("ASMS.Repositories.Entities.EmployeeRole", "EmployeeRole")
@@ -914,18 +909,18 @@ namespace ASMS.Repositories.Migrations
                 {
                     b.HasOne("ASMS.Repositories.Entities.Building", "BuildingCodeNavigation")
                         .WithMany("Storages")
-                        .HasForeignKey("BuildingId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_Storage_Building");
+                        .HasForeignKey("BuildingCode")
+                        .HasConstraintName("FK__Storage__Buildin__5535A963");
 
                     b.HasOne("ASMS.Repositories.Entities.ProductType", "ProductType")
                         .WithMany("Storages")
-                        .HasForeignKey("ProductTypeId");
+                        .HasForeignKey("ProductTypeId")
+                        .HasConstraintName("FK__Storage__Product__571DF1D5");
 
                     b.HasOne("ASMS.Repositories.Entities.StorageType", "StorageType")
                         .WithMany("Storages")
-                        .HasForeignKey("StorageTypeId");
+                        .HasForeignKey("StorageTypeId")
+                        .HasConstraintName("FK__Storage__Storage__5629CD9C");
 
                     b.Navigation("BuildingCodeNavigation");
 

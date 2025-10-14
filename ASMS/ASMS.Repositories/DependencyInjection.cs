@@ -1,7 +1,5 @@
 ﻿using ASMS.Repositories.Data;
 using ASMS.Repositories.Infrastructures;
-using ASMS.Repositories.Interfaces;
-using ASMS.Repositories.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ASMS.Services

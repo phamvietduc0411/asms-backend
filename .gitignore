@@ -365,4 +365,4 @@ FodyWeavers.xsd
 # Appsettings secrets file
 appsettings.Development.json
 appsettings.Production.jsons
-appsettings.json
+appsettings.jsons

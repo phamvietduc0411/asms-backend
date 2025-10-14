@@ -15,8 +15,6 @@ namespace ASMS.Repositories.Migrations
                 name: "Building",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
                     BuildingCode = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: false),
                     Name = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
                     Area = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: true),
@@ -27,7 +25,7 @@ namespace ASMS.Repositories.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK__Building__ID", x => x.Id);
+                    table.PrimaryKey("PK__Building__D4DA0325D3A2B9AB", x => x.BuildingCode);
                 });
 
             migrationBuilder.CreateTable(
@@ -131,7 +129,7 @@ namespace ASMS.Repositories.Migrations
                     EmployeeCode = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: false),
                     EmployeeRoleID = table.Column<int>(type: "int", nullable: true),
                     Name = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
-                    BuildingId = table.Column<int>(type: "int", nullable: true),
+                    BuildingCode = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
                     Phone = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: true),
                     Address = table.Column<string>(type: "varchar(100)", unicode: false, maxLength: 100, nullable: true),
                     Username = table.Column<string>(type: "varchar(100)", unicode: false, maxLength: 100, nullable: true),
@@ -144,9 +142,9 @@ namespace ASMS.Repositories.Migrations
                     table.PrimaryKey("PK__Employee__1F642549B4A50CB4", x => x.EmployeeCode);
                     table.ForeignKey(
                         name: "FK__Employee__Buildi__7D439ABD",
-                        column: x => x.BuildingId,
+                        column: x => x.BuildingCode,
                         principalTable: "Building",
-                        principalColumn: "Id");
+                        principalColumn: "BuildingCode");
                     table.ForeignKey(
                         name: "FK__Employee__Employ__7C4F7684",
                         column: x => x.EmployeeRoleID,
@@ -181,7 +179,7 @@ namespace ASMS.Repositories.Migrations
                 columns: table => new
                 {
                     StorageCode = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: false),
-                    BuildingId = table.Column<int>(type: "int", nullable: false),
+                    BuildingCode = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
                     StorageTypeID = table.Column<int>(type: "int", nullable: true),
                     ProductTypeID = table.Column<int>(type: "int", nullable: true),
                     Length = table.Column<decimal>(type: "decimal(18,0)", nullable: true),
@@ -194,18 +192,17 @@ namespace ASMS.Repositories.Migrations
                 {
                     table.PrimaryKey("PK__Storage__AD8F8BC7D5ABE087", x => x.StorageCode);
                     table.ForeignKey(
-                        name: "FK_Storage_Building",
-                        column: x => x.BuildingId,
+                        name: "FK__Storage__Buildin__5535A963",
+                        column: x => x.BuildingCode,
                         principalTable: "Building",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "BuildingCode");
                     table.ForeignKey(
-                        name: "FK_Storage_ProductType_ProductTypeID",
+                        name: "FK__Storage__Product__571DF1D5",
                         column: x => x.ProductTypeID,
                         principalTable: "ProductType",
                         principalColumn: "ProductTypeID");
                     table.ForeignKey(
-                        name: "FK_Storage_StorageType_StorageTypeID",
+                        name: "FK__Storage__Storage__5629CD9C",
                         column: x => x.StorageTypeID,
                         principalTable: "StorageType",
                         principalColumn: "StorageTypeID");
@@ -463,9 +460,9 @@ namespace ASMS.Repositories.Migrations
                 column: "ProductTypeID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Employee_BuildingId",
+                name: "IX_Employee_BuildingCode",
                 table: "Employee",
-                column: "BuildingId");
+                column: "BuildingCode");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Employee_EmployeeRoleID",
@@ -513,9 +510,9 @@ namespace ASMS.Repositories.Migrations
                 column: "StorageCode");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Storage_BuildingId",
+                name: "IX_Storage_BuildingCode",
                 table: "Storage",
-                column: "BuildingId");
+                column: "BuildingCode");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Storage_ProductTypeID",

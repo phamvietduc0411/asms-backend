@@ -1,4 +1,4 @@
-﻿namespace ASMS.Services.Model.Role
+﻿namespace ASMS.Services.Model
 {
     public class CreateRoleRequest
     {
