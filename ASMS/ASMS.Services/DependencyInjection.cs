@@ -13,6 +13,11 @@ namespace ASMS.Services
         {
             services.AddAutoMapper(cfg => { }, typeof(MappingProfiles).Assembly);
             services.AddScoped<IEmployeeRoleService, EmployeeRoleService>();
+            services.AddScoped<IServiceService, ServiceService>();
+            services.AddScoped<IStorageBlockService, StorageBlockService>();
+            services.AddScoped<ITrackingHistoryService, TrackingHistoryService>();
+            services.AddScoped<IWorkflowStepService, WorkflowStepService>();
+            services.AddScoped<IWorkflowTemplateService, WorkflowTemplateService>();
             return services;
         }
     }

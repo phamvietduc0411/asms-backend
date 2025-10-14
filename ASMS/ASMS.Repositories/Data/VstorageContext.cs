@@ -20,6 +20,8 @@ public partial class VstorageContext : DbContext
         if (!optionsBuilder.IsConfigured)
         {
             optionsBuilder.UseSqlServer("Server=ROG-ZEPHYRUS-G1\\VIETDUC;Database=VStorage;Uid=sa;Pwd=123456;Trusted_Connection=True;TrustServerCertificate=True");
+            optionsBuilder.UseSqlServer("Server=LAPTOP-39B7IASC\\SQLEXPRESS;Database=VStorage;Uid=sa;Pwd=1;Trusted_Connection=True;TrustServerCertificate=True");
+            
         }
     }
 
