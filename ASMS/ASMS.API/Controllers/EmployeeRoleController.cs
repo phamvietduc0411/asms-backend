@@ -1,5 +1,5 @@
 ﻿using ASMS.Services.Interfaces;
-using ASMS.Services.Model;
+using ASMS.Services.Model.Role;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ASMS.API.Controllers
@@ -70,7 +70,7 @@ namespace ASMS.API.Controllers
             });
         }
 
-        [HttpPut("{id}/delete")]
+        [HttpDelete("{id}/delete")]
         public async Task<IActionResult> SoftDeleteAsync(int id)
         {
             var existingRole = await _employeeRoleService.GetByIdAsync(id);

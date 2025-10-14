@@ -5,6 +5,7 @@ namespace ASMS.Repositories.Entities;
 
 public partial class Building
 {
+    public int Id { get; set; }
     public string BuildingCode { get; set; } = null!;
 
     public string? Name { get; set; }

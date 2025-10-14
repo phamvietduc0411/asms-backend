@@ -15,6 +15,7 @@ namespace ASMS.Repositories.Infrastructures
         IServiceRepository Services { get; } 
         ITrackingHistoryRepository TrackingHistories { get; }
         IStorageBlockRepository StorageBlocks { get; }
+        IBuildingRepository Building { get; }
         Task CompleteAsync();
     }
 }

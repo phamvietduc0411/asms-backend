@@ -5,6 +5,8 @@ using ASMS.Services.Model.StorageBlocks;
 using ASMS.Services.Model.TrackingHistories;
 using ASMS.Services.Model.WorkflowSteps;
 using ASMS.Services.Model.WorkflowTemplates;
+using ASMS.Services.Model.Building;
+using ASMS.Services.Model.Role;
 using AutoMapper;
 
 namespace ASMS.Services.Mappings
@@ -17,7 +19,6 @@ namespace ASMS.Services.Mappings
             CreateMap<CreateRoleRequest, EmployeeRole>();
             CreateMap<UpdateRoleRequest, EmployeeRole>();
             #endregion
-
             #region WorkflowTemplate
             CreateMap<WorkflowTemplate, WorkflowTemplateResponse>()
                 .ForMember(dest => dest.StorageTypeName,
@@ -76,6 +77,11 @@ namespace ASMS.Services.Mappings
                 .ForMember(d => d.StorageBlockCode, o => o.Ignore())
                 .ForMember(d => d.StorageCodeNavigation, o => o.Ignore())
                 .ForAllMembers(o => o.Condition((src, dest, srcMember) => srcMember != null));
+            #region Building
+            CreateMap<CreateBuildingRequest, Building>()
+                .ForMember(b => b.BuildingCode, bl => bl.MapFrom(src => src.BuildingCode));
+            CreateMap<UpdateBuildingRequest, Building>()
+                .ForMember(b => b.BuildingCode, bl => bl.MapFrom(src => src.BuildingCode));
             #endregion
         }
 

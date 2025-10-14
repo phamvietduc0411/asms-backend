@@ -69,27 +69,37 @@ public partial class VstorageContext : DbContext
     {
         modelBuilder.Entity<Building>(entity =>
         {
-            entity.HasKey(e => e.BuildingCode).HasName("PK__Building__D4DA0325D3A2B9AB");
+            entity.HasKey(e => e.Id).HasName("PK__Building__ID");
 
             entity.ToTable("Building");
+
+            entity.Property(e => e.Id)
+                .ValueGeneratedOnAdd();
 
             entity.Property(e => e.BuildingCode)
                 .HasMaxLength(50)
                 .IsUnicode(false);
+
             entity.Property(e => e.Address)
                 .HasMaxLength(200)
                 .IsUnicode(false);
+
             entity.Property(e => e.Area)
                 .HasMaxLength(20)
                 .IsUnicode(false);
-            entity.Property(e => e.IsActive).HasColumnName("isActive");
+
+            entity.Property(e => e.IsActive)
+                .HasColumnName("isActive");
+
             entity.Property(e => e.Name)
                 .HasMaxLength(50)
                 .IsUnicode(false);
+
             entity.Property(e => e.Status)
                 .HasMaxLength(10)
                 .IsUnicode(false);
         });
+
 
         modelBuilder.Entity<Container>(entity =>
         {
@@ -198,42 +208,56 @@ public partial class VstorageContext : DbContext
 
         modelBuilder.Entity<Employee>(entity =>
         {
-            entity.HasKey(e => e.EmployeeCode).HasName("PK__Employee__1F642549B4A50CB4");
+            entity.HasKey(e => e.EmployeeCode)
+                .HasName("PK__Employee__1F642549B4A50CB4");
 
             entity.ToTable("Employee");
 
             entity.Property(e => e.EmployeeCode)
                 .HasMaxLength(50)
                 .IsUnicode(false);
+
             entity.Property(e => e.Address)
                 .HasMaxLength(100)
                 .IsUnicode(false);
-            entity.Property(e => e.BuildingCode)
-                .HasMaxLength(50)
-                .IsUnicode(false);
-            entity.Property(e => e.EmployeeRoleId).HasColumnName("EmployeeRoleID");
-            entity.Property(e => e.IsActive).HasColumnName("isActive");
+
+            // BuildingId là khóa ngoại (int)
+            entity.Property(e => e.BuildingId)
+                .HasColumnName("BuildingId");
+
+            entity.Property(e => e.EmployeeRoleId)
+                .HasColumnName("EmployeeRoleID");
+
+            entity.Property(e => e.IsActive)
+                .HasColumnName("isActive");
+
             entity.Property(e => e.Name)
                 .HasMaxLength(50)
                 .IsUnicode(false);
+
             entity.Property(e => e.Password)
                 .HasMaxLength(50)
                 .IsUnicode(false);
+
             entity.Property(e => e.Phone)
                 .HasMaxLength(20)
                 .IsUnicode(false);
+
             entity.Property(e => e.Status)
                 .HasMaxLength(10)
                 .IsUnicode(false);
+
             entity.Property(e => e.Username)
                 .HasMaxLength(100)
                 .IsUnicode(false);
 
-            entity.HasOne(d => d.BuildingCodeNavigation).WithMany(p => p.Employees)
-                .HasForeignKey(d => d.BuildingCode)
+            entity.HasOne(d => d.BuildingCodeNavigation)
+                .WithMany(p => p.Employees)
+                .HasForeignKey(d => d.BuildingId)
                 .HasConstraintName("FK__Employee__Buildi__7D439ABD");
 
-            entity.HasOne(d => d.EmployeeRole).WithMany(p => p.Employees)
+            entity.HasOne(d => d.EmployeeRole)
+                .WithMany(p => p.Employees)
                 .HasForeignKey(d => d.EmployeeRoleId)
                 .HasConstraintName("FK__Employee__Employ__7C4F7684");
         });
@@ -440,9 +464,9 @@ public partial class VstorageContext : DbContext
             entity.Property(e => e.StorageCode)
                 .HasMaxLength(50)
                 .IsUnicode(false);
-            entity.Property(e => e.BuildingCode)
-                .HasMaxLength(50)
-                .IsUnicode(false);
+
+            entity.Property(e => e.BuildingId).HasColumnName("BuildingId");
+
             entity.Property(e => e.Height).HasColumnType("decimal(18, 0)");
             entity.Property(e => e.IsActive).HasColumnName("isActive");
             entity.Property(e => e.Length).HasColumnType("decimal(18, 0)");
@@ -453,18 +477,12 @@ public partial class VstorageContext : DbContext
             entity.Property(e => e.StorageTypeId).HasColumnName("StorageTypeID");
             entity.Property(e => e.Width).HasColumnType("decimal(18, 0)");
 
-            entity.HasOne(d => d.BuildingCodeNavigation).WithMany(p => p.Storages)
-                .HasForeignKey(d => d.BuildingCode)
-                .HasConstraintName("FK__Storage__Buildin__5535A963");
-
-            entity.HasOne(d => d.ProductType).WithMany(p => p.Storages)
-                .HasForeignKey(d => d.ProductTypeId)
-                .HasConstraintName("FK__Storage__Product__571DF1D5");
-
-            entity.HasOne(d => d.StorageType).WithMany(p => p.Storages)
-                .HasForeignKey(d => d.StorageTypeId)
-                .HasConstraintName("FK__Storage__Storage__5629CD9C");
+            entity.HasOne(d => d.BuildingCodeNavigation)
+                .WithMany(p => p.Storages)
+                .HasForeignKey(d => d.BuildingId)
+                .HasConstraintName("FK_Storage_Building"); 
         });
+
 
         modelBuilder.Entity<StorageBlock>(entity =>
         {

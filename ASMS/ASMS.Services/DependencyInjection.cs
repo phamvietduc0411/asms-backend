@@ -18,6 +18,7 @@ namespace ASMS.Services
             services.AddScoped<ITrackingHistoryService, TrackingHistoryService>();
             services.AddScoped<IWorkflowStepService, WorkflowStepService>();
             services.AddScoped<IWorkflowTemplateService, WorkflowTemplateService>();
+            services.AddScoped<IBuildingService, BuildingService>();
             return services;
         }
     }

@@ -1,5 +1,7 @@
 ﻿using ASMS.Repositories.Data;
 using ASMS.Repositories.Infrastructures;
+using ASMS.Repositories.Interfaces;
+using ASMS.Repositories.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ASMS.Services
@@ -13,6 +15,7 @@ namespace ASMS.Services
             services.AddScoped<VstorageContext>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
+            services.AddScoped<IBuildingRepository, BuildingRepository>();
             return services;
         }
     }
