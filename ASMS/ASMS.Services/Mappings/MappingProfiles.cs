@@ -13,6 +13,7 @@ using ASMS.Services.Model.FloorBlocks;
 using ASMS.Services.Model.ContainerType;
 using ASMS.Services.Model.Shelves;
 using ASMS.Services.Model.ContainerLocationLog;
+using ASMS.Services.Model.OrderDetail;
 using ASMS.Services.Model.Container;
 
 namespace ASMS.Services.Mappings
@@ -135,6 +136,14 @@ namespace ASMS.Services.Mappings
                 .ForMember(dest => dest.ContainerLocationLogId, opt => opt.Ignore())
                 .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
             CreateMap<ContainerLocationLog, ContainerLocationLogResponse>();
+            #endregion
+
+            #region OrderDetail
+            CreateMap<CreateOrderDetailRequest, OrderDetail>();
+            CreateMap<UpdateOrderDetailRequest, OrderDetail>()
+                .ForMember(dest => dest.OrderDetailId, opt => opt.Ignore())
+                .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
+            CreateMap<OrderDetail, OrderDetailResponse>();
             #endregion
             #region Container
             CreateMap<Container, ContainerResponse>()

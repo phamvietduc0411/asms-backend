@@ -27,6 +27,7 @@ namespace ASMS.Services
             services.AddScoped<IShelfService, ShelfService>();
             services.AddScoped<IContainerLocationLogService, ContainerLocationLogService>();
             services.AddScoped<IContainerService, ContainerService>();
+            services.AddScoped<IOrderDetailService, OrderDetailService>();
             return services;
         }
     }
