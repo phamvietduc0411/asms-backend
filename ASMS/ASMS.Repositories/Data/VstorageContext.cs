@@ -161,7 +161,7 @@ public partial class VstorageContext : DbContext
             entity.ToTable("ContainerType");
 
             entity.Property(e => e.ContainerTypeId)
-                .ValueGeneratedNever()
+                .ValueGeneratedOnAdd()
                 .HasColumnName("ContainerTypeID");
             entity.Property(e => e.IsActive).HasColumnName("isActive");
             entity.Property(e => e.Name)

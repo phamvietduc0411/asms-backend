@@ -10,6 +10,7 @@ using ASMS.Services.Model.WorkflowSteps;
 using ASMS.Services.Model.WorkflowTemplates;
 using AutoMapper;
 using ASMS.Services.Model.FloorBlocks;
+using ASMS.Services.Model.ContainerType;
 
 namespace ASMS.Services.Mappings
 {
@@ -88,12 +89,15 @@ namespace ASMS.Services.Mappings
             CreateMap<CreateTypeRequest, ProductType>();
             CreateMap<UpdateTypeRequest, ProductType>();
             #endregion
-
             #region Floor
             CreateMap<CreateFloorRequest, Floor>();
             CreateMap<UpdateFloorRequest, Floor>()
                 .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
             CreateMap<Floor, FloorResponse>();
+            #endregion
+            #region Container Type
+            CreateMap<CreateContainerTypeRequest, ContainerType>();
+            CreateMap<UpdateContainerTypeRequest, ContainerType>();
             #endregion
 
             #region FloorBlock
