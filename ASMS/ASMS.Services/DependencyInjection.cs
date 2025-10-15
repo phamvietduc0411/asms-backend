@@ -25,6 +25,7 @@ namespace ASMS.Services
             services.AddScoped<IFloorBlockService, FloorBlockService>();
             services.AddScoped<IContainerTypeService, ContainerTypeService>();
             services.AddScoped<IShelfService, ShelfService>();
+            services.AddScoped<IContainerLocationLogService, ContainerLocationLogService>();
             return services;
         }
     }

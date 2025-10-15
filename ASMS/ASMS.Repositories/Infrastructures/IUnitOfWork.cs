@@ -21,6 +21,8 @@ namespace ASMS.Repositories.Infrastructures
         IContainerTypeRepository ContainerType { get; }
         IFloorBlockRepository FloorBlocks { get; }
         IShelfRepository Shelves { get; }
+        IContainerLocationLogRepository ContainerLocationLogs { get; }
+
         Task CompleteAsync();
     }
 }
