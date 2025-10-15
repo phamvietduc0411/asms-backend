@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ASMS.Repositories.Data;
+﻿using ASMS.Repositories.Data;
 using ASMS.Repositories.Interfaces;
 using ASMS.Repositories.Repositories;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace ASMS.Repositories.Infrastructures
@@ -14,19 +8,30 @@ namespace ASMS.Repositories.Infrastructures
     public class UnitOfWork : IUnitOfWork
     {
         private readonly VstorageContext _context;
-
         private readonly ILogger _logger;
-
         public IEmployeeRoleRepository EmployeeRoles { get; private set; }
+        public IWorkflowTemplateRepository WorkflowTemplates { get; private set; }
+        public IWorkflowStepRepository WorkflowSteps { get; private set; }
+        public IServiceRepository Services { get; private set; }
+        public ITrackingHistoryRepository TrackingHistories { get; private set; }
+        public IStorageBlockRepository StorageBlocks { get; private set; }  
+        public IBuildingRepository Building { get; private set; }
+
 
         public UnitOfWork(
             VstorageContext context,
             ILoggerFactory loggerFactory)
         {
             _context = context;
-
             _logger = loggerFactory.CreateLogger("logs");
             EmployeeRoles = new EmployeeRoleRepository(_context, _logger);
+            WorkflowTemplates = new WorkflowTemplateRepository(_context, _logger);
+            WorkflowSteps = new WorkflowStepRepository(_context, _logger);
+            Services = new ServiceRepository(_context, _logger);
+            TrackingHistories = new TrackingHistoryRepository(_context, _logger);   
+            StorageBlocks = new StorageBlockRepository(_context, _logger);  
+            Building = new BuildingRepository(_context, _logger);
+
         }
         public async Task CompleteAsync() => await _context.SaveChangesAsync();
     }

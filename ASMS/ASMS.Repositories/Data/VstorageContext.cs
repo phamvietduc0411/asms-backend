@@ -15,6 +15,15 @@ public partial class VstorageContext : DbContext
         : base(options)
     {
     }
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        if (!optionsBuilder.IsConfigured)
+        {
+            optionsBuilder.UseSqlServer("Server=ROG-ZEPHYRUS-G1\\VIETDUC;Database=VStorage;Uid=sa;Pwd=123456;Trusted_Connection=True;TrustServerCertificate=True");
+            //optionsBuilder.UseSqlServer("Server=LAPTOP-39B7IASC\\SQLEXPRESS;Database=VStorage;Uid=sa;Pwd=1;Trusted_Connection=True;TrustServerCertificate=True");
+            
+        }
+    }
 
     public virtual DbSet<Building> Buildings { get; set; }
 
@@ -56,31 +65,35 @@ public partial class VstorageContext : DbContext
 
     public virtual DbSet<WorkflowTemplate> WorkflowTemplates { get; set; }
 
-//    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-//#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-//        => optionsBuilder.UseSqlServer("Server=LAPTOP-39B7IASC\\SQLEXPRESS;Database=VStorage;Uid=sa;Pwd=1;Trusted_Connection=True;TrustServerCertificate=True;");
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Building>(entity =>
         {
-            entity.HasKey(e => e.BuildingCode).HasName("PK__Building__D4DA0325D3A2B9AB");
+            entity.HasKey(e => e.BuildingId).HasName("PK_Building");
 
             entity.ToTable("Building");
+
+            entity.Property(e => e.BuildingId)
+                .ValueGeneratedOnAdd();
 
             entity.Property(e => e.BuildingCode)
                 .HasMaxLength(50)
                 .IsUnicode(false);
+
             entity.Property(e => e.Address)
                 .HasMaxLength(200)
                 .IsUnicode(false);
+
             entity.Property(e => e.Area)
                 .HasMaxLength(20)
                 .IsUnicode(false);
+
             entity.Property(e => e.IsActive).HasColumnName("isActive");
+
             entity.Property(e => e.Name)
                 .HasMaxLength(50)
                 .IsUnicode(false);
+
             entity.Property(e => e.Status)
                 .HasMaxLength(10)
                 .IsUnicode(false);
@@ -203,7 +216,7 @@ public partial class VstorageContext : DbContext
             entity.Property(e => e.Address)
                 .HasMaxLength(100)
                 .IsUnicode(false);
-            entity.Property(e => e.BuildingCode)
+            entity.Property(e => e.BuildingId)
                 .HasMaxLength(50)
                 .IsUnicode(false);
             entity.Property(e => e.EmployeeRoleId).HasColumnName("EmployeeRoleID");
@@ -225,7 +238,7 @@ public partial class VstorageContext : DbContext
                 .IsUnicode(false);
 
             entity.HasOne(d => d.BuildingCodeNavigation).WithMany(p => p.Employees)
-                .HasForeignKey(d => d.BuildingCode)
+                .HasForeignKey(d => d.BuildingId)
                 .HasConstraintName("FK__Employee__Buildi__7D439ABD");
 
             entity.HasOne(d => d.EmployeeRole).WithMany(p => p.Employees)
@@ -240,7 +253,7 @@ public partial class VstorageContext : DbContext
             entity.ToTable("EmployeeRole");
 
             entity.Property(e => e.EmployeeRoleId)
-                .ValueGeneratedNever()
+                .ValueGeneratedOnAdd()
                 .HasColumnName("EmployeeRoleID");
             entity.Property(e => e.IsActive).HasColumnName("isActive");
             entity.Property(e => e.Name)
@@ -435,7 +448,7 @@ public partial class VstorageContext : DbContext
             entity.Property(e => e.StorageCode)
                 .HasMaxLength(50)
                 .IsUnicode(false);
-            entity.Property(e => e.BuildingCode)
+            entity.Property(e => e.BuildingId)
                 .HasMaxLength(50)
                 .IsUnicode(false);
             entity.Property(e => e.Height).HasColumnType("decimal(18, 0)");
@@ -449,7 +462,7 @@ public partial class VstorageContext : DbContext
             entity.Property(e => e.Width).HasColumnType("decimal(18, 0)");
 
             entity.HasOne(d => d.BuildingCodeNavigation).WithMany(p => p.Storages)
-                .HasForeignKey(d => d.BuildingCode)
+                .HasForeignKey(d => d.BuildingId)
                 .HasConstraintName("FK__Storage__Buildin__5535A963");
 
             entity.HasOne(d => d.ProductType).WithMany(p => p.Storages)
@@ -507,7 +520,7 @@ public partial class VstorageContext : DbContext
             entity.ToTable("TrackingHistory");
 
             entity.Property(e => e.TrackingHistoryId)
-                .ValueGeneratedNever()
+                .ValueGeneratedOnAdd()
                 .HasColumnName("TrackingHistoryID");
             entity.Property(e => e.ActionType)
                 .HasMaxLength(20)
@@ -546,7 +559,7 @@ public partial class VstorageContext : DbContext
             entity.ToTable("WorkflowStep");
 
             entity.Property(e => e.WorkflowStepId)
-                .ValueGeneratedNever()
+                .ValueGeneratedOnAdd()
                 .HasColumnName("WorkflowStepID");
             entity.Property(e => e.Name)
                 .HasMaxLength(50)

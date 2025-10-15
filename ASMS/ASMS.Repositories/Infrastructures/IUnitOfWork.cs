@@ -10,6 +10,12 @@ namespace ASMS.Repositories.Infrastructures
     public interface IUnitOfWork
     {
         IEmployeeRoleRepository EmployeeRoles { get; }
+        IWorkflowTemplateRepository WorkflowTemplates { get; }
+        IWorkflowStepRepository WorkflowSteps { get; }
+        IServiceRepository Services { get; } 
+        ITrackingHistoryRepository TrackingHistories { get; }
+        IStorageBlockRepository StorageBlocks { get; }
+        IBuildingRepository Building { get; }
         Task CompleteAsync();
     }
 }

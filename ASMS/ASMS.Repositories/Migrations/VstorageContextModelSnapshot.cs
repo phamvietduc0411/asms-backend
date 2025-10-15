@@ -24,10 +24,11 @@ namespace ASMS.Repositories.Migrations
 
             modelBuilder.Entity("ASMS.Repositories.Entities.Building", b =>
                 {
-                    b.Property<string>("BuildingCode")
-                        .HasMaxLength(50)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(50)");
+                    b.Property<int>("BuildingId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BuildingId"));
 
                     b.Property<string>("Address")
                         .HasMaxLength(200)
@@ -38,6 +39,12 @@ namespace ASMS.Repositories.Migrations
                         .HasMaxLength(20)
                         .IsUnicode(false)
                         .HasColumnType("varchar(20)");
+
+                    b.Property<string>("BuildingCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
 
                     b.Property<int?>("FloorQuantity")
                         .HasColumnType("int");
@@ -56,8 +63,8 @@ namespace ASMS.Repositories.Migrations
                         .IsUnicode(false)
                         .HasColumnType("varchar(10)");
 
-                    b.HasKey("BuildingCode")
-                        .HasName("PK__Building__D4DA0325D3A2B9AB");
+                    b.HasKey("BuildingId")
+                        .HasName("PK_Building");
 
                     b.ToTable("Building", (string)null);
                 });
@@ -233,10 +240,10 @@ namespace ASMS.Repositories.Migrations
                         .IsUnicode(false)
                         .HasColumnType("varchar(100)");
 
-                    b.Property<string>("BuildingCode")
+                    b.Property<int?>("BuildingId")
                         .HasMaxLength(50)
                         .IsUnicode(false)
-                        .HasColumnType("varchar(50)");
+                        .HasColumnType("int");
 
                     b.Property<int?>("EmployeeRoleId")
                         .HasColumnType("int")
@@ -274,7 +281,7 @@ namespace ASMS.Repositories.Migrations
                     b.HasKey("EmployeeCode")
                         .HasName("PK__Employee__1F642549B4A50CB4");
 
-                    b.HasIndex("BuildingCode");
+                    b.HasIndex("BuildingId");
 
                     b.HasIndex("EmployeeRoleId");
 
@@ -284,8 +291,11 @@ namespace ASMS.Repositories.Migrations
             modelBuilder.Entity("ASMS.Repositories.Entities.EmployeeRole", b =>
                 {
                     b.Property<int>("EmployeeRoleId")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .HasColumnName("EmployeeRoleID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("EmployeeRoleId"));
 
                     b.Property<bool?>("IsActive")
                         .HasColumnType("bit")
@@ -575,10 +585,10 @@ namespace ASMS.Repositories.Migrations
                         .IsUnicode(false)
                         .HasColumnType("varchar(50)");
 
-                    b.Property<string>("BuildingCode")
+                    b.Property<int?>("BuildingId")
                         .HasMaxLength(50)
                         .IsUnicode(false)
-                        .HasColumnType("varchar(50)");
+                        .HasColumnType("int");
 
                     b.Property<decimal?>("Height")
                         .HasColumnType("decimal(18, 0)");
@@ -609,7 +619,7 @@ namespace ASMS.Repositories.Migrations
                     b.HasKey("StorageCode")
                         .HasName("PK__Storage__AD8F8BC7D5ABE087");
 
-                    b.HasIndex("BuildingCode");
+                    b.HasIndex("BuildingId");
 
                     b.HasIndex("ProductTypeId");
 
@@ -676,8 +686,11 @@ namespace ASMS.Repositories.Migrations
             modelBuilder.Entity("ASMS.Repositories.Entities.TrackingHistory", b =>
                 {
                     b.Property<int>("TrackingHistoryId")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .HasColumnName("TrackingHistoryID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TrackingHistoryId"));
 
                     b.Property<string>("ActionType")
                         .HasMaxLength(20)
@@ -733,8 +746,11 @@ namespace ASMS.Repositories.Migrations
             modelBuilder.Entity("ASMS.Repositories.Entities.WorkflowStep", b =>
                 {
                     b.Property<int>("WorkflowStepId")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .HasColumnName("WorkflowStepID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("WorkflowStepId"));
 
                     b.Property<string>("Name")
                         .HasMaxLength(50)
@@ -818,7 +834,7 @@ namespace ASMS.Repositories.Migrations
                 {
                     b.HasOne("ASMS.Repositories.Entities.Building", "BuildingCodeNavigation")
                         .WithMany("Employees")
-                        .HasForeignKey("BuildingCode")
+                        .HasForeignKey("BuildingId")
                         .HasConstraintName("FK__Employee__Buildi__7D439ABD");
 
                     b.HasOne("ASMS.Repositories.Entities.EmployeeRole", "EmployeeRole")
@@ -906,7 +922,7 @@ namespace ASMS.Repositories.Migrations
                 {
                     b.HasOne("ASMS.Repositories.Entities.Building", "BuildingCodeNavigation")
                         .WithMany("Storages")
-                        .HasForeignKey("BuildingCode")
+                        .HasForeignKey("BuildingId")
                         .HasConstraintName("FK__Storage__Buildin__5535A963");
 
                     b.HasOne("ASMS.Repositories.Entities.ProductType", "ProductType")

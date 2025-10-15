@@ -12,7 +12,6 @@ namespace ASMS.Services
         {
             services.AddScoped<VstorageContext>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
-
             return services;
         }
     }

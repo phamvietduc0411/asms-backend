@@ -23,9 +23,19 @@ namespace ASMS.Repositories.Infrastructures
             _logger = logger;
             _dbSet = _context.Set<TEntity>();
         }
-        public virtual TEntity AddEntity(TEntity entity) => _dbSet.Add(entity).Entity;
+        public virtual async Task<TEntity> AddAsync(TEntity entity)
+        {
+            await _dbSet.AddAsync(entity);             
+            return entity;
+        }
 
-        public void UpdateEntity(TEntity entity) => _context.Update(entity).State = EntityState.Modified;
+        public virtual Task<TEntity> UpdateAsync(TEntity entity)
+        {
+            _dbSet.Attach(entity);
+            _context.Entry(entity).State = EntityState.Modified;
+            return Task.FromResult(entity);
+        }
+
 
         public virtual async Task<TEntity?> GetEntityByIdAsync(int id)
         {
@@ -37,5 +47,7 @@ namespace ASMS.Repositories.Infrastructures
 
             return null;
         }
+
+
     }
 }

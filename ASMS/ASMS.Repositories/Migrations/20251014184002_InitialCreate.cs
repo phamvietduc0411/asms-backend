@@ -15,6 +15,8 @@ namespace ASMS.Repositories.Migrations
                 name: "Building",
                 columns: table => new
                 {
+                    BuildingId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     BuildingCode = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: false),
                     Name = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
                     Area = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: true),
@@ -25,7 +27,7 @@ namespace ASMS.Repositories.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK__Building__D4DA0325D3A2B9AB", x => x.BuildingCode);
+                    table.PrimaryKey("PK_Building", x => x.BuildingId);
                 });
 
             migrationBuilder.CreateTable(
@@ -49,7 +51,8 @@ namespace ASMS.Repositories.Migrations
                 name: "EmployeeRole",
                 columns: table => new
                 {
-                    EmployeeRoleID = table.Column<int>(type: "int", nullable: false),
+                    EmployeeRoleID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: true),
                     isActive = table.Column<bool>(type: "bit", nullable: true)
                 },
@@ -128,7 +131,7 @@ namespace ASMS.Repositories.Migrations
                     EmployeeCode = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: false),
                     EmployeeRoleID = table.Column<int>(type: "int", nullable: true),
                     Name = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
-                    BuildingCode = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
+                    BuildingId = table.Column<int>(type: "int", unicode: false, maxLength: 50, nullable: true),
                     Phone = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: true),
                     Address = table.Column<string>(type: "varchar(100)", unicode: false, maxLength: 100, nullable: true),
                     Username = table.Column<string>(type: "varchar(100)", unicode: false, maxLength: 100, nullable: true),
@@ -141,9 +144,9 @@ namespace ASMS.Repositories.Migrations
                     table.PrimaryKey("PK__Employee__1F642549B4A50CB4", x => x.EmployeeCode);
                     table.ForeignKey(
                         name: "FK__Employee__Buildi__7D439ABD",
-                        column: x => x.BuildingCode,
+                        column: x => x.BuildingId,
                         principalTable: "Building",
-                        principalColumn: "BuildingCode");
+                        principalColumn: "BuildingId");
                     table.ForeignKey(
                         name: "FK__Employee__Employ__7C4F7684",
                         column: x => x.EmployeeRoleID,
@@ -178,7 +181,7 @@ namespace ASMS.Repositories.Migrations
                 columns: table => new
                 {
                     StorageCode = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: false),
-                    BuildingCode = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
+                    BuildingId = table.Column<int>(type: "int", unicode: false, maxLength: 50, nullable: true),
                     StorageTypeID = table.Column<int>(type: "int", nullable: true),
                     ProductTypeID = table.Column<int>(type: "int", nullable: true),
                     Length = table.Column<decimal>(type: "decimal(18,0)", nullable: true),
@@ -192,9 +195,9 @@ namespace ASMS.Repositories.Migrations
                     table.PrimaryKey("PK__Storage__AD8F8BC7D5ABE087", x => x.StorageCode);
                     table.ForeignKey(
                         name: "FK__Storage__Buildin__5535A963",
-                        column: x => x.BuildingCode,
+                        column: x => x.BuildingId,
                         principalTable: "Building",
-                        principalColumn: "BuildingCode");
+                        principalColumn: "BuildingId");
                     table.ForeignKey(
                         name: "FK__Storage__Product__571DF1D5",
                         column: x => x.ProductTypeID,
@@ -230,7 +233,8 @@ namespace ASMS.Repositories.Migrations
                 name: "TrackingHistory",
                 columns: table => new
                 {
-                    TrackingHistoryID = table.Column<int>(type: "int", nullable: false),
+                    TrackingHistoryID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     OrderDetailCode = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
                     OldStatus = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
                     NewStatus = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
@@ -299,7 +303,8 @@ namespace ASMS.Repositories.Migrations
                 name: "WorkflowStep",
                 columns: table => new
                 {
-                    WorkflowStepID = table.Column<int>(type: "int", nullable: false),
+                    WorkflowStepID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     WorkflowTemplateID = table.Column<int>(type: "int", nullable: true),
                     Name = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
                     StepNumber = table.Column<int>(type: "int", nullable: true)
@@ -459,9 +464,9 @@ namespace ASMS.Repositories.Migrations
                 column: "ProductTypeID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Employee_BuildingCode",
+                name: "IX_Employee_BuildingId",
                 table: "Employee",
-                column: "BuildingCode");
+                column: "BuildingId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Employee_EmployeeRoleID",
@@ -509,9 +514,9 @@ namespace ASMS.Repositories.Migrations
                 column: "StorageCode");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Storage_BuildingCode",
+                name: "IX_Storage_BuildingId",
                 table: "Storage",
-                column: "BuildingCode");
+                column: "BuildingId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Storage_ProductTypeID",
