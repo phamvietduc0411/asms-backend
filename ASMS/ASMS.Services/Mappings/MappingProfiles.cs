@@ -13,6 +13,7 @@ using ASMS.Services.Model.FloorBlocks;
 using ASMS.Services.Model.ContainerType;
 using ASMS.Services.Model.Shelves;
 using ASMS.Services.Model.ContainerLocationLog;
+using ASMS.Services.Model.Container;
 
 namespace ASMS.Services.Mappings
 {
@@ -134,6 +135,22 @@ namespace ASMS.Services.Mappings
                 .ForMember(dest => dest.ContainerLocationLogId, opt => opt.Ignore())
                 .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
             CreateMap<ContainerLocationLog, ContainerLocationLogResponse>();
+            #endregion
+            #region Container
+            CreateMap<Container, ContainerResponse>()
+                .ForMember(dest => dest.FloorStatus, opt => opt.MapFrom(src => src.FloorCodeNavigation != null ? src.FloorCodeNavigation.Status : null));
+
+            CreateMap<CreateContainerRequest, Container>()
+                .ForMember(dest => dest.FloorCodeNavigation, opt => opt.Ignore())
+                .ForMember(dest => dest.ContainerLocationLogs, opt => opt.Ignore())
+                .ForMember(dest => dest.OrderDetails, opt => opt.Ignore());
+
+            CreateMap<UpdateContainerRequest, Container>()
+                .ForMember(dest => dest.ContainerCode, opt => opt.Ignore())
+                .ForMember(dest => dest.FloorCodeNavigation, opt => opt.Ignore())
+                .ForMember(dest => dest.ContainerLocationLogs, opt => opt.Ignore())
+                .ForMember(dest => dest.OrderDetails, opt => opt.Ignore())
+                .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
             #endregion
         }
 

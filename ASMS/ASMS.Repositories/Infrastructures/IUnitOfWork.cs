@@ -23,6 +23,8 @@ namespace ASMS.Repositories.Infrastructures
         IShelfRepository Shelves { get; }
         IContainerLocationLogRepository ContainerLocationLogs { get; }
 
+        IContainerRepository Containers { get; }
+
         Task CompleteAsync();
     }
 }

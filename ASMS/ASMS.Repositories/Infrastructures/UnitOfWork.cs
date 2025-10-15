@@ -26,6 +26,7 @@ namespace ASMS.Repositories.Infrastructures
         public IContainerLocationLogRepository ContainerLocationLogs { get; private set; }
 
 
+        public IContainerRepository Containers { get; private set; }
 
 
 
@@ -47,6 +48,8 @@ namespace ASMS.Repositories.Infrastructures
             FloorBlocks = new FloorBlockRepository(_context, _logger);
             ContainerType = new ContainerTypeRepository(_context, _logger);
             Shelves = new ShelfRepository(_context, _logger);
+            Containers = new ContainerRepository(_context, _logger);
+
 
             ContainerLocationLogs = new ContainerLocationLogRepository(_context, _logger);
 
