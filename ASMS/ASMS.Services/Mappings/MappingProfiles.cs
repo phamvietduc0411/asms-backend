@@ -1,6 +1,7 @@
 ﻿using ASMS.Repositories.Entities;
 using ASMS.Services.Model;
 using ASMS.Services.Model.Building;
+using ASMS.Services.Model.Floor;
 using ASMS.Services.Model.Services;
 using ASMS.Services.Model.StorageBlocks;
 using ASMS.Services.Model.TrackingHistories;
@@ -82,6 +83,13 @@ namespace ASMS.Services.Mappings
                 .ForMember(b => b.BuildingCode, bl => bl.MapFrom(src => src.BuildingCode));
             CreateMap<UpdateBuildingRequest, Building>()
                 .ForMember(b => b.BuildingCode, bl => bl.MapFrom(src => src.BuildingCode));
+            #endregion
+
+            #region Floor
+            CreateMap<CreateFloorRequest, Floor>();
+            CreateMap<UpdateFloorRequest, Floor>()
+                .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
+            CreateMap<Floor, FloorResponse>();
             #endregion
         }
 
