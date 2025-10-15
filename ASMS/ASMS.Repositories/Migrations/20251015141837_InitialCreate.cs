@@ -65,7 +65,8 @@ namespace ASMS.Repositories.Migrations
                 name: "ProductType",
                 columns: table => new
                 {
-                    ProductTypeID = table.Column<int>(type: "int", nullable: false),
+                    ProductTypeID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
                     Status = table.Column<string>(type: "varchar(10)", unicode: false, maxLength: 10, nullable: true),
                     isActive = table.Column<bool>(type: "bit", nullable: true)
