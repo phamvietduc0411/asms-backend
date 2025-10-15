@@ -12,6 +12,7 @@ using AutoMapper;
 using ASMS.Services.Model.FloorBlocks;
 using ASMS.Services.Model.ContainerType;
 using ASMS.Services.Model.Shelves;
+using ASMS.Services.Model.ContainerLocationLog;
 
 namespace ASMS.Services.Mappings
 {
@@ -125,6 +126,14 @@ namespace ASMS.Services.Mappings
                 .ForMember(dest => dest.StorageCodeNavigation, opt => opt.Ignore())
                 .ForMember(dest => dest.Floors, opt => opt.Ignore())
                 .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
+            #endregion
+
+            #region ContainerLocationLog
+            CreateMap<CreateContainerLocationLogRequest, ContainerLocationLog>();
+            CreateMap<UpdateContainerLocationLogRequest, ContainerLocationLog>()
+                .ForMember(dest => dest.ContainerLocationLogId, opt => opt.Ignore())
+                .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
+            CreateMap<ContainerLocationLog, ContainerLocationLogResponse>();
             #endregion
         }
 
