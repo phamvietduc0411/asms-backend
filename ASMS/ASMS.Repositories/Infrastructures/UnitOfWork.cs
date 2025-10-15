@@ -18,7 +18,6 @@ namespace ASMS.Repositories.Infrastructures
         public IStorageBlockRepository StorageBlocks { get; private set; }  
         public IBuildingRepository Building { get; private set; }
         public IFloorRepository Floors { get; private set; }
-
         public IProductTypeRepository ProductType { get; private set; }
 
 
@@ -37,7 +36,6 @@ namespace ASMS.Repositories.Infrastructures
             Building = new BuildingRepository(_context, _logger);
             ProductType = new ProductTypeRepository(_context, _logger);
             Floors = new FloorRepository(_context, _logger);
-
         }
         public async Task CompleteAsync() => await _context.SaveChangesAsync();
     }
