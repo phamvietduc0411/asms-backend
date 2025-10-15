@@ -22,6 +22,9 @@ namespace ASMS.Repositories.Infrastructures
         IFloorBlockRepository FloorBlocks { get; }
         IContainerLocationLogRepository ContainerLocationLogs { get; }
 
+        IOrderDetailRepository OrderDetails { get; }
+
+
         IContainerRepository Containers { get; }
 
         Task CompleteAsync();

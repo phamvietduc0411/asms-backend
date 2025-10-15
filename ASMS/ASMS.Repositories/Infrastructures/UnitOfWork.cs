@@ -24,6 +24,8 @@ namespace ASMS.Repositories.Infrastructures
         public IContainerTypeRepository ContainerType { get; private set; }
         public IShelfRepository Shelves { get; private set; }
         public IContainerLocationLogRepository ContainerLocationLogs { get; private set; }
+        public IOrderDetailRepository OrderDetails { get; private set; }
+
 
 
         public IContainerRepository Containers { get; private set; }
@@ -52,6 +54,8 @@ namespace ASMS.Repositories.Infrastructures
 
 
             ContainerLocationLogs = new ContainerLocationLogRepository(_context, _logger);
+            OrderDetails = new OrderDetailRepository(_context, _logger);
+
 
         }
         public async Task CompleteAsync() => await _context.SaveChangesAsync();
