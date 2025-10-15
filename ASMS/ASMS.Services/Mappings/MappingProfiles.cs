@@ -11,6 +11,7 @@ using ASMS.Services.Model.WorkflowTemplates;
 using AutoMapper;
 using ASMS.Services.Model.FloorBlocks;
 using ASMS.Services.Model.ContainerType;
+using ASMS.Services.Model.Shelves;
 
 namespace ASMS.Services.Mappings
 {
@@ -109,6 +110,20 @@ namespace ASMS.Services.Mappings
             CreateMap<UpdateFloorBlockRequest, FloorBlock>()
                 .ForMember(dest => dest.FloorBlockCode, opt => opt.Ignore())
                 .ForMember(dest => dest.FloorCodeNavigation, opt => opt.Ignore())
+                .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
+            #endregion
+            #region Shelf
+            CreateMap<Shelf, ShelfResponse>();
+
+            CreateMap<CreateShelfRequest, Shelf>()
+                .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => true))
+                .ForMember(dest => dest.StorageCodeNavigation, opt => opt.Ignore())
+                .ForMember(dest => dest.Floors, opt => opt.Ignore());
+
+            CreateMap<UpdateShelfRequest, Shelf>()
+                .ForMember(dest => dest.ShelfCode, opt => opt.Ignore())
+                .ForMember(dest => dest.StorageCodeNavigation, opt => opt.Ignore())
+                .ForMember(dest => dest.Floors, opt => opt.Ignore())
                 .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
             #endregion
         }

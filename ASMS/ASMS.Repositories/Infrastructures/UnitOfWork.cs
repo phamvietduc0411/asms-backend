@@ -22,6 +22,8 @@ namespace ASMS.Repositories.Infrastructures
         public IFloorBlockRepository FloorBlocks { get; private set; }
 
         public IContainerTypeRepository ContainerType { get; private set; }
+        public IShelfRepository Shelves { get; private set; }
+
 
 
         public UnitOfWork(
@@ -41,6 +43,8 @@ namespace ASMS.Repositories.Infrastructures
             Floors = new FloorRepository(_context, _logger);
             FloorBlocks = new FloorBlockRepository(_context, _logger);
             ContainerType = new ContainerTypeRepository(_context, _logger);
+            Shelves = new ShelfRepository(_context, _logger);
+
         }
         public async Task CompleteAsync() => await _context.SaveChangesAsync();
     }
