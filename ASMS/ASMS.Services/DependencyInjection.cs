@@ -22,6 +22,7 @@ namespace ASMS.Services
             services.AddScoped<IBuildingService, BuildingService>();
             services.AddScoped<IProductTypeService, ProductTypeService>();
             services.AddScoped<IFloorService, FloorService>();
+            services.AddScoped<IFloorBlockService, FloorBlockService>();
             return services;
         }
     }

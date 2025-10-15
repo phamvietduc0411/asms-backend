@@ -9,6 +9,7 @@ using ASMS.Services.Model.TrackingHistories;
 using ASMS.Services.Model.WorkflowSteps;
 using ASMS.Services.Model.WorkflowTemplates;
 using AutoMapper;
+using ASMS.Services.Model.FloorBlocks;
 
 namespace ASMS.Services.Mappings
 {
@@ -93,6 +94,18 @@ namespace ASMS.Services.Mappings
             CreateMap<UpdateFloorRequest, Floor>()
                 .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
             CreateMap<Floor, FloorResponse>();
+            #endregion
+
+            #region FloorBlock
+            CreateMap<FloorBlock, FloorBlockResponse>();
+            CreateMap<CreateFloorBlockRequest, FloorBlock>()
+                .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => true))
+                .ForMember(dest => dest.FloorCodeNavigation, opt => opt.Ignore());
+
+            CreateMap<UpdateFloorBlockRequest, FloorBlock>()
+                .ForMember(dest => dest.FloorBlockCode, opt => opt.Ignore())
+                .ForMember(dest => dest.FloorCodeNavigation, opt => opt.Ignore())
+                .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
             #endregion
         }
 

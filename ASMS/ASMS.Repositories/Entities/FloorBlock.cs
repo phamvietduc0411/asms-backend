@@ -19,5 +19,5 @@ public partial class FloorBlock
 
     public bool? IsActive { get; set; }
 
-    public virtual Floor? FloorCodeNavigation { get; set; }
+    public virtual Floor? FloorCodeNavigation { get; set; } 
 }
