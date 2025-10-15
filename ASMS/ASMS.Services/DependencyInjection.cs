@@ -23,6 +23,8 @@ namespace ASMS.Services
             services.AddScoped<IProductTypeService, ProductTypeService>();
             services.AddScoped<IFloorService, FloorService>();
             services.AddScoped<IFloorBlockService, FloorBlockService>();
+            services.AddScoped<IContainerTypeService, ContainerTypeService>();
+            services.AddScoped<IShelfService, ShelfService>();
             services.AddScoped<IContainerLocationLogService, ContainerLocationLogService>();
             return services;
         }

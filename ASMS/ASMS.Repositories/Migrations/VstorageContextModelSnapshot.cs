@@ -152,8 +152,11 @@ namespace ASMS.Repositories.Migrations
             modelBuilder.Entity("ASMS.Repositories.Entities.ContainerType", b =>
                 {
                     b.Property<int>("ContainerTypeId")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .HasColumnName("ContainerTypeID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ContainerTypeId"));
 
                     b.Property<bool?>("IsActive")
                         .HasColumnType("bit")

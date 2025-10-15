@@ -159,7 +159,8 @@ namespace ASMS.Repositories.Migrations
                 name: "ContainerType",
                 columns: table => new
                 {
-                    ContainerTypeID = table.Column<int>(type: "int", nullable: false),
+                    ContainerTypeID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     Volume = table.Column<decimal>(type: "decimal(18,0)", nullable: true),
                     ProductTypeID = table.Column<int>(type: "int", nullable: true),
                     Name = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),

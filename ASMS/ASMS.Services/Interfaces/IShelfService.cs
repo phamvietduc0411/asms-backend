@@ -1,0 +1,18 @@
+﻿using ASMS.Services.Model.Shelves;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ASMS.Services.Interfaces
+{
+    public interface IShelfService
+    {
+        Task<IEnumerable<ShelfResponse>> GetAllAsync();
+        Task<ShelfResponse?> GetByCodeAsync(string shelfCode);
+        Task<ShelfResponse> CreateAsync(CreateShelfRequest request);
+        Task<ShelfResponse?> UpdateAsync(string shelfCode, UpdateShelfRequest request);
+        Task<bool> DeleteAsync(string shelfCode);
+    }
+}

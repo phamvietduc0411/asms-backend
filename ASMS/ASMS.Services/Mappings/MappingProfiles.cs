@@ -10,6 +10,8 @@ using ASMS.Services.Model.WorkflowSteps;
 using ASMS.Services.Model.WorkflowTemplates;
 using AutoMapper;
 using ASMS.Services.Model.FloorBlocks;
+using ASMS.Services.Model.ContainerType;
+using ASMS.Services.Model.Shelves;
 using ASMS.Services.Model.ContainerLocationLog;
 
 namespace ASMS.Services.Mappings
@@ -89,12 +91,15 @@ namespace ASMS.Services.Mappings
             CreateMap<CreateTypeRequest, ProductType>();
             CreateMap<UpdateTypeRequest, ProductType>();
             #endregion
-
             #region Floor
             CreateMap<CreateFloorRequest, Floor>();
             CreateMap<UpdateFloorRequest, Floor>()
                 .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
             CreateMap<Floor, FloorResponse>();
+            #endregion
+            #region Container Type
+            CreateMap<CreateContainerTypeRequest, ContainerType>();
+            CreateMap<UpdateContainerTypeRequest, ContainerType>();
             #endregion
 
             #region FloorBlock
@@ -106,6 +111,20 @@ namespace ASMS.Services.Mappings
             CreateMap<UpdateFloorBlockRequest, FloorBlock>()
                 .ForMember(dest => dest.FloorBlockCode, opt => opt.Ignore())
                 .ForMember(dest => dest.FloorCodeNavigation, opt => opt.Ignore())
+                .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
+            #endregion
+            #region Shelf
+            CreateMap<Shelf, ShelfResponse>();
+
+            CreateMap<CreateShelfRequest, Shelf>()
+                .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => true))
+                .ForMember(dest => dest.StorageCodeNavigation, opt => opt.Ignore())
+                .ForMember(dest => dest.Floors, opt => opt.Ignore());
+
+            CreateMap<UpdateShelfRequest, Shelf>()
+                .ForMember(dest => dest.ShelfCode, opt => opt.Ignore())
+                .ForMember(dest => dest.StorageCodeNavigation, opt => opt.Ignore())
+                .ForMember(dest => dest.Floors, opt => opt.Ignore())
                 .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
             #endregion
 
