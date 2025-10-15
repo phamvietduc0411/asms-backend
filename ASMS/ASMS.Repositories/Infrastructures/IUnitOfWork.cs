@@ -18,6 +18,7 @@ namespace ASMS.Repositories.Infrastructures
         IBuildingRepository Building { get; }
         IProductTypeRepository ProductType { get; }
         IFloorRepository Floors { get; }
+        IFloorBlockRepository FloorBlocks { get; }
         Task CompleteAsync();
     }
 }
