@@ -21,6 +21,9 @@ namespace ASMS.Repositories.Infrastructures
         public IProductTypeRepository ProductType { get; private set; }
         public IFloorBlockRepository FloorBlocks { get; private set; }
 
+        public IContainerLocationLogRepository ContainerLocationLogs { get; private set; }
+
+
 
 
         public UnitOfWork(
@@ -39,6 +42,8 @@ namespace ASMS.Repositories.Infrastructures
             ProductType = new ProductTypeRepository(_context, _logger);
             Floors = new FloorRepository(_context, _logger);
             FloorBlocks = new FloorBlockRepository(_context, _logger);
+            ContainerLocationLogs = new ContainerLocationLogRepository(_context, _logger);
+
         }
         public async Task CompleteAsync() => await _context.SaveChangesAsync();
     }

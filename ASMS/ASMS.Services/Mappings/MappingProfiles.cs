@@ -10,6 +10,7 @@ using ASMS.Services.Model.WorkflowSteps;
 using ASMS.Services.Model.WorkflowTemplates;
 using AutoMapper;
 using ASMS.Services.Model.FloorBlocks;
+using ASMS.Services.Model.ContainerLocationLog;
 
 namespace ASMS.Services.Mappings
 {
@@ -106,6 +107,14 @@ namespace ASMS.Services.Mappings
                 .ForMember(dest => dest.FloorBlockCode, opt => opt.Ignore())
                 .ForMember(dest => dest.FloorCodeNavigation, opt => opt.Ignore())
                 .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
+            #endregion
+
+            #region ContainerLocationLog
+            CreateMap<CreateContainerLocationLogRequest, ContainerLocationLog>();
+            CreateMap<UpdateContainerLocationLogRequest, ContainerLocationLog>()
+                .ForMember(dest => dest.ContainerLocationLogId, opt => opt.Ignore())
+                .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
+            CreateMap<ContainerLocationLog, ContainerLocationLogResponse>();
             #endregion
         }
 

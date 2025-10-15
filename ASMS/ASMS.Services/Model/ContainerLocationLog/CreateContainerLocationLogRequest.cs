@@ -1,0 +1,18 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ASMS.Services.Model.ContainerLocationLog
+{
+    public class CreateContainerLocationLogRequest
+    {
+        public string? ContainerCode { get; set; }
+        public string? OrderCode { get; set; }
+        public string? Assign { get; set; }
+        public DateOnly? UpdatedDate { get; set; }
+        public string? OldFloor { get; set; }
+        public string? CurrentFloor { get; set; }
+    }
+}
