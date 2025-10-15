@@ -1,4 +1,5 @@
 ﻿using ASMS.Repositories.Data;
+using ASMS.Repositories.Entities;
 using ASMS.Repositories.Interfaces;
 using ASMS.Repositories.Repositories;
 using Microsoft.Extensions.Logging;
@@ -16,6 +17,7 @@ namespace ASMS.Repositories.Infrastructures
         public ITrackingHistoryRepository TrackingHistories { get; private set; }
         public IStorageBlockRepository StorageBlocks { get; private set; }  
         public IBuildingRepository Building { get; private set; }
+        public IProductTypeRepository ProductType { get; private set; }
 
 
         public UnitOfWork(
@@ -31,6 +33,7 @@ namespace ASMS.Repositories.Infrastructures
             TrackingHistories = new TrackingHistoryRepository(_context, _logger);   
             StorageBlocks = new StorageBlockRepository(_context, _logger);  
             Building = new BuildingRepository(_context, _logger);
+            ProductType = new ProductTypeRepository(_context, _logger);
 
         }
         public async Task CompleteAsync() => await _context.SaveChangesAsync();

@@ -20,6 +20,7 @@ namespace ASMS.Services
             services.AddScoped<IWorkflowStepService, WorkflowStepService>();
             services.AddScoped<IWorkflowTemplateService, WorkflowTemplateService>();
             services.AddScoped<IBuildingService, BuildingService>();
+            services.AddScoped<IProductTypeService, ProductTypeService>();
             return services;
         }
     }

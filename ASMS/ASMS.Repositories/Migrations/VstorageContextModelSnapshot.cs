@@ -497,8 +497,11 @@ namespace ASMS.Repositories.Migrations
             modelBuilder.Entity("ASMS.Repositories.Entities.ProductType", b =>
                 {
                     b.Property<int>("ProductTypeId")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .HasColumnName("ProductTypeID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ProductTypeId"));
 
                     b.Property<bool?>("IsActive")
                         .HasColumnType("bit")
