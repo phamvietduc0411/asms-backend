@@ -16,6 +16,8 @@ namespace ASMS.Repositories.Infrastructures
         public ITrackingHistoryRepository TrackingHistories { get; private set; }
         public IStorageBlockRepository StorageBlocks { get; private set; }  
         public IBuildingRepository Building { get; private set; }
+        public IFloorRepository Floors { get; private set; }
+
 
 
         public UnitOfWork(
@@ -31,6 +33,7 @@ namespace ASMS.Repositories.Infrastructures
             TrackingHistories = new TrackingHistoryRepository(_context, _logger);   
             StorageBlocks = new StorageBlockRepository(_context, _logger);  
             Building = new BuildingRepository(_context, _logger);
+            Floors = new FloorRepository(_context, _logger);
 
         }
         public async Task CompleteAsync() => await _context.SaveChangesAsync();
