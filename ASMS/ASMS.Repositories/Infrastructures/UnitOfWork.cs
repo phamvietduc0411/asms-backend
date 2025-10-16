@@ -20,15 +20,12 @@ namespace ASMS.Repositories.Infrastructures
         public IFloorRepository Floors { get; private set; }
         public IProductTypeRepository ProductType { get; private set; }
         public IFloorBlockRepository FloorBlocks { get; private set; }
-
         public IContainerTypeRepository ContainerType { get; private set; }
         public IShelfRepository Shelves { get; private set; }
         public IContainerLocationLogRepository ContainerLocationLogs { get; private set; }
         public IOrderDetailRepository OrderDetails { get; private set; }
-
-
-
         public IContainerRepository Containers { get; private set; }
+        public ICustomerRepository Customer { get; private set; }
 
 
 
@@ -51,6 +48,7 @@ namespace ASMS.Repositories.Infrastructures
             ContainerType = new ContainerTypeRepository(_context, _logger);
             Shelves = new ShelfRepository(_context, _logger);
             Containers = new ContainerRepository(_context, _logger);
+            Customer = new CustomerRepository(_context, _logger);
 
 
             ContainerLocationLogs = new ContainerLocationLogRepository(_context, _logger);

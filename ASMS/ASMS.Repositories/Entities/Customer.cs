@@ -5,6 +5,7 @@ namespace ASMS.Repositories.Entities;
 
 public partial class Customer
 {
+    public int Id { get; set; }
     public string CustomerCode { get; set; } = null!;
 
     public string? Phone { get; set; }
