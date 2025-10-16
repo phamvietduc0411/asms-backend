@@ -1,15 +1,8 @@
 ﻿using ASMS.Repositories.Entities;
 using ASMS.Repositories.Infrastructures;
 using ASMS.Services.Interfaces;
-using ASMS.Services.Model;
 using ASMS.Services.Model.ContainerType;
 using AutoMapper;
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ASMS.Services.Services
 {

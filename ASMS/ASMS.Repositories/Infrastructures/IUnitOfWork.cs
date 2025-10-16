@@ -22,11 +22,9 @@ namespace ASMS.Repositories.Infrastructures
         IFloorBlockRepository FloorBlocks { get; }
         IShelfRepository Shelves { get; }
         IContainerLocationLogRepository ContainerLocationLogs { get; }
-
         IOrderDetailRepository OrderDetails { get; }
-
-
         IContainerRepository Containers { get; }
+        ICustomerRepository Customer { get; }
 
         Task CompleteAsync();
     }

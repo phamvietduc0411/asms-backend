@@ -21,7 +21,7 @@ public partial class VstorageContext : DbContext
         {
             optionsBuilder.UseSqlServer("Server=ROG-ZEPHYRUS-G1\\VIETDUC;Database=VStorage;Uid=sa;Pwd=123456;Trusted_Connection=True;TrustServerCertificate=True");
             //optionsBuilder.UseSqlServer("Server=LAPTOP-39B7IASC\\SQLEXPRESS;Database=VStorage;Uid=sa;Pwd=1;Trusted_Connection=True;TrustServerCertificate=True");
-            
+
         }
     }
 
@@ -181,70 +181,85 @@ public partial class VstorageContext : DbContext
 
         modelBuilder.Entity<Customer>(entity =>
         {
-            entity.HasKey(e => e.CustomerCode).HasName("PK__Customer__066785204D979A27");
-
+            entity.HasKey(e => e.Id).HasName("PK_Customer");
             entity.ToTable("Customer");
+
+            entity.Property(e => e.Id)
+                .ValueGeneratedOnAdd()
+                .HasColumnName("Id");
 
             entity.Property(e => e.CustomerCode)
                 .HasMaxLength(50)
                 .IsUnicode(false);
-            entity.Property(e => e.Address).HasMaxLength(500);
+
+            entity.HasIndex(e => e.CustomerCode)
+                .IsUnique()
+                .HasDatabaseName("UQ_Customer_CustomerCode");
+
+            entity.Property(e => e.Address)
+                .HasMaxLength(500);
+
             entity.Property(e => e.Email)
                 .HasMaxLength(50)
                 .IsUnicode(false);
-            entity.Property(e => e.IsActive).HasColumnName("isActive");
+
+            entity.Property(e => e.IsActive)
+                .HasColumnName("isActive");
+
             entity.Property(e => e.Name)
                 .HasMaxLength(50)
                 .IsUnicode(false);
+
             entity.Property(e => e.Password)
                 .HasMaxLength(500)
                 .IsUnicode(false);
+
             entity.Property(e => e.Phone)
                 .HasMaxLength(20)
                 .IsUnicode(false);
         });
 
         modelBuilder.Entity<Employee>(entity =>
-        {
-            entity.HasKey(e => e.EmployeeCode).HasName("PK__Employee__1F642549B4A50CB4");
+         {
+             entity.HasKey(e => e.EmployeeCode).HasName("PK__Employee__1F642549B4A50CB4");
 
-            entity.ToTable("Employee");
+             entity.ToTable("Employee");
 
-            entity.Property(e => e.EmployeeCode)
-                .HasMaxLength(50)
-                .IsUnicode(false);
-            entity.Property(e => e.Address)
-                .HasMaxLength(100)
-                .IsUnicode(false);
-            entity.Property(e => e.BuildingId)
-                .HasMaxLength(50)
-                .IsUnicode(false);
-            entity.Property(e => e.EmployeeRoleId).HasColumnName("EmployeeRoleID");
-            entity.Property(e => e.IsActive).HasColumnName("isActive");
-            entity.Property(e => e.Name)
-                .HasMaxLength(50)
-                .IsUnicode(false);
-            entity.Property(e => e.Password)
-                .HasMaxLength(50)
-                .IsUnicode(false);
-            entity.Property(e => e.Phone)
-                .HasMaxLength(20)
-                .IsUnicode(false);
-            entity.Property(e => e.Status)
-                .HasMaxLength(10)
-                .IsUnicode(false);
-            entity.Property(e => e.Username)
-                .HasMaxLength(100)
-                .IsUnicode(false);
+             entity.Property(e => e.EmployeeCode)
+                 .HasMaxLength(50)
+                 .IsUnicode(false);
+             entity.Property(e => e.Address)
+                 .HasMaxLength(100)
+                 .IsUnicode(false);
+             entity.Property(e => e.BuildingId)
+                 .HasMaxLength(50)
+                 .IsUnicode(false);
+             entity.Property(e => e.EmployeeRoleId).HasColumnName("EmployeeRoleID");
+             entity.Property(e => e.IsActive).HasColumnName("isActive");
+             entity.Property(e => e.Name)
+                 .HasMaxLength(50)
+                 .IsUnicode(false);
+             entity.Property(e => e.Password)
+                 .HasMaxLength(50)
+                 .IsUnicode(false);
+             entity.Property(e => e.Phone)
+                 .HasMaxLength(20)
+                 .IsUnicode(false);
+             entity.Property(e => e.Status)
+                 .HasMaxLength(10)
+                 .IsUnicode(false);
+             entity.Property(e => e.Username)
+                 .HasMaxLength(100)
+                 .IsUnicode(false);
 
-            entity.HasOne(d => d.BuildingCodeNavigation).WithMany(p => p.Employees)
-                .HasForeignKey(d => d.BuildingId)
-                .HasConstraintName("FK__Employee__Buildi__7D439ABD");
+             entity.HasOne(d => d.BuildingCodeNavigation).WithMany(p => p.Employees)
+                 .HasForeignKey(d => d.BuildingId)
+                 .HasConstraintName("FK__Employee__Buildi__7D439ABD");
 
-            entity.HasOne(d => d.EmployeeRole).WithMany(p => p.Employees)
-                .HasForeignKey(d => d.EmployeeRoleId)
-                .HasConstraintName("FK__Employee__Employ__7C4F7684");
-        });
+             entity.HasOne(d => d.EmployeeRole).WithMany(p => p.Employees)
+                 .HasForeignKey(d => d.EmployeeRoleId)
+                 .HasConstraintName("FK__Employee__Employ__7C4F7684");
+         });
 
         modelBuilder.Entity<EmployeeRole>(entity =>
         {
@@ -332,9 +347,12 @@ public partial class VstorageContext : DbContext
             entity.Property(e => e.TotalPrice).HasColumnType("decimal(18, 0)");
             entity.Property(e => e.UnpaidAmount).HasColumnType("decimal(18, 0)");
 
-            entity.HasOne(d => d.CustomerCodeNavigation).WithMany(p => p.Orders)
-                .HasForeignKey(d => d.CustomerCode)
-                .HasConstraintName("FK__Order__CustomerC__6EF57B66");
+            entity.HasOne(d => d.CustomerCodeNavigation)
+     .WithMany(p => p.Orders)
+     .HasForeignKey(d => d.CustomerCode)
+     .HasPrincipalKey(p => p.CustomerCode)
+     .HasConstraintName("FK_Order_CustomerCode");
+
         });
 
         modelBuilder.Entity<OrderDetail>(entity =>

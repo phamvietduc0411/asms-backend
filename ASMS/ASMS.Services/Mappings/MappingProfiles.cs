@@ -1,20 +1,21 @@
 ﻿using ASMS.Repositories.Entities;
 using ASMS.Services.Model;
 using ASMS.Services.Model.Building;
-using ASMS.Services.Model.ProductType;
+using ASMS.Services.Model.Container;
+using ASMS.Services.Model.ContainerLocationLog;
+using ASMS.Services.Model.ContainerType;
+using ASMS.Services.Model.Customer;
 using ASMS.Services.Model.Floor;
+using ASMS.Services.Model.FloorBlocks;
+using ASMS.Services.Model.OrderDetail;
+using ASMS.Services.Model.ProductType;
 using ASMS.Services.Model.Services;
+using ASMS.Services.Model.Shelves;
 using ASMS.Services.Model.StorageBlocks;
 using ASMS.Services.Model.TrackingHistories;
 using ASMS.Services.Model.WorkflowSteps;
 using ASMS.Services.Model.WorkflowTemplates;
 using AutoMapper;
-using ASMS.Services.Model.FloorBlocks;
-using ASMS.Services.Model.ContainerType;
-using ASMS.Services.Model.Shelves;
-using ASMS.Services.Model.ContainerLocationLog;
-using ASMS.Services.Model.OrderDetail;
-using ASMS.Services.Model.Container;
 
 namespace ASMS.Services.Mappings
 {
@@ -103,7 +104,6 @@ namespace ASMS.Services.Mappings
             CreateMap<CreateContainerTypeRequest, ContainerType>();
             CreateMap<UpdateContainerTypeRequest, ContainerType>();
             #endregion
-
             #region FloorBlock
             CreateMap<FloorBlock, FloorBlockResponse>();
             CreateMap<CreateFloorBlockRequest, FloorBlock>()
@@ -129,7 +129,6 @@ namespace ASMS.Services.Mappings
                 .ForMember(dest => dest.Floors, opt => opt.Ignore())
                 .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
             #endregion
-
             #region ContainerLocationLog
             CreateMap<CreateContainerLocationLogRequest, ContainerLocationLog>();
             CreateMap<UpdateContainerLocationLogRequest, ContainerLocationLog>()
@@ -137,7 +136,6 @@ namespace ASMS.Services.Mappings
                 .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
             CreateMap<ContainerLocationLog, ContainerLocationLogResponse>();
             #endregion
-
             #region OrderDetail
             CreateMap<CreateOrderDetailRequest, OrderDetail>();
             CreateMap<UpdateOrderDetailRequest, OrderDetail>()
@@ -160,6 +158,10 @@ namespace ASMS.Services.Mappings
                 .ForMember(dest => dest.ContainerLocationLogs, opt => opt.Ignore())
                 .ForMember(dest => dest.OrderDetails, opt => opt.Ignore())
                 .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
+            #endregion
+            #region Customer
+            CreateMap<CreateCustomerRequest, Customer>();    
+            CreateMap<UpdateCustomerRequest, Customer>();    
             #endregion
         }
 
