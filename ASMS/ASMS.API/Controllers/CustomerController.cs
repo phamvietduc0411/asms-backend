@@ -18,7 +18,7 @@ namespace ASMS.API.Controllers
             _logger = logger;
         }
 
-        #region Employee CRUD
+        #region Customer CRUD
         [HttpGet("{id}")]
         public async Task<IActionResult> GetByIdAsync(int id)
         {

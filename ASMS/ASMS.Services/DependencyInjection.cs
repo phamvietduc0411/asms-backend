@@ -29,6 +29,7 @@ namespace ASMS.Services
             services.AddScoped<IContainerService, ContainerService>();
             services.AddScoped<IOrderDetailService, OrderDetailService>();
             services.AddScoped<ICustomerService, CustomerService>();
+            services.AddScoped<IEmployeeService, EmployeeService>();
             return services;
         }
     }

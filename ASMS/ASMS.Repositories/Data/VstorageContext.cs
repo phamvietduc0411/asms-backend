@@ -221,9 +221,11 @@ public partial class VstorageContext : DbContext
 
         modelBuilder.Entity<Employee>(entity =>
          {
-             entity.HasKey(e => e.EmployeeCode).HasName("PK__Employee__1F642549B4A50CB4");
+             entity.HasKey(e => e.Id).HasName("PK__Employee__1F642549B4A50CB4");
 
-             entity.ToTable("Employee");
+             entity.Property(e => e.Id)
+               .ValueGeneratedOnAdd()
+               .HasColumnName("Id");
 
              entity.Property(e => e.EmployeeCode)
                  .HasMaxLength(50)

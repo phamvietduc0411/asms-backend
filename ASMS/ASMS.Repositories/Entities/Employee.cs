@@ -5,6 +5,7 @@ namespace ASMS.Repositories.Entities;
 
 public partial class Employee
 {
+    public int Id { get; set; }
     public string EmployeeCode { get; set; } = null!;
 
     public int? EmployeeRoleId { get; set; }

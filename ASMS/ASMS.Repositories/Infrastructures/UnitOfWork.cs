@@ -26,6 +26,7 @@ namespace ASMS.Repositories.Infrastructures
         public IOrderDetailRepository OrderDetails { get; private set; }
         public IContainerRepository Containers { get; private set; }
         public ICustomerRepository Customer { get; private set; }
+        public IEmployeeRepository Employee { get; private set; }
 
 
 
@@ -49,6 +50,7 @@ namespace ASMS.Repositories.Infrastructures
             Shelves = new ShelfRepository(_context, _logger);
             Containers = new ContainerRepository(_context, _logger);
             Customer = new CustomerRepository(_context, _logger);
+            Employee = new EmployeeRepository(_context, _logger);
 
 
             ContainerLocationLogs = new ContainerLocationLogRepository(_context, _logger);

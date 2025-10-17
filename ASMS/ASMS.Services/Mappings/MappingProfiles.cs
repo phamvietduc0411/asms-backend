@@ -5,6 +5,7 @@ using ASMS.Services.Model.Container;
 using ASMS.Services.Model.ContainerLocationLog;
 using ASMS.Services.Model.ContainerType;
 using ASMS.Services.Model.Customer;
+using ASMS.Services.Model.Employee;
 using ASMS.Services.Model.Floor;
 using ASMS.Services.Model.FloorBlocks;
 using ASMS.Services.Model.OrderDetail;
@@ -163,6 +164,11 @@ namespace ASMS.Services.Mappings
             CreateMap<CreateCustomerRequest, Customer>();    
             CreateMap<UpdateCustomerRequest, Customer>();    
             #endregion
+            #region Employee
+            CreateMap<CreateEmployeeRequest, Employee>();    
+            CreateMap<UpdateEmployeeRequest, Employee>();    
+            #endregion
+
         }
 
 

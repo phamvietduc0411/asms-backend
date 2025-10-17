@@ -1,0 +1,12 @@
+﻿using ASMS.Repositories.Entities;
+using ASMS.Services.Model.Employee;
+
+namespace ASMS.Services.Interfaces
+{
+    public interface IEmployeeService
+    {
+        Task<Employee?> GetByIdAsync(int id);
+        Task<Employee> AddEmployeeAsync(CreateEmployeeRequest request);
+        Task<Employee> UpdateEmployeeAsync(Employee updateInfo);
+    }
+}
