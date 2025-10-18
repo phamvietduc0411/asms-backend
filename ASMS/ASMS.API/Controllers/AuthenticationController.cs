@@ -15,11 +15,11 @@ namespace ASMS.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class AuthController : ControllerBase
+    public class AuthenticationController : ControllerBase
     {
         private readonly IAuthService _authService;
 
-        public AuthController(IAuthService authService)
+        public AuthenticationController(IAuthService authService)
         {
             _authService = authService;
         }
