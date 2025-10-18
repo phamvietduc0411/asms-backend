@@ -1,5 +1,7 @@
 ﻿using ASMS.Services.Interfaces;
 using ASMS.Services.Model.Customer;
+using ASMS.Services.Utilities;
+using Azure.Core;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ASMS.API.Controllers
@@ -34,6 +36,7 @@ namespace ASMS.API.Controllers
         {
             try
             {
+                request.Password = PasswordHasher.HashPassword(request.Password);
                 var result = await _customerService.AddCustomerAsync(request);
                 return Ok(result);
             }
@@ -63,7 +66,7 @@ namespace ASMS.API.Controllers
             existingCustomer.IsActive = newInfo.IsActive;
             existingCustomer.Address = newInfo.Address;
             existingCustomer.Email = newInfo.Email;
-            existingCustomer.Password = newInfo.Password;
+            existingCustomer.Password = PasswordHasher.HashPassword(newInfo.Password);
 
             var newCustomerInfo = await _customerService.UpdateCustomerAsync(existingCustomer);
 

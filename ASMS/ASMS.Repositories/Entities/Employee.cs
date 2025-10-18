@@ -24,7 +24,7 @@ public partial class Employee
 
     public string? Status { get; set; }
 
-    public bool? IsActive { get; set; }
+    public bool IsActive { get; set; }
 
     public virtual Building? BuildingCodeNavigation { get; set; }
 

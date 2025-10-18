@@ -1,6 +1,7 @@
 using ASMS.Services.Interfaces;
 using ASMS.Services.Mappings;
 using ASMS.Services.Services;
+using ASMS.Services.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 
 
@@ -30,6 +31,8 @@ namespace ASMS.Services
             services.AddScoped<IOrderDetailService, OrderDetailService>();
             services.AddScoped<ICustomerService, CustomerService>();
             services.AddScoped<IEmployeeService, EmployeeService>();
+            services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<TokenService>();
             return services;
         }
     }

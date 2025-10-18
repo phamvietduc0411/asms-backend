@@ -242,7 +242,7 @@ public partial class VstorageContext : DbContext
                  .HasMaxLength(50)
                  .IsUnicode(false);
              entity.Property(e => e.Password)
-                 .HasMaxLength(50)
+                 .HasMaxLength(255)
                  .IsUnicode(false);
              entity.Property(e => e.Phone)
                  .HasMaxLength(20)

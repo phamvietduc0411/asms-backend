@@ -1,5 +1,7 @@
 ﻿using ASMS.Services.Interfaces;
 using ASMS.Services.Model.Employee;
+using ASMS.Services.Utilities;
+using Azure.Core;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ASMS.API.Controllers
@@ -33,6 +35,7 @@ namespace ASMS.API.Controllers
         {
             try
             {
+                request.Password = PasswordHasher.HashPassword(request.Password);
                 var result = await _employeeService.AddEmployeeAsync(request);
                 return Ok(result);
             }
@@ -63,7 +66,7 @@ namespace ASMS.API.Controllers
             existingEmployee.Phone = newInfo.Phone;
             existingEmployee.Address = newInfo.Address;
             existingEmployee.Username = newInfo.Username;
-            existingEmployee.Password = newInfo.Password;
+            existingEmployee.Password = PasswordHasher.HashPassword(newInfo.Password);
             existingEmployee.Status = newInfo.Status;
             existingEmployee.IsActive = newInfo.IsActive;
 

@@ -166,7 +166,7 @@ namespace ASMS.Services.Mappings
             #endregion
             #region Employee
             CreateMap<CreateEmployeeRequest, Employee>();    
-            CreateMap<UpdateEmployeeRequest, Employee>();    
+            CreateMap<UpdateEmployeeRequest, Employee>();
             #endregion
 
         }
