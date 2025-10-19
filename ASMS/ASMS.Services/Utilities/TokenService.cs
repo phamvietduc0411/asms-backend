@@ -30,10 +30,12 @@ namespace ASMS.Services.Utilities
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
-                claims: claims,
-                expires: DateTime.UtcNow.AddHours(1),
-                signingCredentials: creds
-            );
+                 issuer: _configuration["Jwt:Issuer"],  
+                 audience: _configuration["Jwt:Audience"],  
+                 claims: claims,
+                 expires: DateTime.UtcNow.AddHours(1),
+                 signingCredentials: creds
+             );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
@@ -51,10 +53,12 @@ namespace ASMS.Services.Utilities
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
-                claims: claims,
-                expires: DateTime.UtcNow.AddHours(1),
-                signingCredentials: creds
-            );
+                 issuer: _configuration["Jwt:Issuer"],     
+                 audience: _configuration["Jwt:Audience"],  
+                 claims: claims,
+                 expires: DateTime.UtcNow.AddHours(1),
+                 signingCredentials: creds
+             );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }

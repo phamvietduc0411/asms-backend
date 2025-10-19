@@ -1,12 +1,14 @@
 ﻿using ASMS.Services.Interfaces;
 using ASMS.Services.Model.Building;
 using Azure.Core;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ASMS.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    //[Authorize]
     public class BuildingController : ControllerBase
     {
         private readonly IBuildingService _buildingService;

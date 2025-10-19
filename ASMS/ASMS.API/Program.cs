@@ -1,9 +1,13 @@
-using ASMS.Repositories.Data;
+﻿using ASMS.Repositories.Data;
 using ASMS.Repositories.Entities;
 using ASMS.Services;
 using ASMS.Services.Mappings;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using System.Text;
 
 namespace ASMS.API
 {
@@ -20,6 +24,53 @@ namespace ASMS.API
             //Auto Mapper
             var mapperKey = builder.Configuration["KeyAutoMapper:Key"];
             builder.Services.AddAutoMapper(cfg => cfg.LicenseKey = mapperKey, typeof(Program));
+
+            // JWT
+            builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = builder.Configuration["Jwt:Issuer"],
+                    ValidAudience = builder.Configuration["Jwt:Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(
+                        Encoding.UTF8.GetBytes(builder.Configuration["Jwt:SecretKey"]))
+                };
+            });
+
+            builder.Services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "ASMS API", Version = "v1" });
+
+                var jwtScheme = new OpenApiSecurityScheme
+                {
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "bearer",
+                    BearerFormat = "JWT",
+                    In = ParameterLocation.Header,
+                    Description = "Nhập JWT token",
+                    Reference = new OpenApiReference
+                    {
+                        Id = JwtBearerDefaults.AuthenticationScheme,
+                        Type = ReferenceType.SecurityScheme
+                    }
+                };
+
+                c.AddSecurityDefinition(jwtScheme.Reference.Id, jwtScheme);
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    { jwtScheme, Array.Empty<string>() }
+                });
+            });
+
 
             builder.Services.AddDbContext<VstorageContext>(options =>
             {
@@ -58,6 +109,7 @@ namespace ASMS.API
             }
             app.UseHttpsRedirection();
             app.UseAuthentication();
+            app.UseAuthorization();
             app.UseCors("AllowAllOrigins");
             app.UseAuthorization();
             app.MapControllers();
