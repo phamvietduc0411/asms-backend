@@ -29,8 +29,7 @@ namespace ASMS.Repositories.Infrastructures
         public IEmployeeRepository Employee { get; private set; }
         public IStorageRepository Storages { get; private set; }
         public IOrderRepository Orders { get; private set; }
-
-
+        public IStorageTypeRepository StorageTypes { get; private set; }
         public UnitOfWork(
             VstorageContext context,
             ILoggerFactory loggerFactory)
@@ -59,6 +58,7 @@ namespace ASMS.Repositories.Infrastructures
 
             Storages = new StorageRepository(_context, _logger);
             Orders = new OrderRepository(_context, _logger);
+            StorageTypes = new StorageTypeRepository(_context, _logger);
         }
         public async Task CompleteAsync() => await _context.SaveChangesAsync();
     }

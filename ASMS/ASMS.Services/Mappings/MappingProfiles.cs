@@ -15,6 +15,7 @@ using ASMS.Services.Model.Services;
 using ASMS.Services.Model.Shelves;
 using ASMS.Services.Model.StorageBlocks;
 using ASMS.Services.Model.Storages;
+using ASMS.Services.Model.StorageTypes;
 using ASMS.Services.Model.TrackingHistories;
 using ASMS.Services.Model.WorkflowSteps;
 using ASMS.Services.Model.WorkflowTemplates;
@@ -185,6 +186,12 @@ namespace ASMS.Services.Mappings
             CreateMap<CreateOrderRequest, Order>();
             CreateMap<UpdateOrderRequest, Order>()
                 .ForMember(d => d.OrderCode, o => o.Ignore());
+            #endregion
+            #region StorageType
+            CreateMap<StorageType, StorageTypeResponse>();
+            CreateMap<CreateStorageTypeRequest, StorageType>();
+            CreateMap<UpdateStorageTypeRequest, StorageType>()
+                .ForMember(d => d.StorageTypeId, o => o.Ignore());
             #endregion
         }
 
