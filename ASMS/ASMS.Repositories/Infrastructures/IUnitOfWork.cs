@@ -26,7 +26,8 @@ namespace ASMS.Repositories.Infrastructures
         IContainerRepository Containers { get; }
         ICustomerRepository Customer { get; }
         IEmployeeRepository Employee { get; }
-
+        IStorageRepository Storages { get; }
+        IOrderRepository Orders { get; }
         Task CompleteAsync();
     }
 }

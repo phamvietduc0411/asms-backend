@@ -27,7 +27,8 @@ namespace ASMS.Repositories.Infrastructures
         public IContainerRepository Containers { get; private set; }
         public ICustomerRepository Customer { get; private set; }
         public IEmployeeRepository Employee { get; private set; }
-
+        public IStorageRepository Storages { get; private set; }
+        public IOrderRepository Orders { get; private set; }
 
 
         public UnitOfWork(
@@ -51,12 +52,13 @@ namespace ASMS.Repositories.Infrastructures
             Containers = new ContainerRepository(_context, _logger);
             Customer = new CustomerRepository(_context, _logger);
             Employee = new EmployeeRepository(_context, _logger);
-
+            
 
             ContainerLocationLogs = new ContainerLocationLogRepository(_context, _logger);
             OrderDetails = new OrderDetailRepository(_context, _logger);
 
-
+            Storages = new StorageRepository(_context, _logger);
+            Orders = new OrderRepository(_context, _logger);
         }
         public async Task CompleteAsync() => await _context.SaveChangesAsync();
     }

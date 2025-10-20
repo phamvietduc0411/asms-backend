@@ -32,6 +32,8 @@ namespace ASMS.Services
             services.AddScoped<ICustomerService, CustomerService>();
             services.AddScoped<IEmployeeService, EmployeeService>();
             services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IStorageService, StorageService>();
+            services.AddScoped<IOrderService, OrderService>();
             services.AddScoped<TokenService>();
             return services;
         }
