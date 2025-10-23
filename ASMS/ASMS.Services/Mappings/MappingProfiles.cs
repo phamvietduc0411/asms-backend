@@ -9,10 +9,13 @@ using ASMS.Services.Model.Employee;
 using ASMS.Services.Model.Floor;
 using ASMS.Services.Model.FloorBlocks;
 using ASMS.Services.Model.OrderDetail;
+using ASMS.Services.Model.Orders;
 using ASMS.Services.Model.ProductType;
 using ASMS.Services.Model.Services;
 using ASMS.Services.Model.Shelves;
 using ASMS.Services.Model.StorageBlocks;
+using ASMS.Services.Model.Storages;
+using ASMS.Services.Model.StorageTypes;
 using ASMS.Services.Model.TrackingHistories;
 using ASMS.Services.Model.WorkflowSteps;
 using ASMS.Services.Model.WorkflowTemplates;
@@ -168,7 +171,28 @@ namespace ASMS.Services.Mappings
             CreateMap<CreateEmployeeRequest, Employee>();    
             CreateMap<UpdateEmployeeRequest, Employee>();
             #endregion
+            #region Storage
+            CreateMap<Storage, StorageResponse>()
+                .ForMember(d => d.BuildingCode, o => o.MapFrom(s => s.BuildingCodeNavigation!.BuildingCode))
+                .ForMember(d => d.StorageTypeName, o => o.MapFrom(s => s.StorageType!.Name))
+                .ForMember(d => d.ProductTypeName, o => o.MapFrom(s => s.ProductType!.Name));
 
+            CreateMap<CreateStorageRequest, Storage>();
+            CreateMap<UpdateStorageRequest, Storage>()
+                .ForMember(d => d.StorageCode, o => o.Ignore());
+            #endregion
+            #region Order
+            CreateMap<Order, OrderResponse>();
+            CreateMap<CreateOrderRequest, Order>();
+            CreateMap<UpdateOrderRequest, Order>()
+                .ForMember(d => d.OrderCode, o => o.Ignore());
+            #endregion
+            #region StorageType
+            CreateMap<StorageType, StorageTypeResponse>();
+            CreateMap<CreateStorageTypeRequest, StorageType>();
+            CreateMap<UpdateStorageTypeRequest, StorageType>()
+                .ForMember(d => d.StorageTypeId, o => o.Ignore());
+            #endregion
         }
 
 
