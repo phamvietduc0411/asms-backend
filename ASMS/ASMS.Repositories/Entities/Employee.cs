@@ -5,7 +5,6 @@ namespace ASMS.Repositories.Entities;
 
 public partial class Employee
 {
-    public int Id { get; set; }
     public string EmployeeCode { get; set; } = null!;
 
     public int? EmployeeRoleId { get; set; }
@@ -26,7 +25,9 @@ public partial class Employee
 
     public bool IsActive { get; set; }
 
-    public virtual Building? BuildingCodeNavigation { get; set; }
+    public int Id { get; set; }
+
+    public virtual Building? Building { get; set; }
 
     public virtual EmployeeRole? EmployeeRole { get; set; }
 }

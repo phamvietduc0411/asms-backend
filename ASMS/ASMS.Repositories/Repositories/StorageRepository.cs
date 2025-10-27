@@ -21,13 +21,13 @@ namespace ASMS.Repositories.Repositories
             try
             {
                 var query = _dbSet
-                    .Include(s => s.BuildingCodeNavigation)
+                    .Include(s => s.BuildingId)
                     .Include(s => s.StorageType)
                     .Include(s => s.ProductType)
                     .AsQueryable();
 
                 if (!string.IsNullOrWhiteSpace(buildingCode))
-                    query = query.Where(s => s.BuildingCodeNavigation != null && s.BuildingCodeNavigation.BuildingCode == buildingCode);
+                    query = query.Where(s => s.BuildingId != null);
 
                 if (!string.IsNullOrWhiteSpace(storageTypeName))
                     query = query.Where(s => s.StorageType != null && s.StorageType.Name != null && s.StorageType.Name.Contains(storageTypeName));
@@ -53,13 +53,13 @@ namespace ASMS.Repositories.Repositories
             try
             {
                 var query = _dbSet
-                    .Include(s => s.BuildingCodeNavigation)
+                    .Include(s => s.BuildingId)
                     .Include(s => s.StorageType)
                     .Include(s => s.ProductType)
                     .AsQueryable();
 
                 if (!string.IsNullOrWhiteSpace(buildingCode))
-                    query = query.Where(s => s.BuildingCodeNavigation != null && s.BuildingCodeNavigation.BuildingCode == buildingCode);
+                    query = query.Where(s => s.BuildingId != null);
 
                 if (!string.IsNullOrWhiteSpace(storageTypeName))
                     query = query.Where(s => s.StorageType != null && s.StorageType.Name != null && s.StorageType.Name.Contains(storageTypeName));
@@ -81,7 +81,7 @@ namespace ASMS.Repositories.Repositories
             try
             {
                 return await _dbSet
-                    .Include(s => s.BuildingCodeNavigation)
+                    .Include(s => s.BuildingId)
                     .Include(s => s.StorageType)
                     .Include(s => s.ProductType)
                     .Include(s => s.Shelves)
