@@ -41,5 +41,14 @@ namespace ASMS.Repositories.Repositories
                 _dbSet.Remove(entity);
             }
         }
+        public async Task<IEnumerable<Container>> GetByFloorCodeAsync(string floorCode)
+        {
+            return await _dbSet
+                .AsNoTracking()
+                .Where(c => c.FloorCode == floorCode)
+                .Include(c => c.ProductType)
+                .ToListAsync();
+        }
+
     }
 }

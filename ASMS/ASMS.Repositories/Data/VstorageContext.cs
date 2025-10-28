@@ -607,6 +607,7 @@ public partial class VstorageContext : DbContext
             entity.Property(e => e.StorageCode)
                 .HasMaxLength(50)
                 .IsUnicode(false);
+            entity.Property(e => e.BuildingCode).HasMaxLength(50);
             entity.Property(e => e.Height).HasColumnType("decimal(18, 0)");
             entity.Property(e => e.IsActive).HasColumnName("isActive");
             entity.Property(e => e.LastOptimizedDate).HasColumnType("datetime");

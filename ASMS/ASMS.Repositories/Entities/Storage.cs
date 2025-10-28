@@ -35,6 +35,8 @@ public partial class Storage
 
     public DateTime? LastOptimizedDate { get; set; }
 
+    public string? BuildingCode { get; set; }
+
     public virtual Building? Building { get; set; }
 
     public virtual ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();

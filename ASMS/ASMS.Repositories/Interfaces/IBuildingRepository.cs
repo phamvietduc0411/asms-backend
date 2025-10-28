@@ -11,5 +11,6 @@ namespace ASMS.Repositories.Interfaces
     public interface IBuildingRepository : IGenericRepository<Building>
     {
         Task<Building> GetLastRecord();
+        Task<Building?> GetByCodeAsync(string buildingCode);
     }
 }
