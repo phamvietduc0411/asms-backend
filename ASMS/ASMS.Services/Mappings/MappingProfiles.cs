@@ -173,7 +173,7 @@ namespace ASMS.Services.Mappings
             #endregion
             #region Storage
             CreateMap<Storage, StorageResponse>()
-                .ForMember(d => d.BuildingCode, o => o.MapFrom(s => s.BuildingCodeNavigation!.BuildingCode))
+                .ForMember(d => d.BuildingCode, o => o.MapFrom(s => s.BuildingId))
                 .ForMember(d => d.StorageTypeName, o => o.MapFrom(s => s.StorageType!.Name))
                 .ForMember(d => d.ProductTypeName, o => o.MapFrom(s => s.ProductType!.Name));
 
