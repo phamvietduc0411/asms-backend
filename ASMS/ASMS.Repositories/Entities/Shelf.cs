@@ -19,6 +19,12 @@ public partial class Shelf
 
     public decimal? Height { get; set; }
 
+    public decimal? PositionX { get; set; }
+
+    public decimal? PositionY { get; set; }
+
+    public decimal? PositionZ { get; set; }
+
     public virtual ICollection<Floor> Floors { get; set; } = new List<Floor>();
 
     public virtual Storage? StorageCodeNavigation { get; set; }

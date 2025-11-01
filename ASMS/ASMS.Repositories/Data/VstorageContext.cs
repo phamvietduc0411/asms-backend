@@ -106,10 +106,10 @@ public partial class VstorageContext : DbContext
                 .IsUnicode(false);
             entity.Property(e => e.HasFragileItems).HasDefaultValue(false);
             entity.Property(e => e.HasHeavyItems).HasDefaultValue(false);
-            entity.Property(e => e.Height).HasColumnType("decimal(18, 0)");
+            entity.Property(e => e.Height).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.IsActive).HasColumnName("isActive");
             entity.Property(e => e.LastOptimizedDate).HasColumnType("datetime");
-            entity.Property(e => e.Length).HasColumnType("decimal(18, 0)");
+            entity.Property(e => e.Length).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.MaxItems).HasDefaultValue(50);
             entity.Property(e => e.MaxWeight)
                 .HasDefaultValue(100m)
@@ -128,15 +128,15 @@ public partial class VstorageContext : DbContext
                 .HasMaxLength(10)
                 .IsUnicode(false);
             entity.Property(e => e.TotalVolume)
-                .HasComputedColumnSql("(([Length]*[Width])*[Height])", true)
-                .HasColumnType("decimal(38, 0)");
+                .HasComputedColumnSql("(([Length]*[Width])*[Height])", false)
+                .HasColumnType("decimal(32, 6)");
             entity.Property(e => e.UsedVolume)
                 .HasDefaultValue(0m)
                 .HasColumnType("decimal(15, 2)");
             entity.Property(e => e.UtilizationRate)
-                .HasComputedColumnSql("(case when ([Length]*[Width])*[Height]>(0) then ([UsedVolume]/(([Length]*[Width])*[Height]))*(100) else (0) end)", true)
-                .HasColumnType("decimal(38, 21)");
-            entity.Property(e => e.Width).HasColumnType("decimal(18, 0)");
+                .HasComputedColumnSql("(case when ([Length]*[Width])*[Height]>(0) then ([UsedVolume]/(([Length]*[Width])*[Height]))*(100) else (0) end)", false)
+                .HasColumnType("decimal(38, 15)");
+            entity.Property(e => e.Width).HasColumnType("decimal(10, 2)");
 
             entity.HasOne(d => d.FloorCodeNavigation).WithMany(p => p.Containers)
                 .HasForeignKey(d => d.FloorCode)
@@ -287,9 +287,9 @@ public partial class VstorageContext : DbContext
             entity.Property(e => e.CurrentWeight)
                 .HasDefaultValue(0m)
                 .HasColumnType("decimal(10, 2)");
-            entity.Property(e => e.Height).HasColumnType("decimal(18, 0)");
+            entity.Property(e => e.Height).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.IsActive).HasColumnName("isActive");
-            entity.Property(e => e.Length).HasColumnType("decimal(18, 0)");
+            entity.Property(e => e.Length).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.MaxContainers).HasDefaultValue(20);
             entity.Property(e => e.MaxWeight)
                 .HasDefaultValue(500m)
@@ -312,7 +312,7 @@ public partial class VstorageContext : DbContext
             entity.Property(e => e.UtilizationRate)
                 .HasDefaultValue(0m)
                 .HasColumnType("decimal(5, 2)");
-            entity.Property(e => e.Width).HasColumnType("decimal(18, 0)");
+            entity.Property(e => e.Width).HasColumnType("decimal(10, 2)");
 
             entity.HasOne(d => d.ShelfCodeNavigation).WithMany(p => p.Floors)
                 .HasForeignKey(d => d.ShelfCode)
@@ -333,13 +333,22 @@ public partial class VstorageContext : DbContext
             entity.Property(e => e.FloorCode)
                 .HasMaxLength(50)
                 .IsUnicode(false);
-            entity.Property(e => e.Height).HasColumnType("decimal(18, 0)");
+            entity.Property(e => e.Height).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.IsActive).HasColumnName("isActive");
-            entity.Property(e => e.Length).HasColumnType("decimal(18, 0)");
+            entity.Property(e => e.Length).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.PositionX)
+                .HasDefaultValue(0m)
+                .HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.PositionY)
+                .HasDefaultValue(0m)
+                .HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.PositionZ)
+                .HasDefaultValue(0m)
+                .HasColumnType("decimal(10, 2)");
             entity.Property(e => e.Status)
                 .HasMaxLength(10)
                 .IsUnicode(false);
-            entity.Property(e => e.Width).HasColumnType("decimal(18, 0)");
+            entity.Property(e => e.Width).HasColumnType("decimal(10, 2)");
 
             entity.HasOne(d => d.FloorCodeNavigation).WithMany(p => p.FloorBlocks)
                 .HasForeignKey(d => d.FloorCode)
@@ -576,16 +585,25 @@ public partial class VstorageContext : DbContext
             entity.Property(e => e.ShelfCode)
                 .HasMaxLength(50)
                 .IsUnicode(false);
-            entity.Property(e => e.Height).HasColumnType("decimal(18, 0)");
+            entity.Property(e => e.Height).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.IsActive).HasColumnName("isActive");
-            entity.Property(e => e.Length).HasColumnType("decimal(18, 0)");
+            entity.Property(e => e.Length).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.PositionX)
+                .HasDefaultValue(0m)
+                .HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.PositionY)
+                .HasDefaultValue(0m)
+                .HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.PositionZ)
+                .HasDefaultValue(0m)
+                .HasColumnType("decimal(10, 2)");
             entity.Property(e => e.Status)
                 .HasMaxLength(10)
                 .IsUnicode(false);
             entity.Property(e => e.StorageCode)
                 .HasMaxLength(50)
                 .IsUnicode(false);
-            entity.Property(e => e.Width).HasColumnType("decimal(18, 0)");
+            entity.Property(e => e.Width).HasColumnType("decimal(10, 2)");
 
             entity.HasOne(d => d.StorageCodeNavigation).WithMany(p => p.Shelves)
                 .HasForeignKey(d => d.StorageCode)
@@ -608,10 +626,10 @@ public partial class VstorageContext : DbContext
                 .HasMaxLength(50)
                 .IsUnicode(false);
             entity.Property(e => e.BuildingCode).HasMaxLength(50);
-            entity.Property(e => e.Height).HasColumnType("decimal(18, 0)");
+            entity.Property(e => e.Height).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.IsActive).HasColumnName("isActive");
             entity.Property(e => e.LastOptimizedDate).HasColumnType("datetime");
-            entity.Property(e => e.Length).HasColumnType("decimal(18, 0)");
+            entity.Property(e => e.Length).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.OccupiedContainers).HasDefaultValue(0);
             entity.Property(e => e.ProductTypeId).HasColumnName("ProductTypeID");
             entity.Property(e => e.Status)
@@ -620,15 +638,15 @@ public partial class VstorageContext : DbContext
             entity.Property(e => e.StorageTypeId).HasColumnName("StorageTypeID");
             entity.Property(e => e.TotalContainers).HasDefaultValue(0);
             entity.Property(e => e.TotalVolume)
-                .HasComputedColumnSql("(([Length]*[Width])*[Height])", true)
-                .HasColumnType("decimal(38, 0)");
+                .HasComputedColumnSql("(([Length]*[Width])*[Height])", false)
+                .HasColumnType("decimal(32, 6)");
             entity.Property(e => e.UsedVolume)
                 .HasDefaultValue(0m)
                 .HasColumnType("decimal(15, 2)");
             entity.Property(e => e.UtilizationRate)
-                .HasComputedColumnSql("(case when ([Length]*[Width])*[Height]>(0) then ([UsedVolume]/(([Length]*[Width])*[Height]))*(100) else (0) end)", true)
-                .HasColumnType("decimal(38, 21)");
-            entity.Property(e => e.Width).HasColumnType("decimal(18, 0)");
+                .HasComputedColumnSql("(case when ([Length]*[Width])*[Height]>(0) then ([UsedVolume]/(([Length]*[Width])*[Height]))*(100) else (0) end)", false)
+                .HasColumnType("decimal(38, 15)");
+            entity.Property(e => e.Width).HasColumnType("decimal(10, 2)");
 
             entity.HasOne(d => d.Building).WithMany(p => p.Storages)
                 .HasForeignKey(d => d.BuildingId)
@@ -654,16 +672,16 @@ public partial class VstorageContext : DbContext
             entity.Property(e => e.StorageBlockCode)
                 .HasMaxLength(50)
                 .IsUnicode(false);
-            entity.Property(e => e.Height).HasColumnType("decimal(18, 0)");
+            entity.Property(e => e.Height).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.IsActive).HasColumnName("isActive");
-            entity.Property(e => e.Length).HasColumnType("decimal(18, 0)");
+            entity.Property(e => e.Length).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.Status)
                 .HasMaxLength(10)
                 .IsUnicode(false);
             entity.Property(e => e.StorageCode)
                 .HasMaxLength(50)
                 .IsUnicode(false);
-            entity.Property(e => e.Width).HasColumnType("decimal(18, 0)");
+            entity.Property(e => e.Width).HasColumnType("decimal(10, 2)");
 
             entity.HasOne(d => d.StorageCodeNavigation).WithMany(p => p.StorageBlocks)
                 .HasForeignKey(d => d.StorageCode)
