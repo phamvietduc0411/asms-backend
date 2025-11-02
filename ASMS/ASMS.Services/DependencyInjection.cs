@@ -1,6 +1,7 @@
 using ASMS.Services.Interfaces;
 using ASMS.Services.Mappings;
 using ASMS.Services.Services;
+using ASMS.Services.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 
 
@@ -26,6 +27,15 @@ namespace ASMS.Services
             services.AddScoped<IContainerTypeService, ContainerTypeService>();
             services.AddScoped<IShelfService, ShelfService>();
             services.AddScoped<IContainerLocationLogService, ContainerLocationLogService>();
+            services.AddScoped<IContainerService, ContainerService>();
+            services.AddScoped<IOrderDetailService, OrderDetailService>();
+            services.AddScoped<ICustomerService, CustomerService>();
+            services.AddScoped<IEmployeeService, EmployeeService>();
+            services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IStorageService, StorageService>();
+            services.AddScoped<IOrderService, OrderService>();
+            services.AddScoped<IStorageTypeService, StorageTypeService>();
+            services.AddScoped<TokenService>();
             services.AddScoped<IPaymentHistoryService, PaymentHistoryService>();
             return services;
         }

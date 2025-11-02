@@ -22,6 +22,13 @@ namespace ASMS.Repositories.Infrastructures
         IFloorBlockRepository FloorBlocks { get; }
         IShelfRepository Shelves { get; }
         IContainerLocationLogRepository ContainerLocationLogs { get; }
+        IOrderDetailRepository OrderDetails { get; }
+        IContainerRepository Containers { get; }
+        ICustomerRepository Customer { get; }
+        IEmployeeRepository Employee { get; }
+        IStorageRepository Storages { get; }
+        IOrderRepository Orders { get; }
+        IStorageTypeRepository StorageTypes { get; }
         IPaymentHistoryRepository PaymentHistories { get; }
 
 

@@ -192,30 +192,41 @@ namespace ASMS.Repositories.Migrations
 
             modelBuilder.Entity("ASMS.Repositories.Entities.Customer", b =>
                 {
-                    b.Property<string>("CustomerCode")
-                        .HasMaxLength(50)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(50)");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Address")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<string>("Email")
+                    b.Property<string>("CustomerCode")
+                        .IsRequired()
                         .HasMaxLength(50)
                         .IsUnicode(false)
                         .HasColumnType("varchar(50)");
 
-                    b.Property<bool?>("IsActive")
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<bool>("IsActive")
                         .HasColumnType("bit")
                         .HasColumnName("isActive");
 
                     b.Property<string>("Name")
+                        .IsRequired()
                         .HasMaxLength(50)
                         .IsUnicode(false)
                         .HasColumnType("varchar(50)");
 
                     b.Property<string>("Password")
+                        .IsRequired()
                         .HasMaxLength(500)
                         .IsUnicode(false)
                         .HasColumnType("varchar(500)");
@@ -225,18 +236,24 @@ namespace ASMS.Repositories.Migrations
                         .IsUnicode(false)
                         .HasColumnType("varchar(20)");
 
-                    b.HasKey("CustomerCode")
-                        .HasName("PK__Customer__066785204D979A27");
+                    b.HasKey("Id")
+                        .HasName("PK_Customer");
+
+                    b.HasIndex("CustomerCode")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_Customer_CustomerCode");
 
                     b.ToTable("Customer", (string)null);
                 });
 
             modelBuilder.Entity("ASMS.Repositories.Entities.Employee", b =>
                 {
-                    b.Property<string>("EmployeeCode")
-                        .HasMaxLength(50)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(50)");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Address")
                         .HasMaxLength(100)
@@ -248,11 +265,17 @@ namespace ASMS.Repositories.Migrations
                         .IsUnicode(false)
                         .HasColumnType("int");
 
+                    b.Property<string>("EmployeeCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
+
                     b.Property<int?>("EmployeeRoleId")
                         .HasColumnType("int")
                         .HasColumnName("EmployeeRoleID");
 
-                    b.Property<bool?>("IsActive")
+                    b.Property<bool>("IsActive")
                         .HasColumnType("bit")
                         .HasColumnName("isActive");
 
@@ -262,9 +285,9 @@ namespace ASMS.Repositories.Migrations
                         .HasColumnType("varchar(50)");
 
                     b.Property<string>("Password")
-                        .HasMaxLength(50)
+                        .HasMaxLength(255)
                         .IsUnicode(false)
-                        .HasColumnType("varchar(50)");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<string>("Phone")
                         .HasMaxLength(20)
@@ -281,14 +304,14 @@ namespace ASMS.Repositories.Migrations
                         .IsUnicode(false)
                         .HasColumnType("varchar(100)");
 
-                    b.HasKey("EmployeeCode")
+                    b.HasKey("Id")
                         .HasName("PK__Employee__1F642549B4A50CB4");
 
                     b.HasIndex("BuildingId");
 
                     b.HasIndex("EmployeeRoleId");
 
-                    b.ToTable("Employee", (string)null);
+                    b.ToTable("Employees");
                 });
 
             modelBuilder.Entity("ASMS.Repositories.Entities.EmployeeRole", b =>
@@ -878,7 +901,8 @@ namespace ASMS.Repositories.Migrations
                     b.HasOne("ASMS.Repositories.Entities.Customer", "CustomerCodeNavigation")
                         .WithMany("Orders")
                         .HasForeignKey("CustomerCode")
-                        .HasConstraintName("FK__Order__CustomerC__6EF57B66");
+                        .HasPrincipalKey("CustomerCode")
+                        .HasConstraintName("FK_Order_CustomerCode");
 
                     b.Navigation("CustomerCodeNavigation");
                 });

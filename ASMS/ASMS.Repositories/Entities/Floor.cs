@@ -21,6 +21,22 @@ public partial class Floor
 
     public decimal? Height { get; set; }
 
+    public decimal? PositionX { get; set; }
+
+    public decimal? PositionY { get; set; }
+
+    public decimal? PositionZ { get; set; }
+
+    public decimal? MaxWeight { get; set; }
+
+    public decimal? CurrentWeight { get; set; }
+
+    public int? MaxContainers { get; set; }
+
+    public int? CurrentContainerCount { get; set; }
+
+    public decimal? UtilizationRate { get; set; }
+
     public virtual ICollection<Container> Containers { get; set; } = new List<Container>();
 
     public virtual ICollection<FloorBlock> FloorBlocks { get; set; } = new List<FloorBlock>();
