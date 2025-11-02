@@ -12,5 +12,6 @@ namespace ASMS.Repositories.Interfaces
     {
         Task<IEnumerable<PaymentHistory>> GetAllAsync();
         Task<PaymentHistory?> GetByCodeAsync(string code);
+        Task DeleteAsync(PaymentHistory entity);
     }
 }

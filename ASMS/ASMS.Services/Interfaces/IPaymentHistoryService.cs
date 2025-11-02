@@ -13,6 +13,6 @@ namespace ASMS.Services.Interfaces
         Task<PaymentHistoryResponse?> GetByCodeAsync(string code);
         Task<PaymentHistoryResponse> CreateAsync(CreatePaymentHistoryRequest request);
         Task<PaymentHistoryResponse?> UpdateAsync(string code, UpdatePaymentHistoryRequest request);
-        //Task<bool> DeleteAsync(string code);
+        Task<bool> DeleteAsync(string code);
     }
 }

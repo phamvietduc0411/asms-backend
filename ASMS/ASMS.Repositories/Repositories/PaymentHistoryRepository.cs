@@ -14,18 +14,24 @@ namespace ASMS.Repositories.Repositories
 {
     public class PaymentHistoryRepository : GenericRepository<PaymentHistory>, IPaymentHistoryRepository
     {
-        public PaymentHistoryRepository(VstorageContext context, ILogger logger)
-            : base(context, logger) { }
+        public PaymentHistoryRepository(VstorageContext context, ILogger logger) : base(context, logger)
+        {
+        }
 
         public async Task<IEnumerable<PaymentHistory>> GetAllAsync()
         {
-            return await _dbSet.Include(x => x.OrderCodeNavigation).ToListAsync();
+            return await _dbSet.ToListAsync();
         }
 
         public async Task<PaymentHistory?> GetByCodeAsync(string code)
         {
-            return await _dbSet.Include(x => x.OrderCodeNavigation)
-                               .FirstOrDefaultAsync(x => x.PaymentHistoryCode == code);
+            return await _dbSet.FirstOrDefaultAsync(x => x.PaymentHistoryCode == code);
+        }
+
+        public async Task DeleteAsync(PaymentHistory entity)
+        {
+            _dbSet.Remove(entity);
+            await Task.CompletedTask;
         }
     }
 }

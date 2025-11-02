@@ -200,6 +200,7 @@ namespace ASMS.Services.Mappings
             #endregion
             #region PaymentHistory
             CreateMap<CreatePaymentHistoryRequest, PaymentHistory>();
+
             CreateMap<UpdatePaymentHistoryRequest, PaymentHistory>()
                 .ForMember(dest => dest.PaymentHistoryCode, opt => opt.Ignore())
                 .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));

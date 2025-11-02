@@ -24,8 +24,8 @@ namespace ASMS.Services.Services
 
         public async Task<IEnumerable<PaymentHistoryResponse>> GetAllAsync()
         {
-            var entities = await _unitOfWork.PaymentHistories.GetAllAsync();
-            return _mapper.Map<IEnumerable<PaymentHistoryResponse>>(entities);
+            var data = await _unitOfWork.PaymentHistories.GetAllAsync();
+            return _mapper.Map<IEnumerable<PaymentHistoryResponse>>(data);
         }
 
         public async Task<PaymentHistoryResponse?> GetByCodeAsync(string code)
@@ -44,24 +44,25 @@ namespace ASMS.Services.Services
 
         public async Task<PaymentHistoryResponse?> UpdateAsync(string code, UpdatePaymentHistoryRequest request)
         {
-            var entity = await _unitOfWork.PaymentHistories.GetByCodeAsync(code);
-            if (entity == null) return null;
+            var existing = await _unitOfWork.PaymentHistories.GetByCodeAsync(code);
+            if (existing == null)
+                return null;
 
-            _mapper.Map(request, entity);
-            await _unitOfWork.PaymentHistories.UpdateAsync(entity);
+            _mapper.Map(request, existing);
+            await _unitOfWork.PaymentHistories.UpdateAsync(existing);
             await _unitOfWork.CompleteAsync();
-            return _mapper.Map<PaymentHistoryResponse>(entity);
+            return _mapper.Map<PaymentHistoryResponse>(existing);
         }
 
-        //public async Task<bool> DeleteAsync(string code)
-        //{
-        //    var entity = await _unitOfWork.PaymentHistories.GetByCodeAsync(code);
-        //    if (entity == null) return false;
+        public async Task<bool> DeleteAsync(string code)
+        {
+            var entity = await _unitOfWork.PaymentHistories.GetByCodeAsync(code);
+            if (entity == null)
+                return false;
 
-        //    await _unitOfWork.PaymentHistories.DeleteAsync(code);
-
-        //    await _unitOfWork.CompleteAsync();
-        //    return true;
-        //}
+            await _unitOfWork.PaymentHistories.DeleteAsync(entity);
+            await _unitOfWork.CompleteAsync();
+            return true;
+        }
     }
 }
