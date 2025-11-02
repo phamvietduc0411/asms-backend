@@ -13,6 +13,7 @@ using ASMS.Services.Model.FloorBlocks;
 using ASMS.Services.Model.ContainerType;
 using ASMS.Services.Model.Shelves;
 using ASMS.Services.Model.ContainerLocationLog;
+using ASMS.Services.Model.PaymentHistory;
 
 namespace ASMS.Services.Mappings
 {
@@ -134,6 +135,14 @@ namespace ASMS.Services.Mappings
                 .ForMember(dest => dest.ContainerLocationLogId, opt => opt.Ignore())
                 .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
             CreateMap<ContainerLocationLog, ContainerLocationLogResponse>();
+            #endregion
+            #region PaymentHistory
+            CreateMap<CreatePaymentHistoryRequest, PaymentHistory>();
+            CreateMap<UpdatePaymentHistoryRequest, PaymentHistory>()
+                .ForMember(dest => dest.PaymentHistoryCode, opt => opt.Ignore())
+                .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
+
+            CreateMap<PaymentHistory, PaymentHistoryResponse>();
             #endregion
         }
 
