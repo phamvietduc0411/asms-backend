@@ -31,11 +31,7 @@ public partial class Container
 
     public decimal? CurrentWeight { get; set; }
 
-    public decimal? TotalVolume { get; set; }
-
     public decimal? UsedVolume { get; set; }
-
-    public decimal? UtilizationRate { get; set; }
 
     public decimal? PositionX { get; set; }
 
@@ -54,6 +50,10 @@ public partial class Container
     public decimal? OptimizationScore { get; set; }
 
     public string? Notes { get; set; }
+
+    public decimal? TotalVolume { get; set; }
+
+    public decimal? UtilizationRate { get; set; }
 
     public virtual ICollection<ContainerLocationLog> ContainerLocationLogs { get; set; } = new List<ContainerLocationLog>();
 

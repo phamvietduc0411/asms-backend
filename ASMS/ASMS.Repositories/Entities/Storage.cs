@@ -23,17 +23,19 @@ public partial class Storage
 
     public bool? IsActive { get; set; }
 
-    public decimal? TotalVolume { get; set; }
-
     public decimal? UsedVolume { get; set; }
-
-    public decimal? UtilizationRate { get; set; }
 
     public int? TotalContainers { get; set; }
 
     public int? OccupiedContainers { get; set; }
 
     public DateTime? LastOptimizedDate { get; set; }
+
+    public string? BuildingCode { get; set; }
+
+    public decimal? TotalVolume { get; set; }
+
+    public decimal? UtilizationRate { get; set; }
 
     public virtual Building? Building { get; set; }
 

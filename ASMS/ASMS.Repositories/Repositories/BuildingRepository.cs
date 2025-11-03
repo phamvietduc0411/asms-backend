@@ -26,5 +26,10 @@ namespace ASMS.Repositories.Repositories
 
             return lastBuilding;
         }
+        public async Task<Building?> GetByCodeAsync(string buildingCode)
+        {
+            return await _dbSet
+                .FirstOrDefaultAsync(b => b.BuildingCode == buildingCode);
+        }
     }
 }

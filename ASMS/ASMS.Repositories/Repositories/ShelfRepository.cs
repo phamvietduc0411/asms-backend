@@ -40,5 +40,12 @@ namespace ASMS.Repositories.Repositories
                 _dbSet.Remove(entity);
             }
         }
+        public async Task<IEnumerable<Shelf>> GetByStorageCodeAsync(string storageCode)
+        {
+            return await _dbSet
+                .AsNoTracking()
+                .Where(s => s.StorageCode == storageCode)
+                .ToListAsync();
+        }
     }
 }

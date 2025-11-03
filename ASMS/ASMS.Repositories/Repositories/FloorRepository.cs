@@ -31,5 +31,13 @@ namespace ASMS.Repositories.Repositories
             _dbSet.Remove(entity);
             await Task.CompletedTask;
         }
+        public async Task<IEnumerable<Floor>> GetByShelfCodeAsync(string shelfCode)
+        {
+            return await _dbSet
+                .AsNoTracking()
+                .Where(f => f.ShelfCode == shelfCode)
+                .OrderBy(f => f.FloorNumber)
+                .ToListAsync();
+        }
     }
 }

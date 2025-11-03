@@ -19,5 +19,11 @@ public partial class FloorBlock
 
     public bool? IsActive { get; set; }
 
+    public decimal? PositionX { get; set; }
+
+    public decimal? PositionY { get; set; }
+
+    public decimal? PositionZ { get; set; }
+
     public virtual Floor? FloorCodeNavigation { get; set; }
 }

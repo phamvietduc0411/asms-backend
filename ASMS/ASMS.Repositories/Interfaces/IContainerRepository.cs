@@ -13,5 +13,6 @@ namespace ASMS.Repositories.Interfaces
         Task<IEnumerable<Container>> GetAllAsync();
         Task<Container?> GetByCodeAsync(string code);
         Task DeleteAsync(string code);
+        Task<IEnumerable<Container>> GetByFloorCodeAsync(string floorCode);
     }
 }
