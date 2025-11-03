@@ -36,6 +36,7 @@ namespace ASMS.Services
             services.AddScoped<IOrderService, OrderService>();
             services.AddScoped<IStorageTypeService, StorageTypeService>();
             services.AddScoped<TokenService>();
+            services.AddScoped<IPaymentHistoryService, PaymentHistoryService>();
             return services;
         }
     }

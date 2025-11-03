@@ -20,6 +20,11 @@ using ASMS.Services.Model.TrackingHistories;
 using ASMS.Services.Model.WorkflowSteps;
 using ASMS.Services.Model.WorkflowTemplates;
 using AutoMapper;
+using ASMS.Services.Model.FloorBlocks;
+using ASMS.Services.Model.ContainerType;
+using ASMS.Services.Model.Shelves;
+using ASMS.Services.Model.ContainerLocationLog;
+using ASMS.Services.Model.PaymentHistory;
 
 namespace ASMS.Services.Mappings
 {
@@ -192,6 +197,15 @@ namespace ASMS.Services.Mappings
             CreateMap<CreateStorageTypeRequest, StorageType>();
             CreateMap<UpdateStorageTypeRequest, StorageType>()
                 .ForMember(d => d.StorageTypeId, o => o.Ignore());
+            #endregion
+            #region PaymentHistory
+            CreateMap<CreatePaymentHistoryRequest, PaymentHistory>();
+
+            CreateMap<UpdatePaymentHistoryRequest, PaymentHistory>()
+                .ForMember(dest => dest.PaymentHistoryCode, opt => opt.Ignore())
+                .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
+
+            CreateMap<PaymentHistory, PaymentHistoryResponse>();
             #endregion
         }
 

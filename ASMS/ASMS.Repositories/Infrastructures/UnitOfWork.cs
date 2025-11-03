@@ -30,6 +30,13 @@ namespace ASMS.Repositories.Infrastructures
         public IStorageRepository Storages { get; private set; }
         public IOrderRepository Orders { get; private set; }
         public IStorageTypeRepository StorageTypes { get; private set; }
+        public IPaymentHistoryRepository PaymentHistories { get; private set; }
+
+
+
+
+
+
         public UnitOfWork(
             VstorageContext context,
             ILoggerFactory loggerFactory)
@@ -55,6 +62,10 @@ namespace ASMS.Repositories.Infrastructures
 
             ContainerLocationLogs = new ContainerLocationLogRepository(_context, _logger);
             OrderDetails = new OrderDetailRepository(_context, _logger);
+            PaymentHistories = new PaymentHistoryRepository(_context, _logger);
+
+
+
 
             Storages = new StorageRepository(_context, _logger);
             Orders = new OrderRepository(_context, _logger);
