@@ -17,145 +17,247 @@ namespace ASMS.Services.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<CLPService> _logger;
+        private const decimal FLOOR_LENGTH_LIMIT = 1.7m;
         public CLPService(IUnitOfWork unitOfWork, ILogger<CLPService> logger)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
         }
-        public async Task<List<ContainerSuggestionDto>> FindSuitableContainersAsync(FindContainerRequest request)
+        public async Task<List<ContainerPlacementDto>> FindSuitableContainersAsync(FindContainerRequest request)
         {
-            var productType = await _unitOfWork.ProductType.GetEntityByIdAsync(request.ProductTypeID);
-            if (productType == null)
+            _logger.LogInformation("Finding suitable containers for package: {L}x{W}x{H}, Weight: {Wt}kg, Fragile: {F}",
+                request.PackageLength, request.PackageWidth, request.PackageHeight, request.PackageWeight, request.IsFragile);
+            //1. Determine container type needed
+            var containerTypeId = DetermineContainerType(request.PackageLength, request.PackageWidth, request.PackageHeight);
+            if (containerTypeId == 0)
             {
-                _logger.LogWarning($"ProductType {request.ProductTypeID} not found");
-                return new List<ContainerSuggestionDto>();
+                _logger.LogWarning("Package too large for any container type");
+                return new List<ContainerPlacementDto>();
             }
 
-            var candidates = await FindAllAvailableContainerCandidatesAsync(
-                request.PackageLength,
-                request.PackageWidth,
-                request.PackageHeight,
-                request.PackageWeight,
-            productType,
-                request.StorageDays,
-                request.IsFragile
-            );
+            var containerType = await _unitOfWork.ContainerType.GetByIdAsync(containerTypeId);
+            if (containerType == null)
+            {
+                _logger.LogWarning("Container type {TypeId} not found", containerTypeId);
+                return new List<ContainerPlacementDto>();
+            }
 
-            return candidates
+            // 2. Get available containers of that type
+            var availableContainers = await _unitOfWork.Containers.GetAvailableByTypeAsync(containerTypeId);
+
+            if (!availableContainers.Any())
+            {
+                _logger.LogWarning("No available containers of type {Type}", containerType.Type);
+                return new List<ContainerPlacementDto>();
+            }
+            // 3. Find suitable floors
+            var candidates = new List<PlacementCandidate>();
+
+            if (containerTypeId == 4) // Type D - only floor 4
+            {
+                candidates = await FindPositionsForTypeD(availableContainers, request, containerType);
+            }
+            else // Type A, B, C - floors 1-3
+            {
+                candidates = await FindPositionsForTypeABC(availableContainers, request, containerType);
+            }
+            // 4.Sort by score and return top 10
+            var result = candidates
                 .OrderByDescending(c => c.Score)
                 .Take(10)
-                .Select(c => new ContainerSuggestionDto
+                .Select(c => new ContainerPlacementDto
                 {
                     ContainerCode = c.Container.ContainerCode,
-                    Score = c.Score,
-                    Length = c.Container.Length ?? 0,
-                    Width = c.Container.Width ?? 0,
-                    Height = c.Container.Height ?? 0,
+                    ContainerType = containerType.Type,
+                    Length = containerType.Length.GetValueOrDefault(),
+                    Width = containerType.Width.GetValueOrDefault(),
+                    Height = containerType.Height.GetValueOrDefault(),
+
                     FloorCode = c.Floor.FloorCode,
-                    FloorNumber = c.Floor.FloorNumber ?? 0,
-                    ShelfCode = c.Shelf.ShelfCode,
-                    StorageCode = c.Storage.StorageCode,
-                    BuildingCode = c.Building.BuildingCode,
-                    BuildingName = c.Building.Name ?? ""
+                    FloorNumber = c.Floor.FloorNumber.GetValueOrDefault(),
+                    ShelfCode = c.Floor.ShelfCode,
+                    StorageCode = c.Floor.ShelfCodeNavigation?.StorageCode ?? "",
+
+                    PositionX = c.PositionX,
+                    PositionY = c.PositionY,
+                    PositionZ = c.PositionZ,
+                    Layer = c.Layer,
+
+                    Score = c.Score,
+                    CanStack = !request.IsFragile
                 })
                 .ToList();
+
+            _logger.LogInformation("Found {Count} suitable positions", result.Count);
+            return result;
         }
 
-        private async Task<List<ContainerPlacementCandidate>> FindAllAvailableContainerCandidatesAsync(
-            decimal packageLength,
-            decimal packageWidth,
-            decimal packageHeight,
-            decimal packageWeight,
-            ProductType productType,
-            int storageDays,
+        // Xác định container type dựa vào kích thước package
+        private int DetermineContainerType(decimal length, decimal width, decimal height)
+        {
+            if (height > 0.5m && length <= 0.5m && width <= 0.5m)
+                return 4;
+            if (length <= 0.5m && width <= 0.5m && height <= 0.45m)
+                return 1;
+            if(length <= 0.75m && width <= 0.75m && height <= 0.45m)
+                return 2;
+            if (length <= 1.0m && width <= 0.5m && height <= 0.45m)
+                return 3;
+            return 0;
+        }
+
+        // Tìm vị trí cho Type D (floor 4)
+        private async Task<List<PlacementCandidate>> FindPositionsForTypeD(
+            List<Container> availableContainers,
+            FindContainerRequest request,
+            ContainerType containerType)
+        {
+            var candidates = new List<PlacementCandidate>();   
+            //Get all floor 4
+            var floors = await _unitOfWork.Floors.GetByFloorNumbersAsync(new List<int> { 4 });
+            foreach (var floor in floors)
+            {
+                var occupiedContainers = await _unitOfWork.Containers.GetByFloorCodeAsync(floor.FloorCode);
+                var positions = GenerateTypePositions(containerType, floor, occupiedContainers, request.IsFragile);
+                foreach(var position in positions)
+                {
+                    if (availableContainers.Count == 0) break;
+                    var container = availableContainers.First();
+                    availableContainers.RemoveAt(0);
+                    var score = CalculateScore(floor, position.Layer, request, containerType);
+                    candidates.Add(new PlacementCandidate
+                    {
+                        Container = container,
+                        Floor = floor,
+                        PositionX = position.X,
+                        PositionY = position.Y,
+                        PositionZ = position.Z,
+                        Layer = position.Layer,
+                        Score = score
+                    });
+                }
+            }
+            return candidates;
+        }
+        //Tìm vị trí cho Type A, B, C (floors 1-3)
+        private async Task<List<PlacementCandidate>> FindPositionsForTypeABC(
+            List<Container> availableContainers,
+            FindContainerRequest request,
+            ContainerType containerType)
+        {
+            var candidates = new List<PlacementCandidate>();
+
+            // Get floors 1-3
+            var floors = await _unitOfWork.Floors.GetByFloorNumbersAsync(new List<int> { 1, 2, 3 });
+            foreach(var floor in floors)
+            {
+                var occupiedContainers = await _unitOfWork.Containers.GetByFloorCodeAsync(floor.FloorCode);
+                var layer0Used = occupiedContainers
+                    .Where(c => c.PositionY.GetValueOrDefault() < 0.3m)
+                    .Sum(c => c.ContainerType.Length.GetValueOrDefault());
+                var layer0Available = FLOOR_LENGTH_LIMIT - layer0Used;
+                if(containerType.Length <= layer0Available)
+                {
+                    if (availableContainers.Count == 0) break;
+                    var container  =availableContainers.First();
+                    var posX = layer0Used + (containerType.Length.GetValueOrDefault() / 2);
+                    var score = CalculateScore(floor, 0, request, containerType);
+                    candidates.Add(new PlacementCandidate
+                    {
+                        Container = container,
+                        Floor = floor,
+                        PositionX = posX,
+                        PositionY = 0.0m,
+                        PositionZ = 0.5m,
+                        Layer = 0,
+                        Score = score
+                    });
+                    availableContainers.RemoveAt(0);
+                }
+            }
+            return candidates;
+        }
+
+        // Generate positions cho type D
+        private List<PositionInfo> GenerateTypePositions(
+            ContainerType containerType,
+            Floor floor,
+            List<Container> occupiedContainers,
             bool isFragile)
         {
-            var candidates = new List<ContainerPlacementCandidate>();
-            var suitableStorages = await _unitOfWork.Storages.GetWithFilterAsync(pageNumber: 1,
-                pageSize: 10,
-                buildingCode: null,
-                storageTypeName: null,
-                productTypeName: productType.Name);
-            _logger.LogInformation($"Found {suitableStorages.Count} storages for ProductType {productType.Name}");
-            if(!suitableStorages.Any())
+            var positions = new List<PositionInfo>();   
+            var gridX = new[] { 0.25m, 0.85m, 1.45m };
+            var gridZ = new[] { 0.25m, 0.75m };
+            foreach (var x in gridX)
             {
-                return candidates;
-            }
-            foreach( var storage in suitableStorages.Where(s => s.IsActive == true && s.Status == "Active"))
-            {
-                var shelves = await _unitOfWork.Shelves.GetByStorageCodeAsync(storage.StorageCode);
-                foreach( var shelf in shelves.Where(s => s.IsActive == true))
+                foreach (var z in gridZ)
                 {
-                    var floors = await _unitOfWork.Floors.GetByShelfCodeAsync(shelf.ShelfCode);
-                    foreach(var floor in floors.Where(f => f.IsActive == true))
-                    {
-                        var containersOnFloor = await _unitOfWork.Containers.GetByFloorCodeAsync(floor.FloorCode);
-                        foreach(var container in containersOnFloor)
-                        {
-                            if(container.IsActive != true || container.Status != "Available")
-                            {
-                                continue;
-                            }
-                            if(container.Length < packageLength ||
-                               container.Width < packageWidth ||
-                               container.Height < packageHeight ||
-                               (container.MaxWeight ?? 100) < packageWeight)
-                            { continue; }
+                    var atThisPosition = occupiedContainers
+                        .Where(c => Math.Abs(c.PositionX.GetValueOrDefault() - x) < 0.1m
+                            && Math.Abs(c.PositionZ.GetValueOrDefault() - z) < 0.1m)
+                        .OrderBy(c => c.PositionY)
+                        .ToList();
 
-                            Building? building = null;
-                            if (storage.BuildingId.HasValue)
-                            {
-                                building = await _unitOfWork.Building.GetEntityByIdAsync(storage.BuildingId.Value);
-                            }
-                            var score = CalculatePlacementScore(container, floor, packageWeight, storageDays, productType, isFragile);
-                            candidates.Add(new ContainerPlacementCandidate
-                            {
-                                Container = container,
-                                Floor = floor,
-                                Shelf = shelf,
-                                Storage = storage,
-                                Building = building!,
-                                Score = score
-                            });
+                    if (!atThisPosition.Any())
+                    {
+                        positions.Add(new PositionInfo { X = x, Y = 0.0m, Z = z, Layer = 0 });
+                    }
+                    else if (atThisPosition.Count == 1 && !isFragile)
+                    {
+                        var bottom = atThisPosition[0];
+                        if (bottom.ProductType?.IsFragile != true)
+                        {
+                            positions.Add(new PositionInfo { X = x, Y = 0.82m, Z = z, Layer = 1 });
                         }
                     }
                 }
             }
-            _logger.LogInformation($"Found {candidates.Count} container candidates");
-            return candidates;
+            return positions;
         }
-
-        private decimal CalculatePlacementScore(Container container, Floor floor, decimal packageWeight, int storageDays, ProductType productType, bool isFragile)
+        //Tính điểm cho vị trí
+        private double CalculateScore(Floor floor, int layer, FindContainerRequest request, ContainerType containerType)
         {
-            decimal score = 0;
-            if(storageDays <= 30)
+            double score = 0;
+            if(request.PackageWeight > 20 || request.StorageDays > 30)
             {
-                score += (floor.FloorNumber ?? 1) * 10;
+                score += floor.FloorNumber == 1 ? 30 : floor.FloorNumber == 2 ? 20 : 10;
             }
             else
             {
-                score += (5 - (floor.FloorNumber ?? 1)) * 10;
+                score += floor.FloorNumber == 3 ? 30 : floor.FloorNumber == 2 ? 20 : 10;
             }
-
-            var containerVolume = (container.Length ?? 0) * (container.Width ?? 0) * (container.Height ?? 0);
-            if (containerVolume < 0.15m)
-                score += 30;
-            else if (containerVolume < 0.35m)
-                score += 20;
-            else if (containerVolume < 0.6m)
+            score += layer == 0 ? 20 : 12;
+            var volumeUtilization = (request.PackageLength * request.PackageWidth * request.PackageHeight) /
+                                    (containerType.Length.GetValueOrDefault() * containerType.Width.GetValueOrDefault() * containerType.Height.GetValueOrDefault());
+            score += (double)volumeUtilization * 20;
+            if(request.IsFragile && layer == 1)
+            {
                 score += 15;
-            else
-                score += 10;
-
-            if (productType.IsFragile == true || isFragile)
-            {
-                score += (5 - (floor.FloorNumber ?? 1)) * 3;
             }
-            if (packageWeight > 20)
+            if(request.PackageWeight > 20 && layer == 0)
             {
-                score += (5 - (floor.FloorNumber ?? 1)) * 3;
+                score += 15;
             }
             return score;
+        }
+
+        private class PlacementCandidate
+        {
+            public Container Container { get; set; }
+            public Floor Floor { get; set; }
+            public decimal PositionX { get; set; }
+            public decimal PositionY { get; set; }
+            public decimal PositionZ { get; set; }
+            public int Layer { get; set; }
+            public double Score { get; set; }
+        }
+
+        private class PositionInfo
+        {
+            public decimal X { get; set; }
+            public decimal Y { get; set; }
+            public decimal Z { get; set; }
+            public int Layer { get; set; }
         }
     }
 }

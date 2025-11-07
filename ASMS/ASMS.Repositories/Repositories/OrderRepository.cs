@@ -80,7 +80,6 @@ namespace ASMS.Repositories.Repositories
             try
             {
                 return await _dbSet
-                    .Include(o => o.CustomerCodeNavigation)
                     .FirstOrDefaultAsync(o => o.OrderCode == orderCode);
             }
             catch (Exception ex)
@@ -88,6 +87,19 @@ namespace ASMS.Repositories.Repositories
                 _logger.LogError(ex, "Error getting order by code: {Code}", orderCode);
                 throw;
             }
+        }
+        public async Task<Order?> GetWithDetailsAsync(string orderCode)
+        {
+            return await _dbSet
+                .Include(o => o.OrderDetails)
+                .ThenInclude(od => od.ContainerCodeNavigation)
+                .FirstOrDefaultAsync(o => o.OrderCode == orderCode);
+        }
+        public async Task<int> CountOrdersByDateAsync(DateOnly date)
+        {
+            return await _dbSet
+                .Where(o => o.OrderDate == date)
+                .CountAsync();
         }
     }
 }

@@ -16,14 +16,12 @@ namespace ASMS.Services
             services.AddScoped<IBuildingService, BuildingService>();
             services.AddScoped<IEmployeeRoleService, EmployeeRoleService>();
             services.AddScoped<IServiceService, ServiceService>();
-            services.AddScoped<IStorageBlockService, StorageBlockService>();
             services.AddScoped<ITrackingHistoryService, TrackingHistoryService>();
             services.AddScoped<IWorkflowStepService, WorkflowStepService>();
             services.AddScoped<IWorkflowTemplateService, WorkflowTemplateService>();
             services.AddScoped<IBuildingService, BuildingService>();
             services.AddScoped<IProductTypeService, ProductTypeService>();
             services.AddScoped<IFloorService, FloorService>();
-            services.AddScoped<IFloorBlockService, FloorBlockService>();
             services.AddScoped<IContainerTypeService, ContainerTypeService>();
             services.AddScoped<IShelfService, ShelfService>();
             services.AddScoped<IContainerLocationLogService, ContainerLocationLogService>();

@@ -7,17 +7,13 @@ public partial class ContainerType
 {
     public int ContainerTypeId { get; set; }
 
-    public decimal? Volume { get; set; }
+    public string Type { get; set; } = null!;
 
-    public int? ProductTypeId { get; set; }
+    public decimal? Length { get; set; }
 
-    public string? Name { get; set; }
+    public decimal? Width { get; set; }
 
-    public string? Status { get; set; }
+    public decimal? Height { get; set; }
 
-    public bool? IsActive { get; set; }
-
-    public decimal? Price { get; set; }
-
-    public virtual ProductType? ProductType { get; set; }
+    public virtual ICollection<Container> Containers { get; set; } = new List<Container>();
 }

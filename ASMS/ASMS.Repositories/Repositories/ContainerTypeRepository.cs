@@ -2,6 +2,7 @@
 using ASMS.Repositories.Entities;
 using ASMS.Repositories.Infrastructures;
 using ASMS.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -15,6 +16,14 @@ namespace ASMS.Repositories.Repositories
     {
         public ContainerTypeRepository(VstorageContext context, ILogger logger) : base(context, logger)
         {
+        }
+        public async Task<ContainerType?> GetByIdAsync(int containerTypeId)
+        {
+            return await _dbSet.FirstOrDefaultAsync(ct => ct.ContainerTypeId == containerTypeId);
+        }
+        public async Task<List<ContainerType>> GetAllAsync()
+        {
+            return await _dbSet.ToListAsync();
         }
     }
 }

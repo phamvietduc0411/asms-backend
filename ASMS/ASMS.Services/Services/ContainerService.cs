@@ -66,5 +66,24 @@ namespace ASMS.Services.Services
             await _unitOfWork.CompleteAsync();
             return true;
         }
+
+        public async Task<bool> UpdateContainerPositionAsync(UpdateContainerPositionRequest request)
+        {
+
+            var container = await _unitOfWork.Containers.GetByCodeAsync(request.ContainerCode);
+            if (container == null)
+            {
+                return false;
+            }
+
+            container.PositionX = request.PositionX;
+            container.PositionY = request.PositionY;
+            container.PositionZ = request.PositionZ;
+
+            await _unitOfWork.Containers.UpdateAsync(container);
+            await _unitOfWork.CompleteAsync();
+
+            return true;
+        }
     }
 }

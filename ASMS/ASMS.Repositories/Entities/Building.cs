@@ -15,8 +15,6 @@ public partial class Building
 
     public string? Address { get; set; }
 
-    public int? FloorQuantity { get; set; }
-
     public string? Status { get; set; }
 
     public bool? IsActive { get; set; }

@@ -26,11 +26,11 @@ namespace ASMS.Repositories.Repositories
                 .ToListAsync();
         }
 
-        public async Task<Container?> GetByCodeAsync(string code)
+        public async Task<Container?> GetByCodeAsync(string containerCode)
         {
             return await _dbSet
-                .Include(c => c.FloorCodeNavigation)
-                .FirstOrDefaultAsync(c => c.ContainerCode == code);
+                .Include(c => c.ContainerType)
+                .FirstOrDefaultAsync(c => c.ContainerCode == containerCode);
         }
 
         public async Task DeleteAsync(string code)
@@ -41,14 +41,38 @@ namespace ASMS.Repositories.Repositories
                 _dbSet.Remove(entity);
             }
         }
-        public async Task<IEnumerable<Container>> GetByFloorCodeAsync(string floorCode)
+        //public async Task<IEnumerable<Container>> GetByFloorCodeAsync(string floorCode)
+        //{
+        //    return await _dbSet
+        //        .AsNoTracking()
+        //        .Where(c => c.FloorCode == floorCode)
+        //        .Include(c => c.ProductType)
+        //        .ToListAsync();
+        //}
+
+        public async Task<List<Container>> GetAvailableByTypeAsync(int containerTypeId)
         {
             return await _dbSet
-                .AsNoTracking()
-                .Where(c => c.FloorCode == floorCode)
-                .Include(c => c.ProductType)
+                .Where(c => c.ContainerTypeId == containerTypeId
+                    && c.Status == "Available"
+                    && c.FloorCode == null
+                    && c.IsActive == true)
                 .ToListAsync();
         }
 
+        public async Task<List<Container>> GetByFloorCodeAsync(string floorCode)
+        {
+            return await _dbSet
+                .Where(c => c.FloorCode == floorCode && c.IsActive == true)
+                .OrderBy(c => c.PositionX)
+                .ToListAsync();
+        }
+
+        public new async Task UpdateAsync(Container container)
+        {
+            _dbSet.Update(container);
+            await Task.CompletedTask;
+        }
+       
     }
 }

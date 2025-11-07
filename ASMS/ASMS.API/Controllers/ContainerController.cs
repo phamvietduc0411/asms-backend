@@ -55,5 +55,39 @@ namespace ASMS.API.Controllers
                 return NotFound();
             return NoContent();
         }
+
+        // PUT: api/container/position
+        [HttpPut("position")]
+        public async Task<IActionResult> UpdatePosition([FromBody] UpdateContainerPositionRequest request)
+        {
+            try
+            {
+                var result = await _containerService.UpdateContainerPositionAsync(request);
+
+                if (!result)
+                {
+                    return NotFound(new
+                    {
+                        success = false,
+                        message = $"Container {request.ContainerCode} not found"
+                    });
+                }
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Container position updated successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+
+                return BadRequest(new
+                {
+                    success = false,
+                    message = ex.Message
+                });
+            }
+        }
     }
 }

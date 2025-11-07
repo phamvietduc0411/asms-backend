@@ -9,6 +9,6 @@ namespace ASMS.Services.Interfaces
 {
     public interface ICLPService
     {
-        Task<List<ContainerSuggestionDto>> FindSuitableContainersAsync(FindContainerRequest request);
+        Task<List<ContainerPlacementDto>> FindSuitableContainersAsync(FindContainerRequest request);
     }
 }
