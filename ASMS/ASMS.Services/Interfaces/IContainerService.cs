@@ -14,5 +14,6 @@ namespace ASMS.Services.Interfaces
         Task<ContainerResponse> CreateAsync(CreateContainerRequest request);
         Task<ContainerResponse?> UpdateAsync(string code, UpdateContainerRequest request);
         Task<bool> DeleteAsync(string code);
+        Task<bool> UpdateContainerPositionAsync(UpdateContainerPositionRequest request);
     }
 }

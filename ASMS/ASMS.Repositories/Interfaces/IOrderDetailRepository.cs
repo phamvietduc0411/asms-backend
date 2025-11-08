@@ -13,6 +13,7 @@ namespace ASMS.Repositories.Interfaces
         Task<IEnumerable<OrderDetail>> GetAllAsync();
         Task<OrderDetail?> GetByIdAsync(int id);
         Task<List<OrderDetail>> GetByOrderCodeAsync(string orderCode);
+        Task<int> GetMaxOrderDetailIdAsync();
     }
 
 }

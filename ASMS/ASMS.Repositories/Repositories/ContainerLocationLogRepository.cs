@@ -31,5 +31,12 @@ namespace ASMS.Repositories.Repositories
                 _dbSet.Remove(entity);
             }
         }
+        public async Task<List<ContainerLocationLog>> GetByContainerCodeAsync(string containerCode)
+        {
+            return await _dbSet
+                .Where(log => log.ContainerCode == containerCode)
+                .OrderByDescending(log => log.UpdatedDate)
+                .ToListAsync();
+        }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using ASMS.Services.Interfaces;
+using ASMS.Services.Model.OrderDetail;
 using ASMS.Services.Model.Orders;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -10,10 +11,11 @@ namespace ASMS.API.Controllers
     public class OrderController : ControllerBase
     {
         private readonly IOrderService _orderService;
-
-        public OrderController(IOrderService orderService)
+        private readonly ILogger<OrderController> _logger;
+        public OrderController(IOrderService orderService, ILogger<OrderController> logger)
         {
             _orderService = orderService;
+            _logger = logger;
         }
 
         #region Get Orders with Filter
@@ -94,5 +96,55 @@ namespace ASMS.API.Controllers
             }
         }
         #endregion
+
+        // POST: api/order/detail
+        [HttpPost("detail")]
+        public async Task<IActionResult> CreateOrderDetail([FromBody] CreateOrderDetailRequest request)
+        {
+            try
+            {
+                var result = await _orderService.CreateOrderDetailAsync(request);
+                return Ok(new
+                {
+                    success = true,
+                    message = "Order detail created and container assigned successfully",
+                    data = result
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating order detail for order {OrderCode}", request.OrderCode);
+                return BadRequest(new
+                {
+                    success = false,
+                    message = ex.Message
+                });
+            }
+        }
+
+        // GET: api/order/{orderCode}/details
+        [HttpGet("{orderCode}/details")]
+        public async Task<IActionResult> GetOrderDetails(string orderCode)
+        {
+            try
+            {
+                var result = await _orderService.GetOrderDetailsAsync(orderCode);
+                return Ok(new
+                {
+                    success = true,
+                    message = "Order details retrieved successfully",
+                    data = result
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting order details for {OrderCode}", orderCode);
+                return BadRequest(new
+                {
+                    success = false,
+                    message = ex.Message
+                });
+            }
+        }
     }
 }

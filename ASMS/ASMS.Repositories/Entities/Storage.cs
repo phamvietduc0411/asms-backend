@@ -37,6 +37,8 @@ public partial class Storage
 
     public decimal? UtilizationRate { get; set; }
 
+    public string? ImageUrl { get; set; }
+
     public virtual Building? Building { get; set; }
 
     public virtual ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
@@ -44,8 +46,6 @@ public partial class Storage
     public virtual ProductType? ProductType { get; set; }
 
     public virtual ICollection<Shelf> Shelves { get; set; } = new List<Shelf>();
-
-    public virtual ICollection<StorageBlock> StorageBlocks { get; set; } = new List<StorageBlock>();
 
     public virtual StorageType? StorageType { get; set; }
 }

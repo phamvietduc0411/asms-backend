@@ -11,8 +11,11 @@ namespace ASMS.Repositories.Interfaces
     public interface IContainerRepository : IGenericRepository<Container>
     {
         Task<IEnumerable<Container>> GetAllAsync();
-        Task<Container?> GetByCodeAsync(string code);
+        Task<Container?> GetByCodeAsync(string containerCode);
         Task DeleteAsync(string code);
-        Task<IEnumerable<Container>> GetByFloorCodeAsync(string floorCode);
+        Task<List<Container>> GetByFloorCodeAsync(string floorCode);
+        Task<List<Container>> GetAvailableByTypeAsync(int containerTypeId);
+        Task UpdateAsync(Container container);
+
     }
 }

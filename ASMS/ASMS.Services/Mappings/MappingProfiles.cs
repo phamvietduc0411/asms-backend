@@ -81,18 +81,6 @@ namespace ASMS.Services.Mappings
                 .ForMember(d => d.OrderCodeNavigation, o => o.Ignore()) 
                 .ForAllMembers(o => o.Condition((src, dest, srcMember) => srcMember != null));
             #endregion
-            #region Storage Block
-            CreateMap<StorageBlock, StorageBlockResponse>();
-
-            CreateMap<CreateStorageBlockRequest, StorageBlock>()
-                .ForMember(d => d.IsActive, o => o.Ignore())
-                .ForMember(d => d.StorageCodeNavigation, o => o.Ignore());
-
-            CreateMap<UpdateStorageBlockRequest, StorageBlock>()
-                .ForMember(d => d.StorageBlockCode, o => o.Ignore())
-                .ForMember(d => d.StorageCodeNavigation, o => o.Ignore())
-                .ForAllMembers(o => o.Condition((src, dest, srcMember) => srcMember != null));
-            #endregion
             #region Building
             CreateMap<CreateBuildingRequest, Building>()
                 .ForMember(b => b.BuildingCode, bl => bl.MapFrom(src => src.BuildingCode));
@@ -112,17 +100,6 @@ namespace ASMS.Services.Mappings
             #region Container Type
             CreateMap<CreateContainerTypeRequest, ContainerType>();
             CreateMap<UpdateContainerTypeRequest, ContainerType>();
-            #endregion
-            #region FloorBlock
-            CreateMap<FloorBlock, FloorBlockResponse>();
-            CreateMap<CreateFloorBlockRequest, FloorBlock>()
-                .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => true))
-                .ForMember(dest => dest.FloorCodeNavigation, opt => opt.Ignore());
-
-            CreateMap<UpdateFloorBlockRequest, FloorBlock>()
-                .ForMember(dest => dest.FloorBlockCode, opt => opt.Ignore())
-                .ForMember(dest => dest.FloorCodeNavigation, opt => opt.Ignore())
-                .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
             #endregion
             #region Shelf
             CreateMap<Shelf, ShelfResponse>();

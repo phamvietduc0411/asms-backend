@@ -14,12 +14,10 @@ namespace ASMS.Repositories.Infrastructures
         IWorkflowStepRepository WorkflowSteps { get; }
         IServiceRepository Services { get; } 
         ITrackingHistoryRepository TrackingHistories { get; }
-        IStorageBlockRepository StorageBlocks { get; }
         IBuildingRepository Building { get; }
         IProductTypeRepository ProductType { get; }
         IFloorRepository Floors { get; }
         IContainerTypeRepository ContainerType { get; }
-        IFloorBlockRepository FloorBlocks { get; }
         IShelfRepository Shelves { get; }
         IContainerLocationLogRepository ContainerLocationLogs { get; }
         IOrderDetailRepository OrderDetails { get; }

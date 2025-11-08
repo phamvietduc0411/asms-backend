@@ -22,6 +22,8 @@ public partial class VstorageContext : DbContext
 
     public virtual DbSet<ContainerLocationLog> ContainerLocationLogs { get; set; }
 
+    public virtual DbSet<ContainerType> ContainerTypes { get; set; }
+
     public virtual DbSet<Customer> Customers { get; set; }
 
     public virtual DbSet<Employee> Employees { get; set; }
@@ -29,10 +31,6 @@ public partial class VstorageContext : DbContext
     public virtual DbSet<EmployeeRole> EmployeeRoles { get; set; }
 
     public virtual DbSet<Floor> Floors { get; set; }
-
-    public virtual DbSet<FloorBlock> FloorBlocks { get; set; }
-
-    public virtual DbSet<Item> Items { get; set; }
 
     public virtual DbSet<Order> Orders { get; set; }
 
@@ -48,8 +46,6 @@ public partial class VstorageContext : DbContext
 
     public virtual DbSet<Storage> Storages { get; set; }
 
-    public virtual DbSet<StorageBlock> StorageBlocks { get; set; }
-
     public virtual DbSet<StorageType> StorageTypes { get; set; }
 
     public virtual DbSet<TrackingHistory> TrackingHistories { get; set; }
@@ -58,9 +54,9 @@ public partial class VstorageContext : DbContext
 
     public virtual DbSet<WorkflowTemplate> WorkflowTemplates { get; set; }
 
-//    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-//#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-//        => optionsBuilder.UseSqlServer("Server=LAPTOP-39B7IASC\\SQLEXPRESS;Database=VStoragePublic;Uid=sa;Pwd=1;Trusted_Connection=True;TrustServerCertificate=True;");
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+        => optionsBuilder.UseSqlServer("Server=LAPTOP-39B7IASC\\SQLEXPRESS;Database=VStoragePublic;Uid=sa;Pwd=1;Trusted_Connection=True;TrustServerCertificate=True;");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -97,20 +93,15 @@ public partial class VstorageContext : DbContext
             entity.Property(e => e.ContainerCode)
                 .HasMaxLength(50)
                 .IsUnicode(false);
-            entity.Property(e => e.CurrentItemCount).HasDefaultValue(0);
             entity.Property(e => e.CurrentWeight)
                 .HasDefaultValue(0m)
                 .HasColumnType("decimal(10, 2)");
             entity.Property(e => e.FloorCode)
                 .HasMaxLength(50)
                 .IsUnicode(false);
-            entity.Property(e => e.HasFragileItems).HasDefaultValue(false);
-            entity.Property(e => e.HasHeavyItems).HasDefaultValue(false);
-            entity.Property(e => e.Height).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.ImageUrl).HasMaxLength(1000);
             entity.Property(e => e.IsActive).HasColumnName("isActive");
             entity.Property(e => e.LastOptimizedDate).HasColumnType("datetime");
-            entity.Property(e => e.Length).HasColumnType("decimal(10, 2)");
-            entity.Property(e => e.MaxItems).HasDefaultValue(50);
             entity.Property(e => e.MaxWeight)
                 .HasDefaultValue(100m)
                 .HasColumnType("decimal(10, 2)");
@@ -123,20 +114,13 @@ public partial class VstorageContext : DbContext
             entity.Property(e => e.PositionZ).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.Price).HasColumnType("decimal(18, 0)");
             entity.Property(e => e.ProductTypeId).HasColumnName("ProductTypeID");
-            entity.Property(e => e.RotationAngle).HasDefaultValue(0);
             entity.Property(e => e.Status)
                 .HasMaxLength(10)
                 .IsUnicode(false);
-            entity.Property(e => e.TotalVolume)
-                .HasComputedColumnSql("(([Length]*[Width])*[Height])", false)
-                .HasColumnType("decimal(32, 6)");
-            entity.Property(e => e.UsedVolume)
-                .HasDefaultValue(0m)
-                .HasColumnType("decimal(15, 2)");
-            entity.Property(e => e.UtilizationRate)
-                .HasComputedColumnSql("(case when ([Length]*[Width])*[Height]>(0) then ([UsedVolume]/(([Length]*[Width])*[Height]))*(100) else (0) end)", false)
-                .HasColumnType("decimal(38, 15)");
-            entity.Property(e => e.Width).HasColumnType("decimal(10, 2)");
+
+            entity.HasOne(d => d.ContainerType).WithMany(p => p.Containers)
+                .HasForeignKey(d => d.ContainerTypeId)
+                .HasConstraintName("FK_Container_ContainerType");
 
             entity.HasOne(d => d.FloorCodeNavigation).WithMany(p => p.Containers)
                 .HasForeignKey(d => d.FloorCode)
@@ -186,6 +170,20 @@ public partial class VstorageContext : DbContext
             entity.HasOne(d => d.ContainerCodeNavigation).WithMany(p => p.ContainerLocationLogs)
                 .HasForeignKey(d => d.ContainerCode)
                 .HasConstraintName("FK__Container__Conta__68487DD7");
+        });
+
+        modelBuilder.Entity<ContainerType>(entity =>
+        {
+            entity.HasKey(e => e.ContainerTypeId).HasName("PK__Containe__46FA6FD9D2C4FA11");
+
+            entity.ToTable("ContainerType");
+
+            entity.Property(e => e.Height).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.Length).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.Type)
+                .HasMaxLength(10)
+                .IsUnicode(false);
+            entity.Property(e => e.Width).HasColumnType("decimal(10, 2)");
         });
 
         modelBuilder.Entity<Customer>(entity =>
@@ -288,20 +286,12 @@ public partial class VstorageContext : DbContext
                 .HasDefaultValue(0m)
                 .HasColumnType("decimal(10, 2)");
             entity.Property(e => e.Height).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.ImageUrl).HasMaxLength(1000);
             entity.Property(e => e.IsActive).HasColumnName("isActive");
             entity.Property(e => e.Length).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.MaxContainers).HasDefaultValue(20);
             entity.Property(e => e.MaxWeight)
                 .HasDefaultValue(500m)
-                .HasColumnType("decimal(10, 2)");
-            entity.Property(e => e.PositionX)
-                .HasDefaultValue(0m)
-                .HasColumnType("decimal(10, 2)");
-            entity.Property(e => e.PositionY)
-                .HasDefaultValue(0m)
-                .HasColumnType("decimal(10, 2)");
-            entity.Property(e => e.PositionZ)
-                .HasDefaultValue(0m)
                 .HasColumnType("decimal(10, 2)");
             entity.Property(e => e.ShelfCode)
                 .HasMaxLength(50)
@@ -317,109 +307,6 @@ public partial class VstorageContext : DbContext
             entity.HasOne(d => d.ShelfCodeNavigation).WithMany(p => p.Floors)
                 .HasForeignKey(d => d.ShelfCode)
                 .HasConstraintName("FK__Floor__ShelfCode__5FB337D6");
-        });
-
-        modelBuilder.Entity<FloorBlock>(entity =>
-        {
-            entity.HasKey(e => e.FloorBlockCode).HasName("PK__FloorBlo__DF861D583ABE3DA3");
-
-            entity.ToTable("FloorBlock");
-
-            entity.HasIndex(e => e.FloorCode, "IX_FloorBlock_FloorCode");
-
-            entity.Property(e => e.FloorBlockCode)
-                .HasMaxLength(50)
-                .IsUnicode(false);
-            entity.Property(e => e.FloorCode)
-                .HasMaxLength(50)
-                .IsUnicode(false);
-            entity.Property(e => e.Height).HasColumnType("decimal(10, 2)");
-            entity.Property(e => e.IsActive).HasColumnName("isActive");
-            entity.Property(e => e.Length).HasColumnType("decimal(10, 2)");
-            entity.Property(e => e.PositionX)
-                .HasDefaultValue(0m)
-                .HasColumnType("decimal(10, 2)");
-            entity.Property(e => e.PositionY)
-                .HasDefaultValue(0m)
-                .HasColumnType("decimal(10, 2)");
-            entity.Property(e => e.PositionZ)
-                .HasDefaultValue(0m)
-                .HasColumnType("decimal(10, 2)");
-            entity.Property(e => e.Status)
-                .HasMaxLength(10)
-                .IsUnicode(false);
-            entity.Property(e => e.Width).HasColumnType("decimal(10, 2)");
-
-            entity.HasOne(d => d.FloorCodeNavigation).WithMany(p => p.FloorBlocks)
-                .HasForeignKey(d => d.FloorCode)
-                .HasConstraintName("FK__FloorBloc__Floor__160F4887");
-        });
-
-        modelBuilder.Entity<Item>(entity =>
-        {
-            entity.HasKey(e => e.ItemId).HasName("PK__Item__727E83EB9C3E14D6");
-
-            entity.ToTable("Item");
-
-            entity.Property(e => e.ItemId).HasColumnName("ItemID");
-            entity.Property(e => e.AccessCount).HasDefaultValue(0);
-            entity.Property(e => e.Brand).HasMaxLength(100);
-            entity.Property(e => e.ContainerCode)
-                .HasMaxLength(50)
-                .IsUnicode(false);
-            entity.Property(e => e.CreatedBy)
-                .HasMaxLength(50)
-                .IsUnicode(false);
-            entity.Property(e => e.CreatedDate)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-            entity.Property(e => e.Description).HasMaxLength(500);
-            entity.Property(e => e.EstimatedValue).HasColumnType("decimal(15, 2)");
-            entity.Property(e => e.FrequencyUse)
-                .HasMaxLength(20)
-                .IsUnicode(false)
-                .HasDefaultValue("Low");
-            entity.Property(e => e.Height).HasColumnType("decimal(10, 2)");
-            entity.Property(e => e.ImageUrl)
-                .HasMaxLength(500)
-                .IsUnicode(false)
-                .HasColumnName("ImageURL");
-            entity.Property(e => e.LastAccessDate).HasColumnType("datetime");
-            entity.Property(e => e.Length).HasColumnType("decimal(10, 2)");
-            entity.Property(e => e.Name).HasMaxLength(200);
-            entity.Property(e => e.Notes).HasMaxLength(500);
-            entity.Property(e => e.OrderDetailId).HasColumnName("OrderDetailID");
-            entity.Property(e => e.PlacementScore).HasColumnType("decimal(5, 2)");
-            entity.Property(e => e.PositionX).HasColumnType("decimal(10, 2)");
-            entity.Property(e => e.PositionY).HasColumnType("decimal(10, 2)");
-            entity.Property(e => e.PositionZ).HasColumnType("decimal(10, 2)");
-            entity.Property(e => e.ProductTypeId).HasColumnName("ProductTypeID");
-            entity.Property(e => e.Quantity).HasDefaultValue(1);
-            entity.Property(e => e.RotationAngle).HasDefaultValue(0);
-            entity.Property(e => e.Status)
-                .HasMaxLength(20)
-                .IsUnicode(false)
-                .HasDefaultValue("Pending");
-            entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
-            entity.Property(e => e.Volume)
-                .HasComputedColumnSql("(([Length]*[Width])*[Height])", true)
-                .HasColumnType("decimal(32, 6)");
-            entity.Property(e => e.Weight).HasColumnType("decimal(10, 2)");
-            entity.Property(e => e.Width).HasColumnType("decimal(10, 2)");
-
-            entity.HasOne(d => d.ContainerCodeNavigation).WithMany(p => p.Items)
-                .HasForeignKey(d => d.ContainerCode)
-                .HasConstraintName("FK__Item__ContainerC__3A4CA8FD");
-
-            entity.HasOne(d => d.OrderDetail).WithMany(p => p.Items)
-                .HasForeignKey(d => d.OrderDetailId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Item__OrderDetai__395884C4");
-
-            entity.HasOne(d => d.ProductType).WithMany(p => p.Items)
-                .HasForeignKey(d => d.ProductTypeId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Item__ProductTyp__3B40CD36");
         });
 
         modelBuilder.Entity<Order>(entity =>
@@ -535,25 +422,11 @@ public partial class VstorageContext : DbContext
             entity.ToTable("ProductType");
 
             entity.Property(e => e.ProductTypeId).HasColumnName("ProductTypeID");
-            entity.Property(e => e.AverageWeight).HasColumnType("decimal(10, 2)");
-            entity.Property(e => e.AvoidSunlight).HasDefaultValue(false);
             entity.Property(e => e.CanStack).HasDefaultValue(true);
             entity.Property(e => e.Description).HasMaxLength(500);
             entity.Property(e => e.IsActive).HasColumnName("isActive");
             entity.Property(e => e.IsFragile).HasDefaultValue(false);
-            entity.Property(e => e.MaxStackLayers).HasDefaultValue(5);
-            entity.Property(e => e.Name)
-                .HasMaxLength(50)
-                .IsUnicode(false);
-            entity.Property(e => e.PlacementPriority).HasDefaultValue(5);
-            entity.Property(e => e.PreferredZone)
-                .HasMaxLength(20)
-                .IsUnicode(false);
-            entity.Property(e => e.RequireMoistureControl).HasDefaultValue(false);
-            entity.Property(e => e.RequireVentilation).HasDefaultValue(false);
-            entity.Property(e => e.ShapeType)
-                .HasMaxLength(20)
-                .IsUnicode(false);
+            entity.Property(e => e.Name).HasMaxLength(200);
             entity.Property(e => e.Status)
                 .HasMaxLength(10)
                 .IsUnicode(false);
@@ -586,17 +459,9 @@ public partial class VstorageContext : DbContext
                 .HasMaxLength(50)
                 .IsUnicode(false);
             entity.Property(e => e.Height).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.ImageUrl).HasMaxLength(1000);
             entity.Property(e => e.IsActive).HasColumnName("isActive");
             entity.Property(e => e.Length).HasColumnType("decimal(10, 2)");
-            entity.Property(e => e.PositionX)
-                .HasDefaultValue(0m)
-                .HasColumnType("decimal(10, 2)");
-            entity.Property(e => e.PositionY)
-                .HasDefaultValue(0m)
-                .HasColumnType("decimal(10, 2)");
-            entity.Property(e => e.PositionZ)
-                .HasDefaultValue(0m)
-                .HasColumnType("decimal(10, 2)");
             entity.Property(e => e.Status)
                 .HasMaxLength(10)
                 .IsUnicode(false);
@@ -627,6 +492,7 @@ public partial class VstorageContext : DbContext
                 .IsUnicode(false);
             entity.Property(e => e.BuildingCode).HasMaxLength(50);
             entity.Property(e => e.Height).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.ImageUrl).HasMaxLength(1000);
             entity.Property(e => e.IsActive).HasColumnName("isActive");
             entity.Property(e => e.LastOptimizedDate).HasColumnType("datetime");
             entity.Property(e => e.Length).HasColumnType("decimal(10, 2)");
@@ -659,33 +525,6 @@ public partial class VstorageContext : DbContext
             entity.HasOne(d => d.StorageType).WithMany(p => p.Storages)
                 .HasForeignKey(d => d.StorageTypeId)
                 .HasConstraintName("FK__Storage__Storage__5629CD9C");
-        });
-
-        modelBuilder.Entity<StorageBlock>(entity =>
-        {
-            entity.HasKey(e => e.StorageBlockCode).HasName("PK__StorageB__10B0C0AD25AD5F9E");
-
-            entity.ToTable("StorageBlock");
-
-            entity.HasIndex(e => e.StorageCode, "IX_StorageBlock_StorageCode");
-
-            entity.Property(e => e.StorageBlockCode)
-                .HasMaxLength(50)
-                .IsUnicode(false);
-            entity.Property(e => e.Height).HasColumnType("decimal(10, 2)");
-            entity.Property(e => e.IsActive).HasColumnName("isActive");
-            entity.Property(e => e.Length).HasColumnType("decimal(10, 2)");
-            entity.Property(e => e.Status)
-                .HasMaxLength(10)
-                .IsUnicode(false);
-            entity.Property(e => e.StorageCode)
-                .HasMaxLength(50)
-                .IsUnicode(false);
-            entity.Property(e => e.Width).HasColumnType("decimal(10, 2)");
-
-            entity.HasOne(d => d.StorageCodeNavigation).WithMany(p => p.StorageBlocks)
-                .HasForeignKey(d => d.StorageCode)
-                .HasConstraintName("FK__StorageBl__Stora__59FA5E80");
         });
 
         modelBuilder.Entity<StorageType>(entity =>

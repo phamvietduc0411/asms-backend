@@ -65,7 +65,7 @@ namespace ASMS.API.Controllers
             existingBuilding.Name = newBuilding.Name;
             existingBuilding.Area = newBuilding.Area;
             existingBuilding.Address = newBuilding.Address;
-            existingBuilding.FloorQuantity = newBuilding.FloorQuantity;
+            //existingBuilding.FloorQuantity = newBuilding.FloorQuantity;
             existingBuilding.Status = newBuilding.Status;
             existingBuilding.IsActive = newBuilding.IsActive;
 

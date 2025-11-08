@@ -41,8 +41,17 @@ namespace ASMS.Repositories.Repositories
         public async Task<List<OrderDetail>> GetByOrderCodeAsync(string orderCode)
         {
             return await _context.OrderDetails
+                .Include (x => x.OrderCodeNavigation)
                 .Where(x => x.OrderCode == orderCode)
                 .ToListAsync();
+        }
+
+        public async Task<int> GetMaxOrderDetailIdAsync()
+        {
+            if (!await _dbSet.AnyAsync())
+                return 0;
+
+            return await _dbSet.MaxAsync(od => od.OrderDetailId);
         }
     }
 }

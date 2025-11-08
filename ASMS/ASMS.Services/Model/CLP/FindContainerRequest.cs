@@ -13,7 +13,7 @@ namespace ASMS.Services.Model.CLP
         public decimal PackageWidth { get; set; }
         public decimal PackageHeight { get; set; }
         public decimal PackageWeight { get; set; }
-        public int StorageDays { get; set; } = 30;
         public bool IsFragile { get; set; }
+        public int StorageDays { get; set; }
     }
 }
