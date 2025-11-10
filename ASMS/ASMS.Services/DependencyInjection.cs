@@ -36,6 +36,7 @@ namespace ASMS.Services
             services.AddScoped<ICLPService, CLPService>();
             services.AddScoped<TokenService>();
             services.AddScoped<IPaymentHistoryService, PaymentHistoryService>();
+            services.AddScoped<IImageUrlService, ImageUrlService>();
             return services;
         }
     }

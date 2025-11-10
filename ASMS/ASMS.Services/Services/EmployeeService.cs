@@ -1,4 +1,5 @@
-﻿using ASMS.Repositories.Entities;
+﻿using ASMS.Repositories.Common;
+using ASMS.Repositories.Entities;
 using ASMS.Repositories.Infrastructures;
 using ASMS.Services.Interfaces;
 using ASMS.Services.Model.Customer;
@@ -43,6 +44,21 @@ namespace ASMS.Services.Services
             await _unitOfWork.Employee.UpdateAsync(updateInfo);
             await _unitOfWork.CompleteAsync();
             return updateInfo;
+        }
+        public async Task<PaginatedList<GetEmployeeResponse>> GetWithFilterAsync(string? roleName, int pageNumber, int pageSize)
+        {
+            var result = await _unitOfWork.Employee.GetWithFilterAsync(roleName, pageNumber, pageSize);
+
+            var mappedItems = _mapper.Map<List<GetEmployeeResponse>>(result.Items);
+
+            return new PaginatedList<GetEmployeeResponse>(
+                mappedItems,
+                result.CurrentPage,
+                result.PageSize,
+                result.TotalRecords)
+            {
+                TotalPages = result.TotalPages
+            };
         }
     }
 }

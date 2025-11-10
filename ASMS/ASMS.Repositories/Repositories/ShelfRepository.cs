@@ -1,4 +1,5 @@
-﻿using ASMS.Repositories.Data;
+﻿using ASMS.Repositories.Common;
+using ASMS.Repositories.Data;
 using ASMS.Repositories.Entities;
 using ASMS.Repositories.Infrastructures;
 using ASMS.Repositories.Interfaces;
@@ -19,11 +20,18 @@ namespace ASMS.Repositories.Repositories
         {
         }
 
-        public async Task<IEnumerable<Shelf>> GetAllAsync()
+        public async Task<PaginatedList<Shelf>> GetWithFilterAsync(string? storageCode, int pageNumber, int pageSize)
         {
-            return await _dbSet.Include(s => s.StorageCodeNavigation)
-                               .AsNoTracking()
-                               .ToListAsync();
+            var query = _context.Shelves.AsQueryable();
+
+            if (!string.IsNullOrEmpty(storageCode))
+            {
+                query = query.Where(s => s.StorageCode == storageCode);
+            }
+
+            query = query.OrderBy(s => s.ShelfCode);
+
+            return await PaginatedList<Shelf>.CreateAsync(query, pageNumber, pageSize);
         }
 
         public async Task<Shelf?> GetByCodeAsync(string shelfCode)

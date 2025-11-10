@@ -1,4 +1,5 @@
-﻿using ASMS.Repositories.Data;
+﻿using ASMS.Repositories.Common;
+using ASMS.Repositories.Data;
 using ASMS.Repositories.Entities;
 using ASMS.Repositories.Infrastructures;
 using ASMS.Repositories.Interfaces;
@@ -18,12 +19,13 @@ namespace ASMS.Repositories.Repositories
         {
         }
 
-        public async Task<IEnumerable<Container>> GetAllAsync()
+        public async Task<PaginatedList<Container>> GetAllAsync(int pageNumber, int pageSize)
         {
-            return await _dbSet
-                .Include(c => c.FloorCodeNavigation)
-                .AsNoTracking()
-                .ToListAsync();
+            var query = _context.Containers
+                .Include(c => c.ContainerType)
+                .OrderBy(c => c.ContainerCode);
+
+            return await PaginatedList<Container>.CreateAsync(query, pageNumber, pageSize);
         }
 
         public async Task<Container?> GetByCodeAsync(string containerCode)

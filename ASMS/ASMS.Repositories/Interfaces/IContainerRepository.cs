@@ -1,4 +1,5 @@
-﻿using ASMS.Repositories.Entities;
+﻿using ASMS.Repositories.Common;
+using ASMS.Repositories.Entities;
 using ASMS.Repositories.Infrastructures;
 using System;
 using System.Collections.Generic;
@@ -10,7 +11,7 @@ namespace ASMS.Repositories.Interfaces
 {
     public interface IContainerRepository : IGenericRepository<Container>
     {
-        Task<IEnumerable<Container>> GetAllAsync();
+        Task<PaginatedList<Container>> GetAllAsync(int pageNumber, int pageSize);
         Task<Container?> GetByCodeAsync(string containerCode);
         Task DeleteAsync(string code);
         Task<List<Container>> GetByFloorCodeAsync(string floorCode);

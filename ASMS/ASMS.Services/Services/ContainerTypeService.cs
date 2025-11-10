@@ -41,6 +41,16 @@ namespace ASMS.Services.Services
             return newContainerType;
         }
 
+        public async Task<List<GetContainerTypeResponse>> GetAllAsync()
+        {
+            var result = await _unitOfWork.ContainerType.GetAllAsync();
+            if (result == null)
+            {
+                return null;
+            }
+            return _mapper.Map<List<GetContainerTypeResponse>>(result);
+        }
+
 
     }
 }

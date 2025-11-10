@@ -1,4 +1,5 @@
-﻿using ASMS.Repositories.Entities;
+﻿using ASMS.Repositories.Common;
+using ASMS.Repositories.Entities;
 using ASMS.Repositories.Infrastructures;
 using ASMS.Services.Interfaces;
 using ASMS.Services.Model.Container;
@@ -22,10 +23,20 @@ namespace ASMS.Services.Services
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<ContainerResponse>> GetAllAsync()
+        public async Task<PaginatedList<ContainerResponse>> GetAllAsync(int pageNumber, int pageSize)
         {
-            var containers = await _unitOfWork.Containers.GetAllAsync();
-            return _mapper.Map<IEnumerable<ContainerResponse>>(containers);
+            var result = await _unitOfWork.Containers.GetAllAsync(pageNumber, pageSize);
+
+            var mappedItems = _mapper.Map<List<ContainerResponse>>(result.Items);
+
+            return new PaginatedList<ContainerResponse>(
+                mappedItems,
+                result.CurrentPage,
+                result.PageSize,
+                result.TotalRecords)
+            {
+                TotalPages = result.TotalPages
+            };
         }
 
         public async Task<ContainerResponse?> GetByCodeAsync(string code)

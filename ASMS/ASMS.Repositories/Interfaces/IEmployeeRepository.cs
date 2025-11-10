@@ -1,4 +1,5 @@
-﻿using ASMS.Repositories.Data;
+﻿using ASMS.Repositories.Common;
+using ASMS.Repositories.Data;
 using ASMS.Repositories.Entities;
 using ASMS.Repositories.Infrastructures;
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +10,7 @@ namespace ASMS.Repositories.Interfaces
     public interface IEmployeeRepository : IGenericRepository<Employee>
     {
         Task<Employee?> GetEmployeeByEmailAsync(string email);
+        Task<PaginatedList<Employee>> GetWithFilterAsync(string? roleName, int pageNumber, int pageSize);
 
     }
 }

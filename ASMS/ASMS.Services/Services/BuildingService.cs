@@ -1,4 +1,5 @@
-﻿using ASMS.Repositories.Entities;
+﻿using ASMS.Repositories.Common;
+using ASMS.Repositories.Entities;
 using ASMS.Repositories.Infrastructures;
 using ASMS.Repositories.Interfaces;
 using ASMS.Services.Interfaces;
@@ -66,6 +67,18 @@ namespace ASMS.Services.Services
             return newCode;
         }
 
-
+        public async Task<PaginatedList<GetBuildingResponse>> GetAllAsync(int pageNumber, int pageSize)
+        {
+            var result = await _unitOfWork.Building.GetAllAsync(pageNumber, pageSize);
+            var mappedItems = _mapper.Map<List<GetBuildingResponse>>(result.Items);
+            return new PaginatedList<GetBuildingResponse>(
+                mappedItems,
+                result.CurrentPage,
+                result.PageSize,
+                result.TotalRecords)
+            {
+                TotalPages = result.TotalPages
+            };
+        }
     }
 }

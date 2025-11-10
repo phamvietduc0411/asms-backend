@@ -1,7 +1,9 @@
-﻿using ASMS.Repositories.Entities;
+﻿using ASMS.Repositories.Common;
+using ASMS.Repositories.Entities;
 using ASMS.Repositories.Infrastructures;
 using ASMS.Services.Interfaces;
 using ASMS.Services.Model;
+using ASMS.Services.Model.EmployeeRole;
 using AutoMapper;
 
 namespace ASMS.Services.Services
@@ -38,6 +40,21 @@ namespace ASMS.Services.Services
             await _unitOfWork.EmployeeRoles.UpdateAsync(role);
             await _unitOfWork.CompleteAsync();
             return role;
+        }
+        public async Task<PaginatedList<GetEmployeeRoleResponse>> GetAllAsync(int pageNumber, int pageSize)
+        {
+            var result = await _unitOfWork.EmployeeRoles.GetAllAsync(pageNumber, pageSize);
+
+            var mappedItems = _mapper.Map<List<GetEmployeeRoleResponse>>(result.Items);
+
+            return new PaginatedList<GetEmployeeRoleResponse>(
+                mappedItems,
+                result.CurrentPage,
+                result.PageSize,
+                result.TotalRecords)
+            {
+                TotalPages = result.TotalPages
+            };
         }
     }
 }

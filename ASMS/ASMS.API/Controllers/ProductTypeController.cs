@@ -90,5 +90,41 @@ namespace ASMS.API.Controllers
         }
 
         #endregion
+        /// <summary>
+        /// Retrieves all product types with optional isActive filter and pagination
+        /// </summary>
+        /// <param name="isActive">Optional filter by active status</param>
+        /// <param name="pageNumber">Page number (default: 1)</param>
+        /// <param name="pageSize">Page size (default: 10, max: 100)</param>
+        /// <returns>List of product types</returns>
+        [HttpGet]
+        public async Task<IActionResult> GetProductTypes(
+            [FromQuery] bool? isActive,
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            try
+            {
+
+                var result = await _productTypeService.GetWithFilterAsync(isActive, pageNumber, pageSize);
+
+                return Ok(new
+                {
+                    success = true,
+                    data = result.Items,
+                    pagination = new
+                    {
+                        currentPage = result.CurrentPage,
+                        pageSize = result.PageSize,
+                        totalRecords = result.TotalRecords,
+                        totalPages = result.TotalPages
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
     }
 }

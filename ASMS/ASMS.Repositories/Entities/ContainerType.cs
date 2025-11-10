@@ -15,5 +15,7 @@ public partial class ContainerType
 
     public decimal? Height { get; set; }
 
+    public string? ImageUrl { get; set; }
+
     public virtual ICollection<Container> Containers { get; set; } = new List<Container>();
 }

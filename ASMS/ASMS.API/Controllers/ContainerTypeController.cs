@@ -84,6 +84,22 @@ namespace ASMS.API.Controllers
         //    return Ok(new { message = "Marked as deleted." });
         //}
         #endregion
+        [HttpGet]
+        public async Task<IActionResult> GetContainerTypes()
+        {
+            try
+            {
+                var result = await _containerTypeService.GetAllAsync();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    ErrorMessage = ex.Message,
+                });
+            }
+        }
     }
 }
 
