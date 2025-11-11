@@ -8,5 +8,6 @@ namespace ASMS.Services.Interfaces
         Task<ContainerType> GetByIdAsync(int id);
         Task<ContainerType> AddContainerTypeAsync(CreateContainerTypeRequest request);
         Task<ContainerType> UpdateContainerTypeAsync(ContainerType newContainerType);
+        Task<List<GetContainerTypeResponse>> GetAllAsync();
     }
 }

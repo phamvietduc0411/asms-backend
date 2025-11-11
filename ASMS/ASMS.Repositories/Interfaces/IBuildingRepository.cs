@@ -1,4 +1,5 @@
-﻿using ASMS.Repositories.Entities;
+﻿using ASMS.Repositories.Common;
+using ASMS.Repositories.Entities;
 using ASMS.Repositories.Infrastructures;
 using System;
 using System.Collections.Generic;
@@ -12,5 +13,6 @@ namespace ASMS.Repositories.Interfaces
     {
         Task<Building> GetLastRecord();
         Task<Building?> GetByCodeAsync(string buildingCode);
+        Task<PaginatedList<Building>> GetAllAsync(int pageNumber, int pageSize);
     }
 }

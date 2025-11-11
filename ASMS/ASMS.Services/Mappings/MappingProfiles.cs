@@ -25,6 +25,7 @@ using ASMS.Services.Model.ContainerType;
 using ASMS.Services.Model.Shelves;
 using ASMS.Services.Model.ContainerLocationLog;
 using ASMS.Services.Model.PaymentHistory;
+using ASMS.Services.Model.EmployeeRole;
 
 namespace ASMS.Services.Mappings
 {
@@ -86,10 +87,12 @@ namespace ASMS.Services.Mappings
                 .ForMember(b => b.BuildingCode, bl => bl.MapFrom(src => src.BuildingCode));
             CreateMap<UpdateBuildingRequest, Building>()
                 .ForMember(b => b.BuildingCode, bl => bl.MapFrom(src => src.BuildingCode));
+            CreateMap<Building, GetBuildingResponse>();
             #endregion
             #region ProductType
             CreateMap<CreateTypeRequest, ProductType>();
             CreateMap<UpdateTypeRequest, ProductType>();
+            CreateMap<ProductType, GetProductTypeResponse>();
             #endregion
             #region Floor
             CreateMap<CreateFloorRequest, Floor>();
@@ -100,6 +103,7 @@ namespace ASMS.Services.Mappings
             #region Container Type
             CreateMap<CreateContainerTypeRequest, ContainerType>();
             CreateMap<UpdateContainerTypeRequest, ContainerType>();
+            CreateMap<ContainerType, GetContainerTypeResponse>();
             #endregion
             #region Shelf
             CreateMap<Shelf, ShelfResponse>();
@@ -131,7 +135,7 @@ namespace ASMS.Services.Mappings
             #endregion
             #region Container
             CreateMap<Container, ContainerResponse>()
-                .ForMember(dest => dest.FloorStatus, opt => opt.MapFrom(src => src.FloorCodeNavigation != null ? src.FloorCodeNavigation.Status : null));
+                .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.ContainerType != null ? src.ContainerType.Type : null));
 
             CreateMap<CreateContainerRequest, Container>()
                 .ForMember(dest => dest.FloorCodeNavigation, opt => opt.Ignore())
@@ -147,11 +151,15 @@ namespace ASMS.Services.Mappings
             #endregion
             #region Customer
             CreateMap<CreateCustomerRequest, Customer>();    
-            CreateMap<UpdateCustomerRequest, Customer>();    
+            CreateMap<UpdateCustomerRequest, Customer>();
+            CreateMap<Customer, GetCustomerResponse>();
             #endregion
             #region Employee
             CreateMap<CreateEmployeeRequest, Employee>();    
             CreateMap<UpdateEmployeeRequest, Employee>();
+            CreateMap<Employee, GetEmployeeResponse>()
+                .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.EmployeeRole != null ? src.EmployeeRole.Name : null));
+            CreateMap<EmployeeRole, GetEmployeeRoleResponse>();
             #endregion
             #region Storage
             CreateMap<Storage, StorageResponse>()

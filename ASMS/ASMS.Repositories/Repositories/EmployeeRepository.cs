@@ -1,4 +1,5 @@
-﻿using ASMS.Repositories.Data;
+﻿using ASMS.Repositories.Common;
+using ASMS.Repositories.Data;
 using ASMS.Repositories.Entities;
 using ASMS.Repositories.Infrastructures;
 using ASMS.Repositories.Interfaces;
@@ -17,6 +18,22 @@ namespace ASMS.Repositories.Repositories
             return await _dbSet
                 .Include(e => e.EmployeeRole)
                 .FirstOrDefaultAsync(e => e.Username == email);
+        }
+
+        public async Task<PaginatedList<Employee>> GetWithFilterAsync(string? roleName, int pageNumber, int pageSize)
+        {
+            var query = _context.Employees
+                .Include(e => e.EmployeeRole)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(roleName))
+            {
+                query = query.Where(e => e.EmployeeRole != null && e.EmployeeRole.Name == roleName);
+            }
+
+            query = query.OrderBy(e => e.EmployeeCode);
+
+            return await PaginatedList<Employee>.CreateAsync(query, pageNumber, pageSize);
         }
     }
 }

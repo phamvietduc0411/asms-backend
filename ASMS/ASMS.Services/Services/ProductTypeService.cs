@@ -1,4 +1,5 @@
-﻿using ASMS.Repositories.Entities;
+﻿using ASMS.Repositories.Common;
+using ASMS.Repositories.Entities;
 using ASMS.Repositories.Infrastructures;
 using ASMS.Services.Interfaces;
 using ASMS.Services.Model;
@@ -45,6 +46,21 @@ namespace ASMS.Services.Services
             await _unitOfWork.ProductType.UpdateAsync(productType);
             await _unitOfWork.CompleteAsync();
             return productType;
+        }
+        public async Task<PaginatedList<GetProductTypeResponse>> GetWithFilterAsync(bool? isActive, int pageNumber, int pageSize)
+        {
+            var result = await _unitOfWork.ProductType.GetWithFilterAsync(isActive, pageNumber, pageSize);
+
+            var mappedItems = _mapper.Map<List<GetProductTypeResponse>>(result.Items);
+
+            return new PaginatedList<GetProductTypeResponse>(
+                mappedItems,
+                result.CurrentPage,
+                result.PageSize,
+                result.TotalRecords)
+            {
+                TotalPages = result.TotalPages
+            };
         }
     }
 }

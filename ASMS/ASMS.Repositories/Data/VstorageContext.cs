@@ -56,8 +56,8 @@ public partial class VstorageContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=LAPTOP-39B7IASC\\SQLEXPRESS;Database=VStoragePublic;Uid=sa;Pwd=1;Trusted_Connection=True;TrustServerCertificate=True;");
-
+        //=> optionsBuilder.UseSqlServer("Server=LAPTOP-39B7IASC\\SQLEXPRESS;Database=VStoragePublic;Uid=sa;Pwd=1;Trusted_Connection=True;TrustServerCertificate=True;");
+    => optionsBuilder.UseSqlServer("Server=tcp:asmsdb.database.windows.net,1433;Initial Catalog=VStoragePublic;Persist Security Info=False;User ID=asmsadminlogin;Password=@Testpassword;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=True;Connection Timeout=30;");
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Building>(entity =>
@@ -179,6 +179,7 @@ public partial class VstorageContext : DbContext
             entity.ToTable("ContainerType");
 
             entity.Property(e => e.Height).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.ImageUrl).HasMaxLength(1000);
             entity.Property(e => e.Length).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.Type)
                 .HasMaxLength(10)

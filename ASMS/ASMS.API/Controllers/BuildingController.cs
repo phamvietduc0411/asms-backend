@@ -96,6 +96,37 @@ namespace ASMS.API.Controllers
             return Ok(new { message = "Marked as deleted." });
         }
         #endregion
+        /// <summary>
+        /// Get List Building of the System
+        /// </summary>
+        [HttpGet]   
+        public async Task<IActionResult> GetBuildingsAsync(
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            try
+            {
+
+                var result = await _buildingService.GetAllAsync(pageNumber, pageSize);
+
+                return Ok(new
+                {
+                    success = true,
+                    data = result.Items,
+                    pagination = new
+                    {
+                        currentPage = result.CurrentPage,
+                        pageSize = result.PageSize,
+                        totalRecords = result.TotalRecords,
+                        totalPages = result.TotalPages
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
     }
 
 }

@@ -1,4 +1,5 @@
-﻿using ASMS.Repositories.Entities;
+﻿using ASMS.Repositories.Common;
+using ASMS.Repositories.Entities;
 using ASMS.Repositories.Infrastructures;
 using ASMS.Services.Interfaces;
 using ASMS.Services.Model.Shelves;
@@ -22,10 +23,20 @@ namespace ASMS.Services.Services
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<ShelfResponse>> GetAllAsync()
+        public async Task<PaginatedList<ShelfResponse>> GetWithFilterAsync(string? storageCode, int pageNumber, int pageSize)
         {
-            var entities = await _unitOfWork.Shelves.GetAllAsync();
-            return _mapper.Map<IEnumerable<ShelfResponse>>(entities);
+            var result = await _unitOfWork.Shelves.GetWithFilterAsync(storageCode, pageNumber, pageSize);
+
+            var mappedItems = _mapper.Map<List<ShelfResponse>>(result.Items);
+
+            return new PaginatedList<ShelfResponse>(
+                mappedItems,
+                result.CurrentPage,
+                result.PageSize,
+                result.TotalRecords)
+            {
+                TotalPages = result.TotalPages
+            };
         }
 
         public async Task<ShelfResponse?> GetByCodeAsync(string shelfCode)
@@ -63,5 +74,6 @@ namespace ASMS.Services.Services
             await _unitOfWork.CompleteAsync();
             return true;
         }
+
     }
 }

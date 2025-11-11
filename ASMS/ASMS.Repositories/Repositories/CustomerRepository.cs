@@ -1,4 +1,5 @@
-﻿using ASMS.Repositories.Data;
+﻿using ASMS.Repositories.Common;
+using ASMS.Repositories.Data;
 using ASMS.Repositories.Entities;
 using ASMS.Repositories.Infrastructures;
 using ASMS.Repositories.Interfaces;
@@ -13,7 +14,11 @@ namespace ASMS.Repositories.Repositories
         {
         }
         public async Task<Customer?> GetCustomerByEmailAsync(string email) => await _dbSet.FirstOrDefaultAsync(c => c.Email == email);
-
+        public async Task<PaginatedList<Customer>> GetAllAsync(int pageNumber, int pageSize)
+        {
+            var query = _context.Customers.OrderBy(c => c.CustomerCode);
+            return await PaginatedList<Customer>.CreateAsync(query, pageNumber, pageSize);
+        }
 
     }
 }

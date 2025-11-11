@@ -1,4 +1,5 @@
-﻿using ASMS.Repositories.Entities;
+﻿using ASMS.Repositories.Common;
+using ASMS.Repositories.Entities;
 using ASMS.Services.Model.Employee;
 
 namespace ASMS.Services.Interfaces
@@ -8,5 +9,6 @@ namespace ASMS.Services.Interfaces
         Task<Employee?> GetByIdAsync(int id);
         Task<Employee> AddEmployeeAsync(CreateEmployeeRequest request);
         Task<Employee> UpdateEmployeeAsync(Employee updateInfo);
+        Task<PaginatedList<GetEmployeeResponse>> GetWithFilterAsync(string? roleName, int pageNumber, int pageSize);
     }
 }

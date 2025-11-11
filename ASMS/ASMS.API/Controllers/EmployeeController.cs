@@ -97,5 +97,42 @@ namespace ASMS.API.Controllers
             return Ok(new { message = "Marked as deleted." });
         }
         #endregion
+        /// <summary>
+        /// Retrieves all employees with optional role filter and pagination
+        /// </summary>
+        /// <param name="roleName">Optional role name to filter employees with 3 role Manager, Delivery Staff, Warehouse Staff</param>
+        /// <param name="pageNumber">Page number (default: 1)</param>
+        /// <param name="pageSize">Page size (default: 10, max: 100)</param>
+        /// <returns>List of employees with RoleName from EmployeeRole</returns>
+        [HttpGet]
+        public async Task<IActionResult> GetEmployees(
+            [FromQuery] string? roleName,
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            try
+            {
+
+                var result = await _employeeService.GetWithFilterAsync(roleName, pageNumber, pageSize);
+
+                return Ok(new
+                {
+                    success = true,
+                    data = result.Items,
+                    pagination = new
+                    {
+                        currentPage = result.CurrentPage,
+                        pageSize = result.PageSize,
+                        totalRecords = result.TotalRecords,
+                        totalPages = result.TotalPages
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
     }
 }
