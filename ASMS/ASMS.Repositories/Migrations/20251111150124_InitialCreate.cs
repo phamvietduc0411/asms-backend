@@ -21,7 +21,6 @@ namespace ASMS.Repositories.Migrations
                     Name = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
                     Area = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: true),
                     Address = table.Column<string>(type: "varchar(200)", unicode: false, maxLength: 200, nullable: true),
-                    FloorQuantity = table.Column<int>(type: "int", nullable: true),
                     Status = table.Column<string>(type: "varchar(10)", unicode: false, maxLength: 10, nullable: true),
                     isActive = table.Column<bool>(type: "bit", nullable: true)
                 },
@@ -31,20 +30,40 @@ namespace ASMS.Repositories.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Customer",
+                name: "ContainerType",
                 columns: table => new
                 {
-                    CustomerCode = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: false),
-                    Phone = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: true),
-                    Name = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
-                    isActive = table.Column<bool>(type: "bit", nullable: true),
-                    Address = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    Email = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
-                    Password = table.Column<string>(type: "varchar(500)", unicode: false, maxLength: 500, nullable: true)
+                    ContainerTypeId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Type = table.Column<string>(type: "varchar(10)", unicode: false, maxLength: 10, nullable: false),
+                    Length = table.Column<decimal>(type: "decimal(10,2)", nullable: true),
+                    Width = table.Column<decimal>(type: "decimal(10,2)", nullable: true),
+                    Height = table.Column<decimal>(type: "decimal(10,2)", nullable: true),
+                    ImageUrl = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK__Customer__066785204D979A27", x => x.CustomerCode);
+                    table.PrimaryKey("PK__Containe__46FA6FD9D2C4FA11", x => x.ContainerTypeId);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Customer",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    CustomerCode = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: false),
+                    Phone = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: true),
+                    Name = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: false, defaultValue: ""),
+                    isActive = table.Column<bool>(type: "bit", nullable: false),
+                    Address = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    Email = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: false, defaultValue: ""),
+                    Password = table.Column<string>(type: "varchar(500)", unicode: false, maxLength: 500, nullable: false, defaultValue: "")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Customer", x => x.Id);
+                    table.UniqueConstraint("AK_Customer_CustomerCode", x => x.CustomerCode);
                 });
 
             migrationBuilder.CreateTable(
@@ -67,9 +86,12 @@ namespace ASMS.Repositories.Migrations
                 {
                     ProductTypeID = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
+                    Name = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
                     Status = table.Column<string>(type: "varchar(10)", unicode: false, maxLength: 10, nullable: true),
-                    isActive = table.Column<bool>(type: "bit", nullable: true)
+                    isActive = table.Column<bool>(type: "bit", nullable: true),
+                    IsFragile = table.Column<bool>(type: "bit", nullable: true, defaultValue: false),
+                    CanStack = table.Column<bool>(type: "bit", nullable: true, defaultValue: true),
+                    Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -119,30 +141,32 @@ namespace ASMS.Repositories.Migrations
                 {
                     table.PrimaryKey("PK__Order__999B52287CF5E3A0", x => x.OrderCode);
                     table.ForeignKey(
-                        name: "FK__Order__CustomerC__6EF57B66",
+                        name: "FK_Order_CustomerCode",
                         column: x => x.CustomerCode,
                         principalTable: "Customer",
                         principalColumn: "CustomerCode");
                 });
 
             migrationBuilder.CreateTable(
-                name: "Employee",
+                name: "Employees",
                 columns: table => new
                 {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     EmployeeCode = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: false),
                     EmployeeRoleID = table.Column<int>(type: "int", nullable: true),
                     Name = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
-                    BuildingId = table.Column<int>(type: "int", unicode: false, maxLength: 50, nullable: true),
+                    BuildingId = table.Column<int>(type: "int", nullable: true),
                     Phone = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: true),
                     Address = table.Column<string>(type: "varchar(100)", unicode: false, maxLength: 100, nullable: true),
                     Username = table.Column<string>(type: "varchar(100)", unicode: false, maxLength: 100, nullable: true),
-                    Password = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
+                    Password = table.Column<string>(type: "varchar(255)", unicode: false, maxLength: 255, nullable: true),
                     Status = table.Column<string>(type: "varchar(10)", unicode: false, maxLength: 10, nullable: true),
-                    isActive = table.Column<bool>(type: "bit", nullable: true)
+                    isActive = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK__Employee__1F642549B4A50CB4", x => x.EmployeeCode);
+                    table.PrimaryKey("PK__Employee__1F642549B4A50CB4", x => x.Id);
                     table.ForeignKey(
                         name: "FK__Employee__Buildi__7D439ABD",
                         column: x => x.BuildingId,
@@ -156,41 +180,26 @@ namespace ASMS.Repositories.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ContainerType",
-                columns: table => new
-                {
-                    ContainerTypeID = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Volume = table.Column<decimal>(type: "decimal(18,0)", nullable: true),
-                    ProductTypeID = table.Column<int>(type: "int", nullable: true),
-                    Name = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
-                    Status = table.Column<string>(type: "varchar(10)", unicode: false, maxLength: 10, nullable: true),
-                    isActive = table.Column<bool>(type: "bit", nullable: true),
-                    Price = table.Column<decimal>(type: "decimal(18,0)", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK__Containe__46FA6FF98608AE3E", x => x.ContainerTypeID);
-                    table.ForeignKey(
-                        name: "FK__Container__Produ__628FA481",
-                        column: x => x.ProductTypeID,
-                        principalTable: "ProductType",
-                        principalColumn: "ProductTypeID");
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Storage",
                 columns: table => new
                 {
                     StorageCode = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: false),
-                    BuildingId = table.Column<int>(type: "int", unicode: false, maxLength: 50, nullable: true),
+                    BuildingId = table.Column<int>(type: "int", nullable: true),
                     StorageTypeID = table.Column<int>(type: "int", nullable: true),
                     ProductTypeID = table.Column<int>(type: "int", nullable: true),
-                    Length = table.Column<decimal>(type: "decimal(18,0)", nullable: true),
-                    Width = table.Column<decimal>(type: "decimal(18,0)", nullable: true),
-                    Height = table.Column<decimal>(type: "decimal(18,0)", nullable: true),
+                    Length = table.Column<decimal>(type: "decimal(10,2)", nullable: true),
+                    Width = table.Column<decimal>(type: "decimal(10,2)", nullable: true),
+                    Height = table.Column<decimal>(type: "decimal(10,2)", nullable: true),
                     Status = table.Column<string>(type: "varchar(10)", unicode: false, maxLength: 10, nullable: true),
-                    isActive = table.Column<bool>(type: "bit", nullable: true)
+                    isActive = table.Column<bool>(type: "bit", nullable: true),
+                    UsedVolume = table.Column<decimal>(type: "decimal(15,2)", nullable: true, defaultValue: 0m),
+                    TotalContainers = table.Column<int>(type: "int", nullable: true, defaultValue: 0),
+                    OccupiedContainers = table.Column<int>(type: "int", nullable: true, defaultValue: 0),
+                    LastOptimizedDate = table.Column<DateTime>(type: "datetime", nullable: true),
+                    BuildingCode = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    TotalVolume = table.Column<decimal>(type: "decimal(32,6)", nullable: true, computedColumnSql: "(([Length]*[Width])*[Height])", stored: false),
+                    UtilizationRate = table.Column<decimal>(type: "decimal(38,15)", nullable: true, computedColumnSql: "(case when ([Length]*[Width])*[Height]>(0) then ([UsedVolume]/(([Length]*[Width])*[Height]))*(100) else (0) end)", stored: false),
+                    ImageUrl = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -232,6 +241,26 @@ namespace ASMS.Repositories.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "PaymentHistory",
+                columns: table => new
+                {
+                    PaymentHistoryCode = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: false),
+                    OrderCode = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
+                    PaymentMethod = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
+                    PaymentPlatform = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
+                    Amount = table.Column<decimal>(type: "decimal(18,0)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK__PaymentH__F83BEDA4194B7DFF", x => x.PaymentHistoryCode);
+                    table.ForeignKey(
+                        name: "FK__PaymentHi__Order__29221CFB",
+                        column: x => x.OrderCode,
+                        principalTable: "Order",
+                        principalColumn: "OrderCode");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "TrackingHistory",
                 columns: table => new
                 {
@@ -265,37 +294,16 @@ namespace ASMS.Repositories.Migrations
                     StorageCode = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
                     Status = table.Column<string>(type: "varchar(10)", unicode: false, maxLength: 10, nullable: true),
                     isActive = table.Column<bool>(type: "bit", nullable: true),
-                    Length = table.Column<decimal>(type: "decimal(18,0)", nullable: true),
-                    Width = table.Column<decimal>(type: "decimal(18,0)", nullable: true),
-                    Height = table.Column<decimal>(type: "decimal(18,0)", nullable: true)
+                    Length = table.Column<decimal>(type: "decimal(10,2)", nullable: true),
+                    Width = table.Column<decimal>(type: "decimal(10,2)", nullable: true),
+                    Height = table.Column<decimal>(type: "decimal(10,2)", nullable: true),
+                    ImageUrl = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK__Shelf__24D15D7509E5371F", x => x.ShelfCode);
                     table.ForeignKey(
                         name: "FK__Shelf__StorageCo__5CD6CB2B",
-                        column: x => x.StorageCode,
-                        principalTable: "Storage",
-                        principalColumn: "StorageCode");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "StorageBlock",
-                columns: table => new
-                {
-                    StorageBlockCode = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: false),
-                    StorageCode = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
-                    Length = table.Column<decimal>(type: "decimal(18,0)", nullable: true),
-                    Width = table.Column<decimal>(type: "decimal(18,0)", nullable: true),
-                    Height = table.Column<decimal>(type: "decimal(18,0)", nullable: true),
-                    Status = table.Column<string>(type: "varchar(10)", unicode: false, maxLength: 10, nullable: true),
-                    isActive = table.Column<bool>(type: "bit", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK__StorageB__10B0C0AD25AD5F9E", x => x.StorageBlockCode);
-                    table.ForeignKey(
-                        name: "FK__StorageBl__Stora__59FA5E80",
                         column: x => x.StorageCode,
                         principalTable: "Storage",
                         principalColumn: "StorageCode");
@@ -330,9 +338,15 @@ namespace ASMS.Repositories.Migrations
                     FloorNumber = table.Column<int>(type: "int", nullable: true),
                     Status = table.Column<string>(type: "varchar(10)", unicode: false, maxLength: 10, nullable: true),
                     isActive = table.Column<bool>(type: "bit", nullable: true),
-                    Length = table.Column<decimal>(type: "decimal(18,0)", nullable: true),
-                    Width = table.Column<decimal>(type: "decimal(18,0)", nullable: true),
-                    Height = table.Column<decimal>(type: "decimal(18,0)", nullable: true)
+                    Length = table.Column<decimal>(type: "decimal(10,2)", nullable: true),
+                    Width = table.Column<decimal>(type: "decimal(10,2)", nullable: true),
+                    Height = table.Column<decimal>(type: "decimal(10,2)", nullable: true),
+                    MaxWeight = table.Column<decimal>(type: "decimal(10,2)", nullable: true, defaultValue: 500m),
+                    CurrentWeight = table.Column<decimal>(type: "decimal(10,2)", nullable: true, defaultValue: 0m),
+                    MaxContainers = table.Column<int>(type: "int", nullable: true, defaultValue: 20),
+                    CurrentContainerCount = table.Column<int>(type: "int", nullable: true, defaultValue: 0),
+                    UtilizationRate = table.Column<decimal>(type: "decimal(5,2)", nullable: true, defaultValue: 0m),
+                    ImageUrl = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -350,39 +364,36 @@ namespace ASMS.Repositories.Migrations
                 {
                     ContainerCode = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: false),
                     FloorCode = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
-                    Length = table.Column<decimal>(type: "decimal(18,0)", nullable: true),
-                    Width = table.Column<decimal>(type: "decimal(18,0)", nullable: true),
-                    Height = table.Column<decimal>(type: "decimal(18,0)", nullable: true),
                     isActive = table.Column<bool>(type: "bit", nullable: true),
-                    Status = table.Column<string>(type: "varchar(10)", unicode: false, maxLength: 10, nullable: true)
+                    Status = table.Column<string>(type: "varchar(10)", unicode: false, maxLength: 10, nullable: true),
+                    Price = table.Column<decimal>(type: "decimal(18,0)", nullable: true),
+                    ProductTypeID = table.Column<int>(type: "int", nullable: true),
+                    MaxWeight = table.Column<decimal>(type: "decimal(10,2)", nullable: true, defaultValue: 100m),
+                    CurrentWeight = table.Column<decimal>(type: "decimal(10,2)", nullable: true, defaultValue: 0m),
+                    PositionX = table.Column<decimal>(type: "decimal(10,2)", nullable: true),
+                    PositionY = table.Column<decimal>(type: "decimal(10,2)", nullable: true),
+                    PositionZ = table.Column<decimal>(type: "decimal(10,2)", nullable: true),
+                    LastOptimizedDate = table.Column<DateTime>(type: "datetime", nullable: true),
+                    OptimizationScore = table.Column<decimal>(type: "decimal(5,2)", nullable: true, defaultValue: 0m),
+                    Notes = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
+                    ImageUrl = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
+                    ContainerTypeId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK__Containe__874FE471B6792E9D", x => x.ContainerCode);
                     table.ForeignKey(
-                        name: "FK__Container__Floor__656C112C",
-                        column: x => x.FloorCode,
-                        principalTable: "Floor",
-                        principalColumn: "FloorCode");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "FloorBlock",
-                columns: table => new
-                {
-                    FloorBlockCode = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: false),
-                    FloorCode = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
-                    Length = table.Column<decimal>(type: "decimal(18,0)", nullable: true),
-                    Width = table.Column<decimal>(type: "decimal(18,0)", nullable: true),
-                    Height = table.Column<decimal>(type: "decimal(18,0)", nullable: true),
-                    Status = table.Column<string>(type: "varchar(10)", unicode: false, maxLength: 10, nullable: true),
-                    isActive = table.Column<bool>(type: "bit", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK__FloorBlo__DF861D583ABE3DA3", x => x.FloorBlockCode);
+                        name: "FK_Container_ContainerType",
+                        column: x => x.ContainerTypeId,
+                        principalTable: "ContainerType",
+                        principalColumn: "ContainerTypeId");
                     table.ForeignKey(
-                        name: "FK__FloorBloc__Floor__160F4887",
+                        name: "FK_Container_ProductType",
+                        column: x => x.ProductTypeID,
+                        principalTable: "ProductType",
+                        principalColumn: "ProductTypeID");
+                    table.ForeignKey(
+                        name: "FK__Container__Floor__656C112C",
                         column: x => x.FloorCode,
                         principalTable: "Floor",
                         principalColumn: "FloorCode");
@@ -395,10 +406,13 @@ namespace ASMS.Repositories.Migrations
                     ContainerLocationLogID = table.Column<int>(type: "int", nullable: false),
                     ContainerCode = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
                     OrderCode = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
-                    Assign = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
+                    PerformedBy = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
                     UpdatedDate = table.Column<DateOnly>(type: "date", nullable: true),
                     OldFloor = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
-                    CurrentFloor = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true)
+                    CurrentFloor = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
+                    Reason = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    Algorithm = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
+                    Notes = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -451,9 +465,24 @@ namespace ASMS.Repositories.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_Container_ContainerTypeId",
+                table: "Container",
+                column: "ContainerTypeId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Container_FloorCode",
                 table: "Container",
                 column: "FloorCode");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Container_ProductTypeID",
+                table: "Container",
+                column: "ProductTypeID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ContainerLocationLog_Container_Date",
+                table: "ContainerLocationLog",
+                columns: new[] { "ContainerCode", "UpdatedDate" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_ContainerLocationLog_ContainerCode",
@@ -461,29 +490,30 @@ namespace ASMS.Repositories.Migrations
                 column: "ContainerCode");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ContainerType_ProductTypeID",
-                table: "ContainerType",
-                column: "ProductTypeID");
+                name: "IX_ContainerLocationLog_Order",
+                table: "ContainerLocationLog",
+                column: "OrderCode");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Employee_BuildingId",
-                table: "Employee",
+                name: "IX_Customer_CustomerCode",
+                table: "Customer",
+                column: "CustomerCode",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Employees_BuildingId",
+                table: "Employees",
                 column: "BuildingId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Employee_EmployeeRoleID",
-                table: "Employee",
+                name: "IX_Employees_EmployeeRoleID",
+                table: "Employees",
                 column: "EmployeeRoleID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Floor_ShelfCode",
                 table: "Floor",
                 column: "ShelfCode");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_FloorBlock_FloorCode",
-                table: "FloorBlock",
-                column: "FloorCode");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Order_CustomerCode",
@@ -511,6 +541,11 @@ namespace ASMS.Repositories.Migrations
                 column: "StorageCode");
 
             migrationBuilder.CreateIndex(
+                name: "IX_PaymentHistory_OrderCode",
+                table: "PaymentHistory",
+                column: "OrderCode");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Shelf_StorageCode",
                 table: "Shelf",
                 column: "StorageCode");
@@ -529,11 +564,6 @@ namespace ASMS.Repositories.Migrations
                 name: "IX_Storage_StorageTypeID",
                 table: "Storage",
                 column: "StorageTypeID");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_StorageBlock_StorageCode",
-                table: "StorageBlock",
-                column: "StorageCode");
 
             migrationBuilder.CreateIndex(
                 name: "IX_TrackingHistory_OrderCode",
@@ -558,19 +588,13 @@ namespace ASMS.Repositories.Migrations
                 name: "ContainerLocationLog");
 
             migrationBuilder.DropTable(
-                name: "ContainerType");
-
-            migrationBuilder.DropTable(
-                name: "Employee");
-
-            migrationBuilder.DropTable(
-                name: "FloorBlock");
+                name: "Employees");
 
             migrationBuilder.DropTable(
                 name: "OrderDetail");
 
             migrationBuilder.DropTable(
-                name: "StorageBlock");
+                name: "PaymentHistory");
 
             migrationBuilder.DropTable(
                 name: "TrackingHistory");
@@ -592,6 +616,9 @@ namespace ASMS.Repositories.Migrations
 
             migrationBuilder.DropTable(
                 name: "WorkflowTemplate");
+
+            migrationBuilder.DropTable(
+                name: "ContainerType");
 
             migrationBuilder.DropTable(
                 name: "Floor");

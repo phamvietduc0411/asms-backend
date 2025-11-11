@@ -46,9 +46,6 @@ namespace ASMS.Repositories.Migrations
                         .IsUnicode(false)
                         .HasColumnType("varchar(50)");
 
-                    b.Property<int?>("FloorQuantity")
-                        .HasColumnType("int");
-
                     b.Property<bool?>("IsActive")
                         .HasColumnType("bit")
                         .HasColumnName("isActive");
@@ -75,10 +72,8 @@ namespace ASMS.Repositories.Migrations
                         .IsUnicode(false)
                         .HasColumnType("varchar(50)");
 
-                    b.Property<int?>("CurrentItemCount")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(0);
+                    b.Property<int?>("ContainerTypeId")
+                        .HasColumnType("int");
 
                     b.Property<decimal?>("CurrentWeight")
                         .ValueGeneratedOnAdd()
@@ -90,18 +85,9 @@ namespace ASMS.Repositories.Migrations
                         .IsUnicode(false)
                         .HasColumnType("varchar(50)");
 
-                    b.Property<bool?>("HasFragileItems")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
-
-                    b.Property<bool?>("HasHeavyItems")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
-
-                    b.Property<decimal?>("Height")
-                        .HasColumnType("decimal(18, 0)");
+                    b.Property<string>("ImageUrl")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<bool?>("IsActive")
                         .HasColumnType("bit")
@@ -109,14 +95,6 @@ namespace ASMS.Repositories.Migrations
 
                     b.Property<DateTime?>("LastOptimizedDate")
                         .HasColumnType("datetime");
-
-                    b.Property<decimal?>("Length")
-                        .HasColumnType("decimal(18, 0)");
-
-                    b.Property<int?>("MaxItems")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(50);
 
                     b.Property<decimal?>("MaxWeight")
                         .ValueGeneratedOnAdd()
@@ -148,36 +126,15 @@ namespace ASMS.Repositories.Migrations
                         .HasColumnType("int")
                         .HasColumnName("ProductTypeID");
 
-                    b.Property<int?>("RotationAngle")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(0);
-
                     b.Property<string>("Status")
                         .HasMaxLength(10)
                         .IsUnicode(false)
                         .HasColumnType("varchar(10)");
 
-                    b.Property<decimal?>("TotalVolume")
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("decimal(38, 0)")
-                        .HasComputedColumnSql("(([Length]*[Width])*[Height])", true);
-
-                    b.Property<decimal?>("UsedVolume")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("decimal(15, 2)")
-                        .HasDefaultValue(0m);
-
-                    b.Property<decimal?>("UtilizationRate")
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("decimal(38, 21)")
-                        .HasComputedColumnSql("(case when ([Length]*[Width])*[Height]>(0) then ([UsedVolume]/(([Length]*[Width])*[Height]))*(100) else (0) end)", true);
-
-                    b.Property<decimal?>("Width")
-                        .HasColumnType("decimal(18, 0)");
-
                     b.HasKey("ContainerCode")
                         .HasName("PK__Containe__874FE471B6792E9D");
+
+                    b.HasIndex("ContainerTypeId");
 
                     b.HasIndex("ProductTypeId");
 
@@ -245,6 +202,39 @@ namespace ASMS.Repositories.Migrations
                     b.ToTable("ContainerLocationLog", (string)null);
                 });
 
+            modelBuilder.Entity("ASMS.Repositories.Entities.ContainerType", b =>
+                {
+                    b.Property<int>("ContainerTypeId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ContainerTypeId"));
+
+                    b.Property<decimal?>("Height")
+                        .HasColumnType("decimal(10, 2)");
+
+                    b.Property<string>("ImageUrl")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<decimal?>("Length")
+                        .HasColumnType("decimal(10, 2)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(10)");
+
+                    b.Property<decimal?>("Width")
+                        .HasColumnType("decimal(10, 2)");
+
+                    b.HasKey("ContainerTypeId")
+                        .HasName("PK__Containe__46FA6FD9D2C4FA11");
+
+                    b.ToTable("ContainerType", (string)null);
+                });
+
             modelBuilder.Entity("ASMS.Repositories.Entities.Customer", b =>
                 {
                     b.Property<int>("Id")
@@ -298,10 +288,7 @@ namespace ASMS.Repositories.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex(new[] { "CustomerCode" }, "AK_Customer_CustomerCode")
-                        .IsUnique();
-
-                    b.HasIndex(new[] { "CustomerCode" }, "UQ_Customer_CustomerCode")
+                    b.HasIndex("CustomerCode")
                         .IsUnique();
 
                     b.ToTable("Customer", (string)null);
@@ -417,14 +404,18 @@ namespace ASMS.Repositories.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal?>("Height")
-                        .HasColumnType("decimal(18, 0)");
+                        .HasColumnType("decimal(10, 2)");
+
+                    b.Property<string>("ImageUrl")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<bool?>("IsActive")
                         .HasColumnType("bit")
                         .HasColumnName("isActive");
 
                     b.Property<decimal?>("Length")
-                        .HasColumnType("decimal(18, 0)");
+                        .HasColumnType("decimal(10, 2)");
 
                     b.Property<int?>("MaxContainers")
                         .ValueGeneratedOnAdd()
@@ -435,21 +426,6 @@ namespace ASMS.Repositories.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("decimal(10, 2)")
                         .HasDefaultValue(500m);
-
-                    b.Property<decimal?>("PositionX")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("decimal(10, 2)")
-                        .HasDefaultValue(0m);
-
-                    b.Property<decimal?>("PositionY")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("decimal(10, 2)")
-                        .HasDefaultValue(0m);
-
-                    b.Property<decimal?>("PositionZ")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("decimal(10, 2)")
-                        .HasDefaultValue(0m);
 
                     b.Property<string>("ShelfCode")
                         .HasMaxLength(50)
@@ -467,7 +443,7 @@ namespace ASMS.Repositories.Migrations
                         .HasDefaultValue(0m);
 
                     b.Property<decimal?>("Width")
-                        .HasColumnType("decimal(18, 0)");
+                        .HasColumnType("decimal(10, 2)");
 
                     b.HasKey("FloorCode")
                         .HasName("PK__Floor__394E956B81A832F4");
@@ -475,184 +451,6 @@ namespace ASMS.Repositories.Migrations
                     b.HasIndex(new[] { "ShelfCode" }, "IX_Floor_ShelfCode");
 
                     b.ToTable("Floor", (string)null);
-                });
-
-            modelBuilder.Entity("ASMS.Repositories.Entities.FloorBlock", b =>
-                {
-                    b.Property<string>("FloorBlockCode")
-                        .HasMaxLength(50)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(50)");
-
-                    b.Property<string>("FloorCode")
-                        .HasMaxLength(50)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(50)");
-
-                    b.Property<decimal?>("Height")
-                        .HasColumnType("decimal(18, 0)");
-
-                    b.Property<bool?>("IsActive")
-                        .HasColumnType("bit")
-                        .HasColumnName("isActive");
-
-                    b.Property<decimal?>("Length")
-                        .HasColumnType("decimal(18, 0)");
-
-                    b.Property<string>("Status")
-                        .HasMaxLength(10)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(10)");
-
-                    b.Property<decimal?>("Width")
-                        .HasColumnType("decimal(18, 0)");
-
-                    b.HasKey("FloorBlockCode")
-                        .HasName("PK__FloorBlo__DF861D583ABE3DA3");
-
-                    b.HasIndex(new[] { "FloorCode" }, "IX_FloorBlock_FloorCode");
-
-                    b.ToTable("FloorBlock", (string)null);
-                });
-
-            modelBuilder.Entity("ASMS.Repositories.Entities.Item", b =>
-                {
-                    b.Property<int>("ItemId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("ItemID");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ItemId"));
-
-                    b.Property<int?>("AccessCount")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(0);
-
-                    b.Property<string>("Brand")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<bool?>("CanStack")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("ContainerCode")
-                        .HasMaxLength(50)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(50)");
-
-                    b.Property<string>("CreatedBy")
-                        .HasMaxLength(50)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(50)");
-
-                    b.Property<DateTime?>("CreatedDate")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<decimal?>("EstimatedValue")
-                        .HasColumnType("decimal(15, 2)");
-
-                    b.Property<string>("FrequencyUse")
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(20)")
-                        .HasDefaultValue("Low");
-
-                    b.Property<decimal?>("Height")
-                        .HasColumnType("decimal(10, 2)");
-
-                    b.Property<string>("ImageUrl")
-                        .HasMaxLength(500)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(500)")
-                        .HasColumnName("ImageURL");
-
-                    b.Property<bool?>("IsFragile")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime?>("LastAccessDate")
-                        .HasColumnType("datetime");
-
-                    b.Property<decimal?>("Length")
-                        .HasColumnType("decimal(10, 2)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("Notes")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<int>("OrderDetailId")
-                        .HasColumnType("int")
-                        .HasColumnName("OrderDetailID");
-
-                    b.Property<decimal?>("PlacementScore")
-                        .HasColumnType("decimal(5, 2)");
-
-                    b.Property<decimal?>("PositionX")
-                        .HasColumnType("decimal(10, 2)");
-
-                    b.Property<decimal?>("PositionY")
-                        .HasColumnType("decimal(10, 2)");
-
-                    b.Property<decimal?>("PositionZ")
-                        .HasColumnType("decimal(10, 2)");
-
-                    b.Property<int>("ProductTypeId")
-                        .HasColumnType("int")
-                        .HasColumnName("ProductTypeID");
-
-                    b.Property<int?>("Quantity")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(1);
-
-                    b.Property<int?>("RotationAngle")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(0);
-
-                    b.Property<string>("Status")
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(20)")
-                        .HasDefaultValue("Pending");
-
-                    b.Property<DateTime?>("UpdatedDate")
-                        .HasColumnType("datetime");
-
-                    b.Property<decimal?>("Volume")
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("decimal(32, 6)")
-                        .HasComputedColumnSql("(([Length]*[Width])*[Height])", true);
-
-                    b.Property<decimal?>("Weight")
-                        .HasColumnType("decimal(10, 2)");
-
-                    b.Property<decimal?>("Width")
-                        .HasColumnType("decimal(10, 2)");
-
-                    b.HasKey("ItemId")
-                        .HasName("PK__Item__727E83EB9C3E14D6");
-
-                    b.HasIndex("ContainerCode");
-
-                    b.HasIndex("OrderDetailId");
-
-                    b.HasIndex("ProductTypeId");
-
-                    b.ToTable("Item", (string)null);
                 });
 
             modelBuilder.Entity("ASMS.Repositories.Entities.Order", b =>
@@ -800,14 +598,6 @@ namespace ASMS.Repositories.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ProductTypeId"));
 
-                    b.Property<decimal?>("AverageWeight")
-                        .HasColumnType("decimal(10, 2)");
-
-                    b.Property<bool?>("AvoidSunlight")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
-
                     b.Property<bool?>("CanStack")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
@@ -826,40 +616,9 @@ namespace ASMS.Repositories.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(false);
 
-                    b.Property<int?>("MaxStackLayers")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(5);
-
                     b.Property<string>("Name")
-                        .HasMaxLength(50)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(50)");
-
-                    b.Property<int?>("PlacementPriority")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(5);
-
-                    b.Property<string>("PreferredZone")
-                        .HasMaxLength(20)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(20)");
-
-                    b.Property<bool?>("RequireMoistureControl")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
-
-                    b.Property<bool?>("RequireVentilation")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
-
-                    b.Property<string>("ShapeType")
-                        .HasMaxLength(20)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(20)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("Status")
                         .HasMaxLength(10)
@@ -900,14 +659,18 @@ namespace ASMS.Repositories.Migrations
                         .HasColumnType("varchar(50)");
 
                     b.Property<decimal?>("Height")
-                        .HasColumnType("decimal(18, 0)");
+                        .HasColumnType("decimal(10, 2)");
+
+                    b.Property<string>("ImageUrl")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<bool?>("IsActive")
                         .HasColumnType("bit")
                         .HasColumnName("isActive");
 
                     b.Property<decimal?>("Length")
-                        .HasColumnType("decimal(18, 0)");
+                        .HasColumnType("decimal(10, 2)");
 
                     b.Property<string>("Status")
                         .HasMaxLength(10)
@@ -920,7 +683,7 @@ namespace ASMS.Repositories.Migrations
                         .HasColumnType("varchar(50)");
 
                     b.Property<decimal?>("Width")
-                        .HasColumnType("decimal(18, 0)");
+                        .HasColumnType("decimal(10, 2)");
 
                     b.HasKey("ShelfCode")
                         .HasName("PK__Shelf__24D15D7509E5371F");
@@ -937,11 +700,19 @@ namespace ASMS.Repositories.Migrations
                         .IsUnicode(false)
                         .HasColumnType("varchar(50)");
 
+                    b.Property<string>("BuildingCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
                     b.Property<int?>("BuildingId")
                         .HasColumnType("int");
 
                     b.Property<decimal?>("Height")
-                        .HasColumnType("decimal(18, 0)");
+                        .HasColumnType("decimal(10, 2)");
+
+                    b.Property<string>("ImageUrl")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<bool?>("IsActive")
                         .HasColumnType("bit")
@@ -951,7 +722,7 @@ namespace ASMS.Repositories.Migrations
                         .HasColumnType("datetime");
 
                     b.Property<decimal?>("Length")
-                        .HasColumnType("decimal(18, 0)");
+                        .HasColumnType("decimal(10, 2)");
 
                     b.Property<int?>("OccupiedContainers")
                         .ValueGeneratedOnAdd()
@@ -978,8 +749,8 @@ namespace ASMS.Repositories.Migrations
 
                     b.Property<decimal?>("TotalVolume")
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("decimal(38, 0)")
-                        .HasComputedColumnSql("(([Length]*[Width])*[Height])", true);
+                        .HasColumnType("decimal(32, 6)")
+                        .HasComputedColumnSql("(([Length]*[Width])*[Height])", false);
 
                     b.Property<decimal?>("UsedVolume")
                         .ValueGeneratedOnAdd()
@@ -988,11 +759,11 @@ namespace ASMS.Repositories.Migrations
 
                     b.Property<decimal?>("UtilizationRate")
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("decimal(38, 21)")
-                        .HasComputedColumnSql("(case when ([Length]*[Width])*[Height]>(0) then ([UsedVolume]/(([Length]*[Width])*[Height]))*(100) else (0) end)", true);
+                        .HasColumnType("decimal(38, 15)")
+                        .HasComputedColumnSql("(case when ([Length]*[Width])*[Height]>(0) then ([UsedVolume]/(([Length]*[Width])*[Height]))*(100) else (0) end)", false);
 
                     b.Property<decimal?>("Width")
-                        .HasColumnType("decimal(18, 0)");
+                        .HasColumnType("decimal(10, 2)");
 
                     b.HasKey("StorageCode")
                         .HasName("PK__Storage__AD8F8BC7D5ABE087");
@@ -1004,44 +775,6 @@ namespace ASMS.Repositories.Migrations
                     b.HasIndex(new[] { "StorageTypeId" }, "IX_Storage_StorageTypeID");
 
                     b.ToTable("Storage", (string)null);
-                });
-
-            modelBuilder.Entity("ASMS.Repositories.Entities.StorageBlock", b =>
-                {
-                    b.Property<string>("StorageBlockCode")
-                        .HasMaxLength(50)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(50)");
-
-                    b.Property<decimal?>("Height")
-                        .HasColumnType("decimal(18, 0)");
-
-                    b.Property<bool?>("IsActive")
-                        .HasColumnType("bit")
-                        .HasColumnName("isActive");
-
-                    b.Property<decimal?>("Length")
-                        .HasColumnType("decimal(18, 0)");
-
-                    b.Property<string>("Status")
-                        .HasMaxLength(10)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(10)");
-
-                    b.Property<string>("StorageCode")
-                        .HasMaxLength(50)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(50)");
-
-                    b.Property<decimal?>("Width")
-                        .HasColumnType("decimal(18, 0)");
-
-                    b.HasKey("StorageBlockCode")
-                        .HasName("PK__StorageB__10B0C0AD25AD5F9E");
-
-                    b.HasIndex(new[] { "StorageCode" }, "IX_StorageBlock_StorageCode");
-
-                    b.ToTable("StorageBlock", (string)null);
                 });
 
             modelBuilder.Entity("ASMS.Repositories.Entities.StorageType", b =>
@@ -1180,6 +913,11 @@ namespace ASMS.Repositories.Migrations
 
             modelBuilder.Entity("ASMS.Repositories.Entities.Container", b =>
                 {
+                    b.HasOne("ASMS.Repositories.Entities.ContainerType", "ContainerType")
+                        .WithMany("Containers")
+                        .HasForeignKey("ContainerTypeId")
+                        .HasConstraintName("FK_Container_ContainerType");
+
                     b.HasOne("ASMS.Repositories.Entities.Floor", "FloorCodeNavigation")
                         .WithMany("Containers")
                         .HasForeignKey("FloorCode")
@@ -1189,6 +927,8 @@ namespace ASMS.Repositories.Migrations
                         .WithMany("Containers")
                         .HasForeignKey("ProductTypeId")
                         .HasConstraintName("FK_Container_ProductType");
+
+                    b.Navigation("ContainerType");
 
                     b.Navigation("FloorCodeNavigation");
 
@@ -1230,42 +970,6 @@ namespace ASMS.Repositories.Migrations
                         .HasConstraintName("FK__Floor__ShelfCode__5FB337D6");
 
                     b.Navigation("ShelfCodeNavigation");
-                });
-
-            modelBuilder.Entity("ASMS.Repositories.Entities.FloorBlock", b =>
-                {
-                    b.HasOne("ASMS.Repositories.Entities.Floor", "FloorCodeNavigation")
-                        .WithMany("FloorBlocks")
-                        .HasForeignKey("FloorCode")
-                        .HasConstraintName("FK__FloorBloc__Floor__160F4887");
-
-                    b.Navigation("FloorCodeNavigation");
-                });
-
-            modelBuilder.Entity("ASMS.Repositories.Entities.Item", b =>
-                {
-                    b.HasOne("ASMS.Repositories.Entities.Container", "ContainerCodeNavigation")
-                        .WithMany("Items")
-                        .HasForeignKey("ContainerCode")
-                        .HasConstraintName("FK__Item__ContainerC__3A4CA8FD");
-
-                    b.HasOne("ASMS.Repositories.Entities.OrderDetail", "OrderDetail")
-                        .WithMany("Items")
-                        .HasForeignKey("OrderDetailId")
-                        .IsRequired()
-                        .HasConstraintName("FK__Item__OrderDetai__395884C4");
-
-                    b.HasOne("ASMS.Repositories.Entities.ProductType", "ProductType")
-                        .WithMany("Items")
-                        .HasForeignKey("ProductTypeId")
-                        .IsRequired()
-                        .HasConstraintName("FK__Item__ProductTyp__3B40CD36");
-
-                    b.Navigation("ContainerCodeNavigation");
-
-                    b.Navigation("OrderDetail");
-
-                    b.Navigation("ProductType");
                 });
 
             modelBuilder.Entity("ASMS.Repositories.Entities.Order", b =>
@@ -1354,16 +1058,6 @@ namespace ASMS.Repositories.Migrations
                     b.Navigation("StorageType");
                 });
 
-            modelBuilder.Entity("ASMS.Repositories.Entities.StorageBlock", b =>
-                {
-                    b.HasOne("ASMS.Repositories.Entities.Storage", "StorageCodeNavigation")
-                        .WithMany("StorageBlocks")
-                        .HasForeignKey("StorageCode")
-                        .HasConstraintName("FK__StorageBl__Stora__59FA5E80");
-
-                    b.Navigation("StorageCodeNavigation");
-                });
-
             modelBuilder.Entity("ASMS.Repositories.Entities.TrackingHistory", b =>
                 {
                     b.HasOne("ASMS.Repositories.Entities.Order", "OrderCodeNavigation")
@@ -1405,9 +1099,12 @@ namespace ASMS.Repositories.Migrations
                 {
                     b.Navigation("ContainerLocationLogs");
 
-                    b.Navigation("Items");
-
                     b.Navigation("OrderDetails");
+                });
+
+            modelBuilder.Entity("ASMS.Repositories.Entities.ContainerType", b =>
+                {
+                    b.Navigation("Containers");
                 });
 
             modelBuilder.Entity("ASMS.Repositories.Entities.Customer", b =>
@@ -1423,8 +1120,6 @@ namespace ASMS.Repositories.Migrations
             modelBuilder.Entity("ASMS.Repositories.Entities.Floor", b =>
                 {
                     b.Navigation("Containers");
-
-                    b.Navigation("FloorBlocks");
                 });
 
             modelBuilder.Entity("ASMS.Repositories.Entities.Order", b =>
@@ -1436,16 +1131,9 @@ namespace ASMS.Repositories.Migrations
                     b.Navigation("TrackingHistories");
                 });
 
-            modelBuilder.Entity("ASMS.Repositories.Entities.OrderDetail", b =>
-                {
-                    b.Navigation("Items");
-                });
-
             modelBuilder.Entity("ASMS.Repositories.Entities.ProductType", b =>
                 {
                     b.Navigation("Containers");
-
-                    b.Navigation("Items");
 
                     b.Navigation("Storages");
                 });
@@ -1465,8 +1153,6 @@ namespace ASMS.Repositories.Migrations
                     b.Navigation("OrderDetails");
 
                     b.Navigation("Shelves");
-
-                    b.Navigation("StorageBlocks");
                 });
 
             modelBuilder.Entity("ASMS.Repositories.Entities.StorageType", b =>

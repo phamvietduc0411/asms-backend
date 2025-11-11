@@ -70,7 +70,7 @@ namespace ASMS.API.Controllers
             });
         }
 
-        [HttpPut("{id}/delete")]
+        [HttpDelete("{id}")]
         public async Task<IActionResult> SoftDeleteAsync(int id)
         {
             var existingRole = await _employeeRoleService.GetByIdAsync(id);
