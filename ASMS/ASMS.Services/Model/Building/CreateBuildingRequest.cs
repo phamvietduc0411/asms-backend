@@ -16,7 +16,7 @@ namespace ASMS.Services.Model.Building
 
         public string? Address { get; set; }
 
-        public int? FloorQuantity { get; set; }
+        //public int? FloorQuantity { get; set; }
 
         public string? Status { get; set; }
 

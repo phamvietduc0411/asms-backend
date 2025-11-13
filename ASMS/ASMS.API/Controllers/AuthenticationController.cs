@@ -75,7 +75,7 @@ namespace ASMS.API.Controllers
                 var employee = await _authService.FindEmployeeAsync(request.Email);
 
                 if (employee == null)
-                    return Unauthorized(new { message = "Customer not found" });
+                    return Unauthorized(new { message = "Employee not found" });
 
                 if (employee != null)
                 {
