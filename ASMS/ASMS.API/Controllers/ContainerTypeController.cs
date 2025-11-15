@@ -40,34 +40,34 @@ namespace ASMS.API.Controllers
             }
         }
 
-        //[HttpPut("{id}")]
-        //public async Task<IActionResult> UpdateByIdAsync(int id, [FromBody] UpdateContainerTypeRequest newType)
-        //{
-        //    if (newType == null)
-        //        return BadRequest(new { message = "Invalid data." });
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateByIdAsync(int id, [FromBody] UpdateContainerTypeRequest newType)
+        {
+            if (newType == null)
+                return BadRequest(new { message = "Invalid data." });
 
-        //    var existingContainerType = await _containerTypeService.GetByIdAsync(id);
-        //    if (existingContainerType == null)
-        //        return NotFound(new { message = $"Container Type with id {id} not found." });
+            var existingContainerType = await _containerTypeService.GetByIdAsync(id);
+            if (existingContainerType == null)
+                return NotFound(new { message = $"Container Type with id {id} not found." });
 
-        //    existingContainerType.Volume = newType.Volume;
-        //    existingContainerType.ProductTypeId = newType.ProductTypeId;
-        //    existingContainerType.Name = newType.Name;
-        //    existingContainerType.Status = newType.Status;
-        //    existingContainerType.IsActive = newType.IsActive;
-        //    existingContainerType.Status = newType.Status;
+            existingContainerType.Type = newType.Type;
+            existingContainerType.Length = newType.Length;
+            existingContainerType.Width = newType.Width;
+            existingContainerType.Height = newType.Height;
+            existingContainerType.ImageUrl = newType.ImageUrl;
+            existingContainerType.Price = newType.Price;
 
-        //    var updateContainerType = await _containerTypeService.UpdateContainerTypeAsync(existingContainerType);
+            var updateContainerType = await _containerTypeService.UpdateContainerTypeAsync(existingContainerType);
 
-        //    if (updateContainerType == null)
-        //        return StatusCode(500, new { message = "Failed to update container type info." });
+            if (updateContainerType == null)
+                return StatusCode(500, new { message = "Failed to update container type info." });
 
-        //    return Ok(new
-        //    {
-        //        message = "Update successful.",
-        //        data = updateContainerType
-        //    });
-        //}
+            return Ok(new
+            {
+                message = "Update successful.",
+                data = updateContainerType
+            });
+        }
 
         //[HttpDelete("{id}/delete")]
         //public async Task<IActionResult> SoftDeleteAsync(int id)

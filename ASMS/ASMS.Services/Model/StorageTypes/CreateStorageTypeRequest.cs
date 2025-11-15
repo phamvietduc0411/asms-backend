@@ -15,5 +15,19 @@ namespace ASMS.Services.Model.StorageTypes
         [Required]
         [StringLength(50)]
         public string Name { get; set; }
+
+        public decimal? Length { get; set; }
+
+        public decimal? Width { get; set; }
+
+        public decimal? Height { get; set; }
+
+        public decimal? TotalVolume { get; set; }
+
+        public decimal? Area { get; set; }
+
+        public decimal? Price { get; set; }
+
+        public string? ImageUrl { get; set; }
     }
 }

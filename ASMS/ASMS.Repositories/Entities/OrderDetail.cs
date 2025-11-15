@@ -29,6 +29,8 @@ public partial class OrderDetail
 
     public virtual Order? OrderCodeNavigation { get; set; }
 
+    public virtual ICollection<OrderDetailProductType> OrderDetailProductTypes { get; set; } = new List<OrderDetailProductType>();
+
     public virtual Service? Service { get; set; }
 
     public virtual Storage? StorageCodeNavigation { get; set; }

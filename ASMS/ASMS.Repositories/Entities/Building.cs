@@ -19,6 +19,8 @@ public partial class Building
 
     public bool? IsActive { get; set; }
 
+    public string? ImageUrl { get; set; }
+
     public virtual ICollection<Employee> Employees { get; set; } = new List<Employee>();
 
     public virtual ICollection<Storage> Storages { get; set; } = new List<Storage>();

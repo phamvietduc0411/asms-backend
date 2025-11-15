@@ -21,5 +21,7 @@ namespace ASMS.Services.Model.Building
         public string? Status { get; set; }
 
         public bool? IsActive { get; set; }
+
+        public string? ImageUrl { get; set; }
     }
 }
