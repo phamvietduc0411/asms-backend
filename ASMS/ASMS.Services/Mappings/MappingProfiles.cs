@@ -26,6 +26,7 @@ using ASMS.Services.Model.Shelves;
 using ASMS.Services.Model.ContainerLocationLog;
 using ASMS.Services.Model.PaymentHistory;
 using ASMS.Services.Model.EmployeeRole;
+using ASMS.Services.Model.ShelfType;
 
 namespace ASMS.Services.Mappings
 {
@@ -38,9 +39,7 @@ namespace ASMS.Services.Mappings
             CreateMap<UpdateRoleRequest, EmployeeRole>();
             #endregion
             #region WorkflowTemplate
-            CreateMap<WorkflowTemplate, WorkflowTemplateResponse>()
-                .ForMember(dest => dest.StorageTypeName,
-                    opt => opt.MapFrom(src => src.StorageType != null ? src.StorageType.Name : null));
+            CreateMap<WorkflowTemplate, WorkflowTemplateResponse>();
             CreateMap<CreateWorkflowTemplateRequest, WorkflowTemplate>();
             CreateMap<UpdateWorkflowTemplateRequest, WorkflowTemplate>()
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
@@ -191,6 +190,11 @@ namespace ASMS.Services.Mappings
                 .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
 
             CreateMap<PaymentHistory, PaymentHistoryResponse>();
+            #endregion
+            #region Shelftype
+            CreateMap<ShelfType, GetShelfTypeResponse>();
+            CreateMap<CreateShelfTypeRequest, ShelfType>();
+            CreateMap<UpdateShelfTypeRequest, ShelfType>();
             #endregion
         }
 

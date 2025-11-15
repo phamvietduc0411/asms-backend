@@ -68,6 +68,7 @@ namespace ASMS.API.Controllers
             //existingBuilding.FloorQuantity = newBuilding.FloorQuantity;
             existingBuilding.Status = newBuilding.Status;
             existingBuilding.IsActive = newBuilding.IsActive;
+            existingBuilding.ImageUrl = newBuilding.ImageUrl;
 
             var updateBuilding = await _buildingService.UpdateBuildingAsync(existingBuilding);
 

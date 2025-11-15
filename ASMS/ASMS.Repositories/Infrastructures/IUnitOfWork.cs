@@ -29,7 +29,7 @@ namespace ASMS.Repositories.Infrastructures
         IStorageTypeRepository StorageTypes { get; }
         IPaymentHistoryRepository PaymentHistories { get; }
 
-
+        IShelfTypeRepository ShelvesTypes { get; }
         Task CompleteAsync();
     }
 }

@@ -14,5 +14,6 @@ namespace ASMS.Services.Model.ContainerType
         public decimal? Width { get; set; }
         public decimal? Height { get; set; }
         public string? ImageUrl { get; set; }
+        public decimal? Price { get; set; }
     }
 }

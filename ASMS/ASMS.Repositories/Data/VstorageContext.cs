@@ -36,6 +36,8 @@ public partial class VstorageContext : DbContext
 
     public virtual DbSet<OrderDetail> OrderDetails { get; set; }
 
+    public virtual DbSet<OrderDetailProductType> OrderDetailProductTypes { get; set; }
+
     public virtual DbSet<PaymentHistory> PaymentHistories { get; set; }
 
     public virtual DbSet<ProductType> ProductTypes { get; set; }
@@ -43,6 +45,8 @@ public partial class VstorageContext : DbContext
     public virtual DbSet<Service> Services { get; set; }
 
     public virtual DbSet<Shelf> Shelves { get; set; }
+
+    public virtual DbSet<ShelfType> ShelfTypes { get; set; }
 
     public virtual DbSet<Storage> Storages { get; set; }
 
@@ -55,9 +59,10 @@ public partial class VstorageContext : DbContext
     public virtual DbSet<WorkflowTemplate> WorkflowTemplates { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    //=> optionsBuilder.UseSqlServer("Server=ROG-ZEPHYRUS-G1\\VIETDUC;Database=VStorage;Uid=sa;Pwd=123456;Trusted_Connection=True;TrustServerCertificate=True");
-    //=> optionsBuilder.UseSqlServer("Server=LAPTOP-39B7IASC\\SQLEXPRESS;Database=VStoragePublic;Uid=sa;Pwd=1;Trusted_Connection=True;TrustServerCertificate=True;");
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+        //=> optionsBuilder.UseSqlServer("Server=LAPTOP-39B7IASC\\SQLEXPRESS;Database=VStoragePublic;Uid=sa;Pwd=1;Trusted_Connection=True;TrustServerCertificate=True;");
     => optionsBuilder.UseSqlServer("Server=tcp:asmsdb.database.windows.net,1433;Initial Catalog=VStoragePublic;Persist Security Info=False;User ID=asmsadminlogin;Password=@Testpassword;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=True;Connection Timeout=30;");
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Building>(entity =>
@@ -73,6 +78,7 @@ public partial class VstorageContext : DbContext
             entity.Property(e => e.BuildingCode)
                 .HasMaxLength(50)
                 .IsUnicode(false);
+            entity.Property(e => e.ImageUrl).HasMaxLength(1000);
             entity.Property(e => e.IsActive).HasColumnName("isActive");
             entity.Property(e => e.Name)
                 .HasMaxLength(50)
@@ -181,6 +187,7 @@ public partial class VstorageContext : DbContext
             entity.Property(e => e.Height).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.ImageUrl).HasMaxLength(1000);
             entity.Property(e => e.Length).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.Price).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.Type)
                 .HasMaxLength(10)
                 .IsUnicode(false);
@@ -191,7 +198,9 @@ public partial class VstorageContext : DbContext
         {
             entity.ToTable("Customer");
 
-            entity.HasIndex(e => e.CustomerCode).IsUnique();
+            entity.HasIndex(e => e.CustomerCode, "AK_Customer_CustomerCode").IsUnique();
+
+            entity.HasIndex(e => e.CustomerCode, "UQ_Customer_CustomerCode").IsUnique();
 
             entity.Property(e => e.Address).HasMaxLength(500);
             entity.Property(e => e.CustomerCode)
@@ -389,6 +398,29 @@ public partial class VstorageContext : DbContext
                 .HasConstraintName("FK__OrderDeta__Stora__72C60C4A");
         });
 
+        modelBuilder.Entity<OrderDetailProductType>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__OrderDet__3214EC07CB864502");
+
+            entity.ToTable("OrderDetailProductType");
+
+            entity.HasIndex(e => e.OrderDetailId, "IX_OrderDetailProductType_OrderDetailId");
+
+            entity.HasIndex(e => e.ProductTypeId, "IX_OrderDetailProductType_ProductTypeId");
+
+            entity.HasIndex(e => new { e.OrderDetailId, e.ProductTypeId }, "UQ_OrderDetailProductType_OrderDetail_ProductType").IsUnique();
+
+            entity.Property(e => e.IsActive).HasColumnName("isActive");
+
+            entity.HasOne(d => d.OrderDetail).WithMany(p => p.OrderDetailProductTypes)
+                .HasForeignKey(d => d.OrderDetailId)
+                .HasConstraintName("FK_OrderDetailProductType_OrderDetail");
+
+            entity.HasOne(d => d.ProductType).WithMany(p => p.OrderDetailProductTypes)
+                .HasForeignKey(d => d.ProductTypeId)
+                .HasConstraintName("FK_OrderDetailProductType_ProductType");
+        });
+
         modelBuilder.Entity<PaymentHistory>(entity =>
         {
             entity.HasKey(e => e.PaymentHistoryCode).HasName("PK__PaymentH__F83BEDA4194B7DFF");
@@ -469,9 +501,27 @@ public partial class VstorageContext : DbContext
                 .IsUnicode(false);
             entity.Property(e => e.Width).HasColumnType("decimal(10, 2)");
 
+            entity.HasOne(d => d.ShelfType).WithMany(p => p.Shelves)
+                .HasForeignKey(d => d.ShelfTypeId)
+                .HasConstraintName("FK_Shelf_ShelfType");
+
             entity.HasOne(d => d.StorageCodeNavigation).WithMany(p => p.Shelves)
                 .HasForeignKey(d => d.StorageCode)
                 .HasConstraintName("FK__Shelf__StorageCo__5CD6CB2B");
+        });
+
+        modelBuilder.Entity<ShelfType>(entity =>
+        {
+            entity.HasKey(e => e.ShelfTypeId).HasName("PK__ShelfTyp__50AF6654E81B2766");
+
+            entity.ToTable("ShelfType");
+
+            entity.Property(e => e.Height).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.ImageUrl).HasMaxLength(1000);
+            entity.Property(e => e.Length).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.Name).HasMaxLength(100);
+            entity.Property(e => e.Price).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.Width).HasColumnType("decimal(18, 2)");
         });
 
         modelBuilder.Entity<Storage>(entity =>
@@ -535,9 +585,16 @@ public partial class VstorageContext : DbContext
             entity.Property(e => e.StorageTypeId)
                 .ValueGeneratedNever()
                 .HasColumnName("StorageTypeID");
+            entity.Property(e => e.Area).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.Height).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.ImageUrl).HasMaxLength(1000);
+            entity.Property(e => e.Length).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.Name)
                 .HasMaxLength(50)
                 .IsUnicode(false);
+            entity.Property(e => e.Price).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.TotalVolume).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.Width).HasColumnType("decimal(10, 2)");
         });
 
         modelBuilder.Entity<TrackingHistory>(entity =>
@@ -604,8 +661,6 @@ public partial class VstorageContext : DbContext
 
             entity.ToTable("WorkflowTemplate");
 
-            entity.HasIndex(e => e.StorageTypeId, "IX_WorkflowTemplate_StorageTypeID");
-
             entity.Property(e => e.WorkflowTemplateId)
                 .ValueGeneratedNever()
                 .HasColumnName("WorkflowTemplateID");
@@ -615,11 +670,6 @@ public partial class VstorageContext : DbContext
             entity.Property(e => e.Status)
                 .HasMaxLength(10)
                 .IsUnicode(false);
-            entity.Property(e => e.StorageTypeId).HasColumnName("StorageTypeID");
-
-            entity.HasOne(d => d.StorageType).WithMany(p => p.WorkflowTemplates)
-                .HasForeignKey(d => d.StorageTypeId)
-                .HasConstraintName("FK__WorkflowT__Stora__4BAC3F29");
         });
 
         OnModelCreatingPartial(modelBuilder);

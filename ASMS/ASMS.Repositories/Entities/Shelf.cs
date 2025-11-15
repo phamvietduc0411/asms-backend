@@ -21,7 +21,11 @@ public partial class Shelf
 
     public string? ImageUrl { get; set; }
 
+    public int? ShelfTypeId { get; set; }
+
     public virtual ICollection<Floor> Floors { get; set; } = new List<Floor>();
+
+    public virtual ShelfType? ShelfType { get; set; }
 
     public virtual Storage? StorageCodeNavigation { get; set; }
 }

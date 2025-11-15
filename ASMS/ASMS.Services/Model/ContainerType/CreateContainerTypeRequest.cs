@@ -8,17 +8,20 @@ namespace ASMS.Services.Model.ContainerType
 {
     public class CreateContainerTypeRequest
     {
-        public decimal? Volume { get; set; }
 
-        public int? ProductTypeId { get; set; }
 
-        public string? Name { get; set; }
 
-        public string? Status { get; set; }
+        public string Type { get; set; } = null!;
 
-        public bool? IsActive { get; set; }
+        public decimal? Length { get; set; }
+
+        public decimal? Width { get; set; }
+
+        public decimal? Height { get; set; }
 
         public decimal? Price { get; set; }
+
+        public string? ImageUrl { get; set; }
 
     }
 }

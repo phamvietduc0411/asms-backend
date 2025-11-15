@@ -21,5 +21,7 @@ public partial class ProductType
 
     public virtual ICollection<Container> Containers { get; set; } = new List<Container>();
 
+    public virtual ICollection<OrderDetailProductType> OrderDetailProductTypes { get; set; } = new List<OrderDetailProductType>();
+
     public virtual ICollection<Storage> Storages { get; set; } = new List<Storage>();
 }
