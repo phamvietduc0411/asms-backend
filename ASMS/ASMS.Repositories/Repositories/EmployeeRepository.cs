@@ -35,5 +35,11 @@ namespace ASMS.Repositories.Repositories
 
             return await PaginatedList<Employee>.CreateAsync(query, pageNumber, pageSize);
         }
+        public virtual async Task<Employee?> GetEntityByIdAsync(int id)
+        {
+            return await _dbSet
+                .Include(e => e.EmployeeRole) 
+                .FirstOrDefaultAsync(e => e.Id == id);
+        }
     }
 }

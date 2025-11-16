@@ -22,7 +22,8 @@ namespace ASMS.Repositories.Migrations
                     Area = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: true),
                     Address = table.Column<string>(type: "varchar(200)", unicode: false, maxLength: 200, nullable: true),
                     Status = table.Column<string>(type: "varchar(10)", unicode: false, maxLength: 10, nullable: true),
-                    isActive = table.Column<bool>(type: "bit", nullable: true)
+                    isActive = table.Column<bool>(type: "bit", nullable: true),
+                    ImageUrl = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -39,7 +40,8 @@ namespace ASMS.Repositories.Migrations
                     Length = table.Column<decimal>(type: "decimal(10,2)", nullable: true),
                     Width = table.Column<decimal>(type: "decimal(10,2)", nullable: true),
                     Height = table.Column<decimal>(type: "decimal(10,2)", nullable: true),
-                    ImageUrl = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true)
+                    ImageUrl = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
+                    Price = table.Column<decimal>(type: "decimal(10,2)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -112,15 +114,53 @@ namespace ASMS.Repositories.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ShelfType",
+                columns: table => new
+                {
+                    ShelfTypeId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Length = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Width = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Height = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Price = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    ImageUrl = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK__ShelfTyp__50AF6654E81B2766", x => x.ShelfTypeId);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "StorageType",
                 columns: table => new
                 {
                     StorageTypeID = table.Column<int>(type: "int", nullable: false),
-                    Name = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true)
+                    Name = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
+                    Length = table.Column<decimal>(type: "decimal(10,2)", nullable: true),
+                    Width = table.Column<decimal>(type: "decimal(10,2)", nullable: true),
+                    Height = table.Column<decimal>(type: "decimal(10,2)", nullable: true),
+                    TotalVolume = table.Column<decimal>(type: "decimal(10,2)", nullable: true),
+                    Area = table.Column<decimal>(type: "decimal(10,2)", nullable: true),
+                    Price = table.Column<decimal>(type: "decimal(10,2)", nullable: true),
+                    ImageUrl = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK__StorageT__C94B8F7DD4F87BA1", x => x.StorageTypeID);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "WorkflowTemplate",
+                columns: table => new
+                {
+                    WorkflowTemplateID = table.Column<int>(type: "int", nullable: false),
+                    Name = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
+                    Status = table.Column<string>(type: "varchar(10)", unicode: false, maxLength: 10, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK__Workflow__96E60A37BE8B1C29", x => x.WorkflowTemplateID);
                 });
 
             migrationBuilder.CreateTable(
@@ -222,22 +262,23 @@ namespace ASMS.Repositories.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "WorkflowTemplate",
+                name: "WorkflowStep",
                 columns: table => new
                 {
-                    WorkflowTemplateID = table.Column<int>(type: "int", nullable: false),
+                    WorkflowStepID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    WorkflowTemplateID = table.Column<int>(type: "int", nullable: true),
                     Name = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
-                    StorageTypeID = table.Column<int>(type: "int", nullable: true),
-                    Status = table.Column<string>(type: "varchar(10)", unicode: false, maxLength: 10, nullable: true)
+                    StepNumber = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK__Workflow__96E60A37BE8B1C29", x => x.WorkflowTemplateID);
+                    table.PrimaryKey("PK__Workflow__36121401BCF42ECF", x => x.WorkflowStepID);
                     table.ForeignKey(
-                        name: "FK__WorkflowT__Stora__4BAC3F29",
-                        column: x => x.StorageTypeID,
-                        principalTable: "StorageType",
-                        principalColumn: "StorageTypeID");
+                        name: "FK__WorkflowS__Workf__4E88ABD4",
+                        column: x => x.WorkflowTemplateID,
+                        principalTable: "WorkflowTemplate",
+                        principalColumn: "WorkflowTemplateID");
                 });
 
             migrationBuilder.CreateTable(
@@ -297,36 +338,22 @@ namespace ASMS.Repositories.Migrations
                     Length = table.Column<decimal>(type: "decimal(10,2)", nullable: true),
                     Width = table.Column<decimal>(type: "decimal(10,2)", nullable: true),
                     Height = table.Column<decimal>(type: "decimal(10,2)", nullable: true),
-                    ImageUrl = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true)
+                    ImageUrl = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
+                    ShelfTypeId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK__Shelf__24D15D7509E5371F", x => x.ShelfCode);
                     table.ForeignKey(
+                        name: "FK_Shelf_ShelfType",
+                        column: x => x.ShelfTypeId,
+                        principalTable: "ShelfType",
+                        principalColumn: "ShelfTypeId");
+                    table.ForeignKey(
                         name: "FK__Shelf__StorageCo__5CD6CB2B",
                         column: x => x.StorageCode,
                         principalTable: "Storage",
                         principalColumn: "StorageCode");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "WorkflowStep",
-                columns: table => new
-                {
-                    WorkflowStepID = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    WorkflowTemplateID = table.Column<int>(type: "int", nullable: true),
-                    Name = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
-                    StepNumber = table.Column<int>(type: "int", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK__Workflow__36121401BCF42ECF", x => x.WorkflowStepID);
-                    table.ForeignKey(
-                        name: "FK__WorkflowS__Workf__4E88ABD4",
-                        column: x => x.WorkflowTemplateID,
-                        principalTable: "WorkflowTemplate",
-                        principalColumn: "WorkflowTemplateID");
                 });
 
             migrationBuilder.CreateTable(
@@ -464,6 +491,33 @@ namespace ASMS.Repositories.Migrations
                         principalColumn: "StorageCode");
                 });
 
+            migrationBuilder.CreateTable(
+                name: "OrderDetailProductType",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    OrderDetailId = table.Column<int>(type: "int", nullable: false),
+                    ProductTypeId = table.Column<int>(type: "int", nullable: false),
+                    isActive = table.Column<bool>(type: "bit", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK__OrderDet__3214EC07CB864502", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_OrderDetailProductType_OrderDetail",
+                        column: x => x.OrderDetailId,
+                        principalTable: "OrderDetail",
+                        principalColumn: "OrderDetailID",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_OrderDetailProductType_ProductType",
+                        column: x => x.ProductTypeId,
+                        principalTable: "ProductType",
+                        principalColumn: "ProductTypeID",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_Container_ContainerTypeId",
                 table: "Container",
@@ -493,12 +547,6 @@ namespace ASMS.Repositories.Migrations
                 name: "IX_ContainerLocationLog_Order",
                 table: "ContainerLocationLog",
                 column: "OrderCode");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Customer_CustomerCode",
-                table: "Customer",
-                column: "CustomerCode",
-                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Employees_BuildingId",
@@ -541,9 +589,30 @@ namespace ASMS.Repositories.Migrations
                 column: "StorageCode");
 
             migrationBuilder.CreateIndex(
+                name: "IX_OrderDetailProductType_OrderDetailId",
+                table: "OrderDetailProductType",
+                column: "OrderDetailId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OrderDetailProductType_ProductTypeId",
+                table: "OrderDetailProductType",
+                column: "ProductTypeId");
+
+            migrationBuilder.CreateIndex(
+                name: "UQ_OrderDetailProductType_OrderDetail_ProductType",
+                table: "OrderDetailProductType",
+                columns: new[] { "OrderDetailId", "ProductTypeId" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_PaymentHistory_OrderCode",
                 table: "PaymentHistory",
                 column: "OrderCode");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Shelf_ShelfTypeId",
+                table: "Shelf",
+                column: "ShelfTypeId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Shelf_StorageCode",
@@ -574,11 +643,6 @@ namespace ASMS.Repositories.Migrations
                 name: "IX_WorkflowStep_WorkflowTemplateID",
                 table: "WorkflowStep",
                 column: "WorkflowTemplateID");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_WorkflowTemplate_StorageTypeID",
-                table: "WorkflowTemplate",
-                column: "StorageTypeID");
         }
 
         /// <inheritdoc />
@@ -591,7 +655,7 @@ namespace ASMS.Repositories.Migrations
                 name: "Employees");
 
             migrationBuilder.DropTable(
-                name: "OrderDetail");
+                name: "OrderDetailProductType");
 
             migrationBuilder.DropTable(
                 name: "PaymentHistory");
@@ -606,16 +670,19 @@ namespace ASMS.Repositories.Migrations
                 name: "EmployeeRole");
 
             migrationBuilder.DropTable(
-                name: "Container");
+                name: "OrderDetail");
 
             migrationBuilder.DropTable(
-                name: "Service");
+                name: "WorkflowTemplate");
+
+            migrationBuilder.DropTable(
+                name: "Container");
 
             migrationBuilder.DropTable(
                 name: "Order");
 
             migrationBuilder.DropTable(
-                name: "WorkflowTemplate");
+                name: "Service");
 
             migrationBuilder.DropTable(
                 name: "ContainerType");
@@ -628,6 +695,9 @@ namespace ASMS.Repositories.Migrations
 
             migrationBuilder.DropTable(
                 name: "Shelf");
+
+            migrationBuilder.DropTable(
+                name: "ShelfType");
 
             migrationBuilder.DropTable(
                 name: "Storage");

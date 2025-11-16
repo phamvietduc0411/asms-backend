@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using ASMS.Repositories.Entities;
+﻿using ASMS.Repositories.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace ASMS.Repositories.Data;
@@ -57,14 +55,16 @@ public partial class VstorageContext : DbContext
     public virtual DbSet<WorkflowStep> WorkflowSteps { get; set; }
 
     public virtual DbSet<WorkflowTemplate> WorkflowTemplates { get; set; }
+    public virtual DbSet<RefreshToken> RefreshToken { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        //=> optionsBuilder.UseSqlServer("Server=LAPTOP-39B7IASC\\SQLEXPRESS;Database=VStoragePublic;Uid=sa;Pwd=1;Trusted_Connection=True;TrustServerCertificate=True;");
-    => optionsBuilder.UseSqlServer("Server=tcp:asmsdb.database.windows.net,1433;Initial Catalog=VStoragePublic;Persist Security Info=False;User ID=asmsadminlogin;Password=@Testpassword;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=True;Connection Timeout=30;");
+    => optionsBuilder.UseSqlServer("Server=ROG-ZEPHYRUS-G1\\VIETDUC;Database=VStorage;Uid=sa;Pwd=123456;Trusted_Connection=True;TrustServerCertificate=True");
+    //=> optionsBuilder.UseSqlServer("Server=LAPTOP-39B7IASC\\SQLEXPRESS;Database=VStoragePublic;Uid=sa;Pwd=1;Trusted_Connection=True;TrustServerCertificate=True;");
+    //=> optionsBuilder.UseSqlServer("Server=tcp:asmsdb.database.windows.net,1433;Initial Catalog=VStoragePublic;Persist Security Info=False;User ID=asmsadminlogin;Password=@Testpassword;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=True;Connection Timeout=30;");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+
         modelBuilder.Entity<Building>(entity =>
         {
             entity.ToTable("Building");
@@ -198,9 +198,6 @@ public partial class VstorageContext : DbContext
         {
             entity.ToTable("Customer");
 
-            entity.HasIndex(e => e.CustomerCode, "AK_Customer_CustomerCode").IsUnique();
-
-            entity.HasIndex(e => e.CustomerCode, "UQ_Customer_CustomerCode").IsUnique();
 
             entity.Property(e => e.Address).HasMaxLength(500);
             entity.Property(e => e.CustomerCode)
@@ -671,6 +668,19 @@ public partial class VstorageContext : DbContext
                 .HasMaxLength(10)
                 .IsUnicode(false);
         });
+
+        modelBuilder.Entity<RefreshToken>()
+           .HasOne(rt => rt.Employee)
+           .WithMany(e => e.RefreshTokens) 
+           .HasForeignKey(rt => rt.EmployeeId)
+           .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<RefreshToken>()
+            .HasOne(rt => rt.Customer)
+            .WithMany(c => c.RefreshTokens) 
+            .HasForeignKey(rt => rt.CustomerId)
+            .OnDelete(DeleteBehavior.Cascade);
+
 
         OnModelCreatingPartial(modelBuilder);
     }

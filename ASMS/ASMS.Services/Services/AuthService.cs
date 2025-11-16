@@ -1,25 +1,19 @@
 ﻿using ASMS.Repositories.Entities;
 using ASMS.Repositories.Infrastructures;
 using ASMS.Services.Interfaces;
+using ASMS.Services.Model.Authentication;
 using ASMS.Services.Utilities;
 using AutoMapper;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ASMS.Services.Services
 {
     public class AuthService : IAuthService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
         private readonly TokenService _tokenService;
-        public AuthService(IUnitOfWork unitOfWork, IMapper mapper, TokenService tokenService)
+        public AuthService(IUnitOfWork unitOfWork, TokenService tokenService)
         {
             _unitOfWork = unitOfWork;
-            _mapper = mapper;
             _tokenService = tokenService;
         }
 
@@ -49,6 +43,23 @@ namespace ASMS.Services.Services
         public string GenerateEmployeeToken(int employeeId, string email, string role)
                     => _tokenService.GenerateEmployeeAccessToken(employeeId, email, role);
 
+        public async Task<string> GenerateRefreshTokenAsync(int userId, bool isEmployee)
+                    => await _tokenService.GenerateRefreshTokenAsync(userId, isEmployee);
+
+
+        public async Task<AuthResponse> RefreshTokenAsync(string token)
+             => await _tokenService.RefreshTokenAsync(token);
+        public async Task<bool> LogoutAsync(string refreshToken)
+        {
+            var tokenEntity = await _unitOfWork.RefreshToken.GetByTokenAsync(refreshToken);
+            if (tokenEntity == null || tokenEntity.RevokedAt != null)
+                return false;
+
+            tokenEntity.RevokedAt = DateTime.UtcNow;
+            await _unitOfWork.RefreshToken.UpdateAsync(tokenEntity);
+            await _unitOfWork.CompleteAsync();
+            return true;
+        }
 
         public bool Verify(string password, string hashedPassword) => PasswordHasher.VerifyPassword(password, hashedPassword);
     }

@@ -28,7 +28,7 @@ namespace ASMS.Repositories.Infrastructures
         IOrderRepository Orders { get; }
         IStorageTypeRepository StorageTypes { get; }
         IPaymentHistoryRepository PaymentHistories { get; }
-
+        IRefreshTokenRepository RefreshToken { get; }
         IShelfTypeRepository ShelvesTypes { get; }
         Task CompleteAsync();
     }

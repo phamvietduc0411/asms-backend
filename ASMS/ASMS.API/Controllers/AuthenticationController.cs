@@ -1,15 +1,7 @@
 ﻿using ASMS.Services.Interfaces;
+using ASMS.Services.Model.Authentication;
 using ASMS.Services.Model.Customer;
-using ASMS.Services.Utilities;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 
 namespace ASMS.API.Controllers
 {
@@ -27,88 +19,93 @@ namespace ASMS.API.Controllers
         [HttpPost("customer-login")]
         public async Task<IActionResult> CustomerLogin([FromBody] UserLoginRequest request)
         {
-            try
-            {
-                var customer = await _authService.FindCustomerAsync(request.Email);
-
-                if (customer == null)
-                    return Unauthorized(new { message = "Customer not found" });
-
-                if (customer != null)
-                {
-                    if (customer.IsActive)
-                    {
-
-                        if (!_authService.Verify(request.Password, customer.Password))
-                            return Unauthorized(new { message = "Invalid username or password" });
-
-                        var token = _authService.GenerateCustomerToken(customer.Id, customer.Email);
-
-                        return Ok(new { token });
-                    }
-                    else
-                    {
-                        return BadRequest(new
-                        {
-                            ErrorMessage = "This account has been deactivated. Please contact Admin for further information!"
-                        });
-                    }
-                }
-
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
-
-            return NotFound(new
-            {
-                ErrorMessage = "Wrong UserName or Password"
-            });
+            var response = await LoginAsync(request, isEmployee: false);
+            return response.Success ? Ok(response) : Unauthorized(response);
         }
 
         [HttpPost("employee-login")]
         public async Task<IActionResult> EmployeeLogin([FromBody] UserLoginRequest request)
         {
+            var response = await LoginAsync(request, isEmployee: true);
+            return response.Success ? Ok(response) : Unauthorized(response);
+        }
+
+        private async Task<AuthResponse> LoginAsync(UserLoginRequest request, bool isEmployee)
+        {
             try
             {
-                var employee = await _authService.FindEmployeeAsync(request.Email);
-
-                if (employee == null)
-                    return Unauthorized(new { message = "Employee not found" });
-
-                if (employee != null)
+                if (isEmployee)
                 {
-                    if (employee.IsActive)
-                    {
-                        var a = _authService.Verify(request.Password, employee.Password);
-                        if (!_authService.Verify(request.Password, employee.Password))
-                            return Unauthorized(new { message = "Invalid username or password" });
+                    var employee = await _authService.FindEmployeeAsync(request.Email);
+                    if (employee == null)
+                        return new AuthResponse { Success = false, ErrorMessage = "Employee not found" };
 
-                        var token = _authService.GenerateEmployeeToken(employee.Id, employee.Username!, employee.EmployeeRole!.ToString());
+                    if (!employee.IsActive)
+                        return new AuthResponse { Success = false, ErrorMessage = "This account has been deactivated." };
 
-                        return Ok(new { token });
-                    }
-                    else
+                    if (!_authService.Verify(request.Password, employee.Password))
+                        return new AuthResponse { Success = false, ErrorMessage = "Invalid username or password" };
+
+                    // Create Access Token& Refresh Token
+                    var accessToken = _authService.GenerateEmployeeToken(employee.Id, employee.Username!, employee.EmployeeRole!.ToString());
+                    var refreshToken = await _authService.GenerateRefreshTokenAsync(employee.Id, isEmployee: true);
+
+                    return new AuthResponse
                     {
-                        return BadRequest(new
-                        {
-                            ErrorMessage = "This account has been deactivated. Please contact Admin for further information!"
-                        });
-                    }
+                        Success = true,
+                        AccessToken = accessToken,
+                        RefreshToken = refreshToken
+                    };
                 }
+                else
+                {
+                    var customer = await _authService.FindCustomerAsync(request.Email);
+                    if (customer == null)
+                        return new AuthResponse { Success = false, ErrorMessage = "Customer not found" };
 
+                    if (!customer.IsActive)
+                        return new AuthResponse { Success = false, ErrorMessage = "This account has been deactivated." };
+
+                    if (!_authService.Verify(request.Password, customer.Password))
+                        return new AuthResponse { Success = false, ErrorMessage = "Invalid username or password" };
+
+                    // Create Access Token& Refresh Token
+                    var accessToken = _authService.GenerateCustomerToken(customer.Id, customer.Email);
+                    var refreshToken = await _authService.GenerateRefreshTokenAsync(customer.Id, isEmployee: false);
+
+                    return new AuthResponse
+                    {
+                        Success = true,
+                        AccessToken = accessToken,
+                        RefreshToken = refreshToken
+                    };
+                }
             }
             catch (Exception ex)
             {
-                throw new Exception(ex.Message);
+                return new AuthResponse { Success = false, ErrorMessage = "An unexpected error occurred." };
             }
-
-            return NotFound(new
-            {
-                ErrorMessage = "Wrong UserName or Password"
-            });
         }
+
+        [HttpPost("refresh-token")]
+        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest token)
+        {
+            var result = await _authService.RefreshTokenAsync(token.RefreshToken);
+            return result.Success ? Ok(result) : Unauthorized(result);
+        }
+
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout([FromBody] RefreshTokenRequest refreshToken)
+        {
+            var success = await _authService.LogoutAsync(refreshToken.RefreshToken);
+            if (!success)
+                return BadRequest(new { message = "Token Invalid." });
+
+            return Ok(new { message = "Logout Success." });
+        }
+
+
+
     }
 
 }

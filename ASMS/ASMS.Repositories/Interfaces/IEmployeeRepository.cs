@@ -11,6 +11,7 @@ namespace ASMS.Repositories.Interfaces
     {
         Task<Employee?> GetEmployeeByEmailAsync(string email);
         Task<PaginatedList<Employee>> GetWithFilterAsync(string? roleName, int pageNumber, int pageSize);
+        Task<Employee?> GetEntityByIdAsync(int id);
 
     }
 }

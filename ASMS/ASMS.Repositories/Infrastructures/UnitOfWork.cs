@@ -30,11 +30,7 @@ namespace ASMS.Repositories.Infrastructures
         public IStorageTypeRepository StorageTypes { get; private set; }
         public IPaymentHistoryRepository PaymentHistories { get; private set; }
         public IShelfTypeRepository ShelvesTypes { get; private set; }
-
-
-
-
-
+        public IRefreshTokenRepository RefreshToken { get; private set; }
 
         public UnitOfWork(
             VstorageContext context,
@@ -46,7 +42,7 @@ namespace ASMS.Repositories.Infrastructures
             WorkflowTemplates = new WorkflowTemplateRepository(_context, _logger);
             WorkflowSteps = new WorkflowStepRepository(_context, _logger);
             Services = new ServiceRepository(_context, _logger);
-            TrackingHistories = new TrackingHistoryRepository(_context, _logger);   
+            TrackingHistories = new TrackingHistoryRepository(_context, _logger);
             Building = new BuildingRepository(_context, _logger);
             ProductType = new ProductTypeRepository(_context, _logger);
             Floors = new FloorRepository(_context, _logger);
@@ -55,15 +51,10 @@ namespace ASMS.Repositories.Infrastructures
             Containers = new ContainerRepository(_context, _logger);
             Customer = new CustomerRepository(_context, _logger);
             Employee = new EmployeeRepository(_context, _logger);
-            
-
             ContainerLocationLogs = new ContainerLocationLogRepository(_context, _logger);
             OrderDetails = new OrderDetailRepository(_context, _logger);
             PaymentHistories = new PaymentHistoryRepository(_context, _logger);
-
-
-
-
+            RefreshToken = new RefreshTokenRepository(_context, _logger);
             Storages = new StorageRepository(_context, _logger);
             Orders = new OrderRepository(_context, _logger);
             StorageTypes = new StorageTypeRepository(_context, _logger);

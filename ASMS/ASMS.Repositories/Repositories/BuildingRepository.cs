@@ -11,7 +11,7 @@ namespace ASMS.Repositories.Repositories
     public class BuildingRepository : GenericRepository<Building>, IBuildingRepository
     {
         public BuildingRepository(
-           VstorageContext context,ILogger logger) : base(context,logger)
+           VstorageContext context, ILogger logger) : base(context, logger)
         {
         }
 

@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ASMS.Repositories.Migrations
 {
     [DbContext(typeof(VstorageContext))]
-    [Migration("20251111150124_InitialCreate")]
+    [Migration("20251115094809_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -48,6 +48,10 @@ namespace ASMS.Repositories.Migrations
                         .HasMaxLength(50)
                         .IsUnicode(false)
                         .HasColumnType("varchar(50)");
+
+                    b.Property<string>("ImageUrl")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<bool?>("IsActive")
                         .HasColumnType("bit")
@@ -223,6 +227,9 @@ namespace ASMS.Repositories.Migrations
                     b.Property<decimal?>("Length")
                         .HasColumnType("decimal(10, 2)");
 
+                    b.Property<decimal?>("Price")
+                        .HasColumnType("decimal(10, 2)");
+
                     b.Property<string>("Type")
                         .IsRequired()
                         .HasMaxLength(10)
@@ -290,9 +297,6 @@ namespace ASMS.Repositories.Migrations
                         .HasColumnType("varchar(20)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CustomerCode")
-                        .IsUnique();
 
                     b.ToTable("Customer", (string)null);
                 });
@@ -559,6 +563,37 @@ namespace ASMS.Repositories.Migrations
                     b.ToTable("OrderDetail", (string)null);
                 });
 
+            modelBuilder.Entity("ASMS.Repositories.Entities.OrderDetailProductType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool?>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("isActive");
+
+                    b.Property<int>("OrderDetailId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ProductTypeId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id")
+                        .HasName("PK__OrderDet__3214EC07CB864502");
+
+                    b.HasIndex(new[] { "OrderDetailId" }, "IX_OrderDetailProductType_OrderDetailId");
+
+                    b.HasIndex(new[] { "ProductTypeId" }, "IX_OrderDetailProductType_ProductTypeId");
+
+                    b.HasIndex(new[] { "OrderDetailId", "ProductTypeId" }, "UQ_OrderDetailProductType_OrderDetail_ProductType")
+                        .IsUnique();
+
+                    b.ToTable("OrderDetailProductType", (string)null);
+                });
+
             modelBuilder.Entity("ASMS.Repositories.Entities.PaymentHistory", b =>
                 {
                     b.Property<string>("PaymentHistoryCode")
@@ -675,6 +710,9 @@ namespace ASMS.Repositories.Migrations
                     b.Property<decimal?>("Length")
                         .HasColumnType("decimal(10, 2)");
 
+                    b.Property<int?>("ShelfTypeId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Status")
                         .HasMaxLength(10)
                         .IsUnicode(false)
@@ -691,9 +729,46 @@ namespace ASMS.Repositories.Migrations
                     b.HasKey("ShelfCode")
                         .HasName("PK__Shelf__24D15D7509E5371F");
 
+                    b.HasIndex("ShelfTypeId");
+
                     b.HasIndex(new[] { "StorageCode" }, "IX_Shelf_StorageCode");
 
                     b.ToTable("Shelf", (string)null);
+                });
+
+            modelBuilder.Entity("ASMS.Repositories.Entities.ShelfType", b =>
+                {
+                    b.Property<int>("ShelfTypeId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ShelfTypeId"));
+
+                    b.Property<decimal>("Height")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<string>("ImageUrl")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<decimal>("Length")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<decimal?>("Price")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<decimal>("Width")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.HasKey("ShelfTypeId")
+                        .HasName("PK__ShelfTyp__50AF6654E81B2766");
+
+                    b.ToTable("ShelfType", (string)null);
                 });
 
             modelBuilder.Entity("ASMS.Repositories.Entities.Storage", b =>
@@ -786,10 +861,32 @@ namespace ASMS.Repositories.Migrations
                         .HasColumnType("int")
                         .HasColumnName("StorageTypeID");
 
+                    b.Property<decimal?>("Area")
+                        .HasColumnType("decimal(10, 2)");
+
+                    b.Property<decimal?>("Height")
+                        .HasColumnType("decimal(10, 2)");
+
+                    b.Property<string>("ImageUrl")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<decimal?>("Length")
+                        .HasColumnType("decimal(10, 2)");
+
                     b.Property<string>("Name")
                         .HasMaxLength(50)
                         .IsUnicode(false)
                         .HasColumnType("varchar(50)");
+
+                    b.Property<decimal?>("Price")
+                        .HasColumnType("decimal(10, 2)");
+
+                    b.Property<decimal?>("TotalVolume")
+                        .HasColumnType("decimal(10, 2)");
+
+                    b.Property<decimal?>("Width")
+                        .HasColumnType("decimal(10, 2)");
 
                     b.HasKey("StorageTypeId")
                         .HasName("PK__StorageT__C94B8F7DD4F87BA1");
@@ -902,14 +999,8 @@ namespace ASMS.Repositories.Migrations
                         .IsUnicode(false)
                         .HasColumnType("varchar(10)");
 
-                    b.Property<int?>("StorageTypeId")
-                        .HasColumnType("int")
-                        .HasColumnName("StorageTypeID");
-
                     b.HasKey("WorkflowTemplateId")
                         .HasName("PK__Workflow__96E60A37BE8B1C29");
-
-                    b.HasIndex(new[] { "StorageTypeId" }, "IX_WorkflowTemplate_StorageTypeID");
 
                     b.ToTable("WorkflowTemplate", (string)null);
                 });
@@ -1017,6 +1108,27 @@ namespace ASMS.Repositories.Migrations
                     b.Navigation("StorageCodeNavigation");
                 });
 
+            modelBuilder.Entity("ASMS.Repositories.Entities.OrderDetailProductType", b =>
+                {
+                    b.HasOne("ASMS.Repositories.Entities.OrderDetail", "OrderDetail")
+                        .WithMany("OrderDetailProductTypes")
+                        .HasForeignKey("OrderDetailId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_OrderDetailProductType_OrderDetail");
+
+                    b.HasOne("ASMS.Repositories.Entities.ProductType", "ProductType")
+                        .WithMany("OrderDetailProductTypes")
+                        .HasForeignKey("ProductTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_OrderDetailProductType_ProductType");
+
+                    b.Navigation("OrderDetail");
+
+                    b.Navigation("ProductType");
+                });
+
             modelBuilder.Entity("ASMS.Repositories.Entities.PaymentHistory", b =>
                 {
                     b.HasOne("ASMS.Repositories.Entities.Order", "OrderCodeNavigation")
@@ -1029,10 +1141,17 @@ namespace ASMS.Repositories.Migrations
 
             modelBuilder.Entity("ASMS.Repositories.Entities.Shelf", b =>
                 {
+                    b.HasOne("ASMS.Repositories.Entities.ShelfType", "ShelfType")
+                        .WithMany("Shelves")
+                        .HasForeignKey("ShelfTypeId")
+                        .HasConstraintName("FK_Shelf_ShelfType");
+
                     b.HasOne("ASMS.Repositories.Entities.Storage", "StorageCodeNavigation")
                         .WithMany("Shelves")
                         .HasForeignKey("StorageCode")
                         .HasConstraintName("FK__Shelf__StorageCo__5CD6CB2B");
+
+                    b.Navigation("ShelfType");
 
                     b.Navigation("StorageCodeNavigation");
                 });
@@ -1081,16 +1200,6 @@ namespace ASMS.Repositories.Migrations
                     b.Navigation("WorkflowTemplate");
                 });
 
-            modelBuilder.Entity("ASMS.Repositories.Entities.WorkflowTemplate", b =>
-                {
-                    b.HasOne("ASMS.Repositories.Entities.StorageType", "StorageType")
-                        .WithMany("WorkflowTemplates")
-                        .HasForeignKey("StorageTypeId")
-                        .HasConstraintName("FK__WorkflowT__Stora__4BAC3F29");
-
-                    b.Navigation("StorageType");
-                });
-
             modelBuilder.Entity("ASMS.Repositories.Entities.Building", b =>
                 {
                     b.Navigation("Employees");
@@ -1134,9 +1243,16 @@ namespace ASMS.Repositories.Migrations
                     b.Navigation("TrackingHistories");
                 });
 
+            modelBuilder.Entity("ASMS.Repositories.Entities.OrderDetail", b =>
+                {
+                    b.Navigation("OrderDetailProductTypes");
+                });
+
             modelBuilder.Entity("ASMS.Repositories.Entities.ProductType", b =>
                 {
                     b.Navigation("Containers");
+
+                    b.Navigation("OrderDetailProductTypes");
 
                     b.Navigation("Storages");
                 });
@@ -1151,6 +1267,11 @@ namespace ASMS.Repositories.Migrations
                     b.Navigation("Floors");
                 });
 
+            modelBuilder.Entity("ASMS.Repositories.Entities.ShelfType", b =>
+                {
+                    b.Navigation("Shelves");
+                });
+
             modelBuilder.Entity("ASMS.Repositories.Entities.Storage", b =>
                 {
                     b.Navigation("OrderDetails");
@@ -1161,8 +1282,6 @@ namespace ASMS.Repositories.Migrations
             modelBuilder.Entity("ASMS.Repositories.Entities.StorageType", b =>
                 {
                     b.Navigation("Storages");
-
-                    b.Navigation("WorkflowTemplates");
                 });
 
             modelBuilder.Entity("ASMS.Repositories.Entities.WorkflowTemplate", b =>

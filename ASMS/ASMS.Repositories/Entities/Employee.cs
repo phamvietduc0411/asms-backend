@@ -30,4 +30,5 @@ public partial class Employee
     public virtual Building? Building { get; set; }
 
     public virtual EmployeeRole? EmployeeRole { get; set; }
+    public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
 }
