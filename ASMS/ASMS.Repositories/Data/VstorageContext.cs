@@ -150,7 +150,7 @@ public partial class VstorageContext : DbContext
             entity.HasIndex(e => e.OrderCode, "IX_ContainerLocationLog_Order");
 
             entity.Property(e => e.ContainerLocationLogId)
-                .ValueGeneratedNever()
+                .ValueGeneratedOnAdd()
                 .HasColumnName("ContainerLocationLogID");
             entity.Property(e => e.Algorithm)
                 .HasMaxLength(50)

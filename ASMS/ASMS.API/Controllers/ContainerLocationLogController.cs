@@ -4,8 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ASMS.API.Controllers
 {
-    [ApiController]
     [Route("api/[controller]")]
+    [ApiController]
     public class ContainerLocationLogController : ControllerBase
     {
         private readonly IContainerLocationLogService _service;
@@ -18,39 +18,47 @@ namespace ASMS.API.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var result = await _service.GetAllAsync();
-            return Ok(result);
+            return Ok(await _service.GetAllAsync());
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id)
         {
             var result = await _service.GetByIdAsync(id);
-            if (result == null) return NotFound();
-            return Ok(result);
+            return result == null ? NotFound() : Ok(result);
+        }
+
+        [HttpGet("container/{code}")]
+        public async Task<IActionResult> GetByContainerCode(string code)
+        {
+            return Ok(await _service.GetByContainerCodeAsync(code));
+        }
+
+        [HttpGet("order/{code}")]
+        public async Task<IActionResult> GetByOrderCode(string code)
+        {
+            return Ok(await _service.GetByOrderCodeAsync(code));
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CreateContainerLocationLogRequest request)
+        public async Task<IActionResult> Create(CreateContainerLocationLogRequest request)
         {
-            var created = await _service.CreateAsync(request);
-            return CreatedAtAction(nameof(GetById), new { id = created.ContainerLocationLogId }, created);
+            var result = await _service.CreateAsync(request);
+            return Ok(result);
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] UpdateContainerLocationLogRequest request)
+        [HttpPut("{id:int}")]
+        public async Task<IActionResult> Update(int id, UpdateContainerLocationLogRequest request)
         {
-            var updated = await _service.UpdateAsync(id, request);
-            if (updated == null) return NotFound();
-            return Ok(updated);
+            var result = await _service.UpdateAsync(id, request);
+            return result == null ? NotFound() : Ok(result);
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var success = await _service.DeleteAsync(id);
-            if (!success) return NotFound();
-            return NoContent();
+            var result = await _service.DeleteAsync(id);
+            return !result ? NotFound() : Ok(new { Message = "Deleted successfully" });
         }
     }
 }

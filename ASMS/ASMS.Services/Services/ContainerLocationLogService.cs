@@ -24,30 +24,50 @@ namespace ASMS.Services.Services
 
         public async Task<IEnumerable<ContainerLocationLogResponse>> GetAllAsync()
         {
-            var logs = await _unitOfWork.ContainerLocationLogs.GetAllAsync();
-            return _mapper.Map<IEnumerable<ContainerLocationLogResponse>>(logs);
+            var list = await _unitOfWork.ContainerLocationLogs.GetAllAsync();
+            return _mapper.Map<IEnumerable<ContainerLocationLogResponse>>(list);
         }
 
         public async Task<ContainerLocationLogResponse?> GetByIdAsync(int id)
         {
-            var log = await _unitOfWork.ContainerLocationLogs.GetEntityByIdAsync(id);
-            return _mapper.Map<ContainerLocationLogResponse?>(log);
+            var entity = await _unitOfWork.ContainerLocationLogs.GetByIdAsync(id);
+            return entity == null ? null : _mapper.Map<ContainerLocationLogResponse>(entity);
+        }
+
+        public async Task<IEnumerable<ContainerLocationLogResponse>> GetByContainerCodeAsync(string containerCode)
+        {
+            var list = await _unitOfWork.ContainerLocationLogs.GetByContainerCodeAsync(containerCode);
+            return _mapper.Map<IEnumerable<ContainerLocationLogResponse>>(list);
+        }
+
+        public async Task<IEnumerable<ContainerLocationLogResponse>> GetByOrderCodeAsync(string orderCode)
+        {
+            var list = await _unitOfWork.ContainerLocationLogs.GetByOrderCodeAsync(orderCode);
+            return _mapper.Map<IEnumerable<ContainerLocationLogResponse>>(list);
         }
 
         public async Task<ContainerLocationLogResponse> CreateAsync(CreateContainerLocationLogRequest request)
         {
             var entity = _mapper.Map<ContainerLocationLog>(request);
+            entity.ContainerCodeNavigation = null;
+            entity.UpdatedDate = DateOnly.FromDateTime(DateTime.Now);
+
             await _unitOfWork.ContainerLocationLogs.AddAsync(entity);
             await _unitOfWork.CompleteAsync();
+
             return _mapper.Map<ContainerLocationLogResponse>(entity);
         }
 
         public async Task<ContainerLocationLogResponse?> UpdateAsync(int id, UpdateContainerLocationLogRequest request)
         {
-            var existing = await _unitOfWork.ContainerLocationLogs.GetEntityByIdAsync(id);
+            var existing = await _unitOfWork.ContainerLocationLogs.GetByIdAsync(id);
             if (existing == null) return null;
 
             _mapper.Map(request, existing);
+
+            existing.ContainerCodeNavigation = null;
+            existing.UpdatedDate = DateOnly.FromDateTime(DateTime.Now);
+
             await _unitOfWork.ContainerLocationLogs.UpdateAsync(existing);
             await _unitOfWork.CompleteAsync();
 
@@ -56,7 +76,9 @@ namespace ASMS.Services.Services
 
         public async Task<bool> DeleteAsync(int id)
         {
-            await _unitOfWork.ContainerLocationLogs.DeleteAsync(id);
+            var result = await _unitOfWork.ContainerLocationLogs.DeleteAsync(id);
+            if (!result) return false;
+
             await _unitOfWork.CompleteAsync();
             return true;
         }

@@ -119,11 +119,19 @@ namespace ASMS.Services.Mappings
                 .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
             #endregion
             #region ContainerLocationLog
-            CreateMap<CreateContainerLocationLogRequest, ContainerLocationLog>();
+           
+            CreateMap<ContainerLocationLog, ContainerLocationLogResponse>();
+
+           
+            CreateMap<CreateContainerLocationLogRequest, ContainerLocationLog>()
+                .ForMember(dest => dest.ContainerLocationLogId, opt => opt.Ignore())
+                .ForMember(dest => dest.ContainerCodeNavigation, opt => opt.Ignore());
+
+            
             CreateMap<UpdateContainerLocationLogRequest, ContainerLocationLog>()
                 .ForMember(dest => dest.ContainerLocationLogId, opt => opt.Ignore())
+                .ForMember(dest => dest.ContainerCodeNavigation, opt => opt.Ignore())
                 .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
-            CreateMap<ContainerLocationLog, ContainerLocationLogResponse>();
             #endregion
             #region OrderDetail
             CreateMap<CreateOrderDetailRequest, OrderDetail>();

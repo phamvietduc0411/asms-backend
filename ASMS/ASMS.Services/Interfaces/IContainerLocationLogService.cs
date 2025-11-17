@@ -11,6 +11,8 @@ namespace ASMS.Services.Interfaces
     {
         Task<IEnumerable<ContainerLocationLogResponse>> GetAllAsync();
         Task<ContainerLocationLogResponse?> GetByIdAsync(int id);
+        Task<IEnumerable<ContainerLocationLogResponse>> GetByContainerCodeAsync(string containerCode);
+        Task<IEnumerable<ContainerLocationLogResponse>> GetByOrderCodeAsync(string orderCode);
         Task<ContainerLocationLogResponse> CreateAsync(CreateContainerLocationLogRequest request);
         Task<ContainerLocationLogResponse?> UpdateAsync(int id, UpdateContainerLocationLogRequest request);
         Task<bool> DeleteAsync(int id);
