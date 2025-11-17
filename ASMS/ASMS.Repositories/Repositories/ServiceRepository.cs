@@ -9,6 +9,7 @@ using ASMS.Repositories.Infrastructures;
 using ASMS.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 
 namespace ASMS.Repositories.Repositories
 {
@@ -102,6 +103,13 @@ namespace ASMS.Repositories.Repositories
                 _logger.LogError(ex, $"Error occurred while deleting service with id: {id}");
                 throw;
             }
+        }
+        public async Task<List<Service>> GetByIdsAsync(List<int?> ids)
+        {
+            if (ids.IsNullOrEmpty()) return [];
+            return await _context.Services
+                .Where(s => ids.Contains(s.ServiceId))
+                .ToListAsync();
         }
     }
 }
