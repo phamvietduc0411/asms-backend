@@ -42,9 +42,20 @@ namespace ASMS.Repositories.Repositories
         }
         public async Task<List<Floor>> GetByFloorNumbersAsync(List<int> floorNumbers)
         {
-            return await _dbSet
-                .Where(f => floorNumbers.Contains(f.FloorNumber.GetValueOrDefault())
-                    && f.IsActive == true)
+            return await _context.Floors
+                .Include(f => f.ShelfCodeNavigation)                    
+                    .ThenInclude(s => s.StorageCodeNavigation)         
+                        .ThenInclude(st => st.Building)                 
+                .Where(f => floorNumbers.Contains(f.FloorNumber.Value))
+                .ToListAsync();
+        }
+        public async Task<List<Floor>> GetFloorsByBuildingAndNumberAsync(int buildingId, List<int> floorNumbers)
+        {
+            return await _context.Floors
+                .Include(f => f.ShelfCodeNavigation)
+                    .ThenInclude(s => s.StorageCodeNavigation)
+                .Where(f => f.ShelfCodeNavigation.StorageCodeNavigation.BuildingId == buildingId
+                        && floorNumbers.Contains(f.FloorNumber.Value))
                 .OrderBy(f => f.FloorNumber)
                 .ToListAsync();
         }

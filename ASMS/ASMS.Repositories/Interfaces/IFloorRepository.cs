@@ -15,6 +15,7 @@ namespace ASMS.Repositories.Interfaces
         Task DeleteAsync(Floor entity);
         Task<List<Floor>> GetByShelfCodeAsync(string shelfCode);
         Task<List<Floor>> GetByFloorNumbersAsync(List<int> floorNumbers);
+        Task<List<Floor>> GetFloorsByBuildingAndNumberAsync(int buildingId, List<int> floorNumbers); 
 
     }
 }

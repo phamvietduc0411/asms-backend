@@ -24,7 +24,6 @@ namespace ASMS.Repositories.Repositories
                 .Include(x => x.OrderCodeNavigation)
                 .Include(x => x.StorageCodeNavigation)
                 .Include(x => x.ContainerCodeNavigation)
-                .Include(x => x.Service)
                 .ToListAsync();
         }
 
@@ -34,7 +33,6 @@ namespace ASMS.Repositories.Repositories
                 .Include(x => x.OrderCodeNavigation)
                 .Include(x => x.StorageCodeNavigation)
                 .Include(x => x.ContainerCodeNavigation)
-                .Include(x => x.Service)
                 .FirstOrDefaultAsync(x => x.OrderDetailId == id);
         }
 

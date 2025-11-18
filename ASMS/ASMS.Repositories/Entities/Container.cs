@@ -37,6 +37,12 @@ public partial class Container
 
     public int? ContainerTypeId { get; set; }
 
+    public int? SerialNumber { get; set; }
+
+    public int? Layer { get; set; }
+
+    public string? ContainerAboveCode { get; set; }
+
     public virtual ICollection<ContainerLocationLog> ContainerLocationLogs { get; set; } = new List<ContainerLocationLog>();
 
     public virtual ContainerType? ContainerType { get; set; }

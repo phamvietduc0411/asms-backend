@@ -92,118 +92,108 @@ namespace ASMS.Services.Services
         //Tạo Order detail và assign container
         public async Task<CreateOrderDetailResponse> CreateOrderDetailAsync(CreateOrderDetailRequest request)
         {
-            _logger.LogInformation("Creating order detail for order {OrderCode}", request.OrderCode);
-            var order = await _unitOfWork.Orders.GetByCodeAsync(request.OrderCode);
-            if (order == null)
+            try
             {
-                _logger.LogWarning("Order {OrderCode} not found", request.OrderCode);
-                throw new Exception($"Order {request.OrderCode} not found");
+                var order = await _unitOfWork.Orders.GetByCodeAsync(request.OrderCode);
+                if (order == null)
+                {
+                    _logger.LogWarning("Order {OrderCode} not found", request.OrderCode);
+                    throw new Exception($"Order {request.OrderCode} not found");
+                }
+
+                Container container = null;
+                if (!string.IsNullOrEmpty(request.ContainerCode))
+                {
+                    container = await _unitOfWork.Containers.GetByCodeAsync(request.ContainerCode);
+                    if (container == null)
+                    {
+                        throw new Exception($"Container {request.ContainerCode} not found");
+                    }
+                }
+
+                // 3. Generate OrderDetailId
+                var orderDetailId = await GenerateOrderDetailIdAsync();
+
+                // 4. Calculate SubTotal
+                decimal? subTotal = null;
+                if (request.Price.HasValue && !string.IsNullOrEmpty(request.Quantity))
+                {
+                    if (int.TryParse(request.Quantity, out var qty))
+                    {
+                        subTotal = request.Price.Value * qty;
+                    }
+                }
+
+                // 5. Create OrderDetail
+                var orderDetail = new OrderDetail
+                {
+                    OrderDetailId = orderDetailId,
+                    OrderCode = request.OrderCode,
+                    StorageCode = request.StorageCode,
+                    ContainerCode = request.ContainerCode,
+                    Price = request.Price,
+                    Quantity = request.Quantity,
+                    SubTotal = subTotal,
+                    Address = request.Address,
+                    Image = request.Image
+                };
+
+                await _unitOfWork.OrderDetails.AddAsync(orderDetail);
+
+                if (request.ProductTypeIds != null && request.ProductTypeIds.Any())
+                {
+                    foreach (var productTypeId in request.ProductTypeIds)
+                    {
+                        var orderDetailProductType = new OrderDetailProductType
+                        {
+                            OrderDetailId = orderDetailId,
+                            ProductTypeId = productTypeId,
+                            IsActive = true
+                        };
+                        await _unitOfWork.OrderDetailProductTypes.AddAsync(orderDetailProductType);
+                    }
+                }
+
+                if (request.ServiceIds != null && request.ServiceIds.Any())
+                {
+                    foreach (var serviceId in request.ServiceIds)
+                    {
+                        var orderDetailService = new ASMS.Repositories.Entities.OrderDetailService
+                        {
+                            OrderDetailId = orderDetailId,
+                            ServiceId = serviceId
+                        };
+                        await _unitOfWork.OrderDetailServices.AddAsync(orderDetailService);
+                    }
+                }
+
+
+
+                await _unitOfWork.CompleteAsync();
+
+                _logger.LogInformation("Order detail {DetailId} created successfully", orderDetailId);
+
+                return new CreateOrderDetailResponse
+                {
+                    OrderDetailId = orderDetailId,
+                    OrderCode = request.OrderCode,
+                    StorageCode = request.StorageCode,
+                    ContainerCode = request.ContainerCode,
+                    FloorCode = container?.FloorCode,
+                    FloorNumber = container?.FloorCodeNavigation?.FloorNumber,
+                    Price = request.Price,
+                    Quantity = request.Quantity,
+                    SubTotal = subTotal,
+                    Address = request.Address,
+                    Image = request.Image,
+                    Status = string.IsNullOrEmpty(request.ContainerCode) ? "Pending" : "Assigned"
+                };
             }
-            var clpRequest = new FindContainerRequest
+            catch (Exception ex)
             {
-                PackageLength = request.Length,
-                PackageWidth = request.Width,
-                PackageHeight = request.Height,
-                PackageWeight = request.Weight,
-                ProductTypeID = request.ProductTypeId,
-                IsFragile = request.IsFragile,
-                StorageDays = request.StorageDays,
-            };
-            var suitableContainers = await _clpService.FindSuitableContainersAsync(clpRequest);
-            if (!suitableContainers.Any())
-            {
-                _logger.LogWarning("No suitable container found");
-                throw new Exception("No suitable container found for this package");
+                _logger.LogError(ex, "Error creating order detail");
+                throw;
             }
-
-            // Get best container (highest score)
-            var bestContainer = suitableContainers.First();
-
-            // Assign container
-            var container = await _unitOfWork.Containers.GetByCodeAsync(bestContainer.ContainerCode);
-            if (container == null)
-            {
-                throw new Exception($"Container {bestContainer.ContainerCode} not found");
-            }
-            container.FloorCode = bestContainer.FloorCode;
-            container.Status = "Occupied";
-            container.ProductTypeId = request.ProductTypeId;
-            container.CurrentWeight = request.Weight;
-            await _unitOfWork.Containers.UpdateAsync(container);
-            var orderDetailId = await GenerateOrderDetailIdAsync();
-
-            // Calculate subtotal
-            decimal? subTotal = null;
-            //if (request.Price.HasValue && !string.IsNullOrEmpty(request.Quantity))
-            //{
-            //    if (int.TryParse(request.Quantity, out var qty))
-            //    {
-            //        subTotal = request.Price.Value * qty;
-            //    }
-            //}
-            // Create order detail
-            var orderDetail = new OrderDetail
-            {
-                OrderDetailId = orderDetailId,
-                OrderCode = request.OrderCode,
-                //StorageCode = bestContainer.StorageCode,
-                StorageCode = "STR001",
-                ContainerCode = bestContainer.ContainerCode,
-                ServiceId = request.ServiceId,
-                Price = request.Price,
-                Quantity = request.Quantity,
-                SubTotal = subTotal,
-                Address = request.Address,
-                Image = request.Image
-            };
-
-            await _unitOfWork.OrderDetails.AddAsync(orderDetail);
-
-            // Create container location log
-            var log = new ContainerLocationLog
-            {
-                ContainerCode = bestContainer.ContainerCode,
-                OrderCode = request.OrderCode,
-                PerformedBy = null,
-                UpdatedDate = DateOnly.FromDateTime(DateTime.Now),
-                OldFloor = null,
-                CurrentFloor = bestContainer.FloorCode,
-                Reason = "Order Assignment",
-                Algorithm = "CLP",
-                Notes = $"Container assigned to order {request.OrderCode}"
-            };
-
-            await _unitOfWork.ContainerLocationLogs.AddAsync(log);
-
-            // Update order total
-            //if (subTotal.HasValue)
-            //{
-            //    order.TotalPrice = (order.TotalPrice ?? 0) + subTotal.Value;
-            //    order.UnpaidAmount = order.TotalPrice;
-            //    await _unitOfWork.Orders.UpdateAsync(order);
-            //}
-
-            await _unitOfWork.CompleteAsync();
-
-            _logger.LogInformation("Order detail {DetailId} created, container {ContainerCode} assigned",
-                orderDetailId, bestContainer.ContainerCode);
-
-            return new CreateOrderDetailResponse
-            {
-                OrderDetailId = orderDetailId,
-                OrderCode = request.OrderCode,
-                StorageCode = bestContainer.StorageCode,
-                ContainerCode = bestContainer.ContainerCode,
-                FloorCode = bestContainer.FloorCode,
-                FloorNumber = bestContainer.FloorNumber,
-                ServiceId = request.ServiceId,
-                Price = request.Price,
-                Quantity = request.Quantity,
-                SubTotal = subTotal,
-                Address = request.Address,
-                Image = request.Image,
-                Status = "Assigned"
-            };
         }
         // Lấy order details
         public async Task<List<CreateOrderDetailResponse>> GetOrderDetailsAsync(string orderCode)
@@ -218,7 +208,7 @@ namespace ASMS.Services.Services
                 ContainerCode = od.ContainerCode,
                 FloorCode = od.ContainerCodeNavigation?.FloorCode,
                 FloorNumber = null,
-                ServiceId = od.ServiceId,
+                //ServiceId = od.ServiceId,
                 Price = od.Price,
                 Quantity = od.Quantity,
                 SubTotal = od.SubTotal,

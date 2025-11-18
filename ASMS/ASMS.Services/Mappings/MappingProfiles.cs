@@ -61,12 +61,10 @@ namespace ASMS.Services.Mappings
             #region Service
             CreateMap<ASMS.Repositories.Entities.Service, ServiceResponse>();
 
-            CreateMap<CreateServiceRequest, ASMS.Repositories.Entities.Service>()
-                .ForMember(dest => dest.OrderDetails, opt => opt.Ignore());
+            CreateMap<CreateServiceRequest, ASMS.Repositories.Entities.Service>();
 
             CreateMap<UpdateServiceRequest, ASMS.Repositories.Entities.Service>()
                 .ForMember(dest => dest.ServiceId, opt => opt.Ignore())
-                .ForMember(dest => dest.OrderDetails, opt => opt.Ignore())
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
             #endregion
             #region Tracking History

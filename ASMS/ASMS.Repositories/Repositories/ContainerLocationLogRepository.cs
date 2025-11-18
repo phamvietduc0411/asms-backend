@@ -38,5 +38,11 @@ namespace ASMS.Repositories.Repositories
                 .OrderByDescending(log => log.UpdatedDate)
                 .ToListAsync();
         }
+        public async Task<ContainerLocationLog> GetLastAsync()
+        {
+            return await _context.ContainerLocationLogs
+                .OrderByDescending(log => log.ContainerLocationLogId)
+                .FirstOrDefaultAsync();
+        }
     }
 }

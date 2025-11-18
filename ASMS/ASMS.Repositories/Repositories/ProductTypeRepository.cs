@@ -3,6 +3,7 @@ using ASMS.Repositories.Data;
 using ASMS.Repositories.Entities;
 using ASMS.Repositories.Infrastructures;
 using ASMS.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -30,6 +31,12 @@ namespace ASMS.Repositories.Repositories
             query = query.OrderBy(pt => pt.ProductTypeId);
 
             return await PaginatedList<ProductType>.CreateAsync(query, pageNumber, pageSize);
+        }
+        public async Task<List<ProductType>> GetByIdsAsync(List<int> ids)
+        {
+            return await _context.ProductTypes
+                .Where(pt => ids.Contains(pt.ProductTypeId) && pt.IsActive == true)
+                .ToListAsync();
         }
 
     }

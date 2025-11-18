@@ -75,6 +75,27 @@ namespace ASMS.Repositories.Repositories
             _dbSet.Update(container);
             await Task.CompletedTask;
         }
-       
+        public async Task UpdateStackingInfoAsync(string containerCode, int layer, int serialNumber, string containerAboveCode)
+        {
+            var container = await _context.Containers.FirstOrDefaultAsync(c => c.ContainerCode == containerCode);
+            if(container != null)
+            {
+                container.Layer = layer;
+                container.SerialNumber = serialNumber;
+                container.ContainerAboveCode = containerAboveCode;
+                await _context.SaveChangesAsync();
+            }
+        }
+        public async Task MoveContainerToLayer1Async(string containerCode)
+        {
+            var container = await _context.Containers
+                .FirstOrDefaultAsync(c => c.ContainerCode == containerCode);
+            if (container != null)
+            {
+                container.Layer = 1;
+                await _context.SaveChangesAsync();
+            }
+        }
+
     }
 }
