@@ -13,5 +13,6 @@ namespace ASMS.Repositories.Interfaces
         Task<IEnumerable<ContainerLocationLog>> GetAllAsync();
         Task DeleteAsync(int id);
         Task<List<ContainerLocationLog>> GetByContainerCodeAsync(string containerCode);
+        Task<ContainerLocationLog> GetLastAsync();
     }
 }

@@ -8,12 +8,11 @@ namespace ASMS.Services.Model.CLP
 {
     public class FindContainerRequest
     {
-        public int ProductTypeID { get; set; }
         public decimal PackageLength { get; set; }
         public decimal PackageWidth { get; set; }
         public decimal PackageHeight { get; set; }
         public decimal PackageWeight { get; set; }
-        public bool IsFragile { get; set; }
         public int StorageDays { get; set; }
+        public List<int> ProductTypeIds { get; set; } = new List<int>();
     }
 }

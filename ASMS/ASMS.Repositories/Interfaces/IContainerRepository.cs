@@ -17,6 +17,8 @@ namespace ASMS.Repositories.Interfaces
         Task<List<Container>> GetByFloorCodeAsync(string floorCode);
         Task<List<Container>> GetAvailableByTypeAsync(int containerTypeId);
         Task UpdateAsync(Container container);
+        Task UpdateStackingInfoAsync(string containerCode, int layer, int serialNumber, string containerAboveCode);
+        Task MoveContainerToLayer1Async(string containerCode);
 
     }
 }

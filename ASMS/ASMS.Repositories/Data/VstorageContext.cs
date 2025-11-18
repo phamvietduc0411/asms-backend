@@ -1,4 +1,6 @@
-﻿using ASMS.Repositories.Entities;
+﻿using System;
+using System.Collections.Generic;
+using ASMS.Repositories.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace ASMS.Repositories.Data;
@@ -36,6 +38,8 @@ public partial class VstorageContext : DbContext
 
     public virtual DbSet<OrderDetailProductType> OrderDetailProductTypes { get; set; }
 
+    public virtual DbSet<OrderDetailService> OrderDetailServices { get; set; }
+
     public virtual DbSet<PaymentHistory> PaymentHistories { get; set; }
 
     public virtual DbSet<ProductType> ProductTypes { get; set; }
@@ -55,6 +59,7 @@ public partial class VstorageContext : DbContext
     public virtual DbSet<WorkflowStep> WorkflowSteps { get; set; }
 
     public virtual DbSet<WorkflowTemplate> WorkflowTemplates { get; set; }
+
     public virtual DbSet<RefreshToken> RefreshToken { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -64,7 +69,6 @@ public partial class VstorageContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-
         modelBuilder.Entity<Building>(entity =>
         {
             entity.ToTable("Building");
@@ -97,6 +101,9 @@ public partial class VstorageContext : DbContext
             entity.HasIndex(e => e.FloorCode, "IX_Container_FloorCode");
 
             entity.Property(e => e.ContainerCode)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.ContainerAboveCode)
                 .HasMaxLength(50)
                 .IsUnicode(false);
             entity.Property(e => e.CurrentWeight)
@@ -150,7 +157,7 @@ public partial class VstorageContext : DbContext
             entity.HasIndex(e => e.OrderCode, "IX_ContainerLocationLog_Order");
 
             entity.Property(e => e.ContainerLocationLogId)
-                .ValueGeneratedNever()
+                .ValueGeneratedOnAdd()
                 .HasColumnName("ContainerLocationLogID");
             entity.Property(e => e.Algorithm)
                 .HasMaxLength(50)
@@ -198,6 +205,9 @@ public partial class VstorageContext : DbContext
         {
             entity.ToTable("Customer");
 
+            entity.HasIndex(e => e.CustomerCode, "AK_Customer_CustomerCode").IsUnique();
+
+            entity.HasIndex(e => e.CustomerCode, "UQ_Customer_CustomerCode").IsUnique();
 
             entity.Property(e => e.Address).HasMaxLength(500);
             entity.Property(e => e.CustomerCode)
@@ -353,8 +363,6 @@ public partial class VstorageContext : DbContext
 
             entity.HasIndex(e => e.OrderCode, "IX_OrderDetail_OrderCode");
 
-            entity.HasIndex(e => e.ServiceId, "IX_OrderDetail_ServiceID");
-
             entity.HasIndex(e => e.StorageCode, "IX_OrderDetail_StorageCode");
 
             entity.Property(e => e.OrderDetailId)
@@ -372,7 +380,6 @@ public partial class VstorageContext : DbContext
                 .IsUnicode(false);
             entity.Property(e => e.Price).HasColumnType("decimal(18, 0)");
             entity.Property(e => e.Quantity).HasMaxLength(500);
-            entity.Property(e => e.ServiceId).HasColumnName("ServiceID");
             entity.Property(e => e.StorageCode)
                 .HasMaxLength(50)
                 .IsUnicode(false);
@@ -385,10 +392,6 @@ public partial class VstorageContext : DbContext
             entity.HasOne(d => d.OrderCodeNavigation).WithMany(p => p.OrderDetails)
                 .HasForeignKey(d => d.OrderCode)
                 .HasConstraintName("FK__OrderDeta__Order__71D1E811");
-
-            entity.HasOne(d => d.Service).WithMany(p => p.OrderDetails)
-                .HasForeignKey(d => d.ServiceId)
-                .HasConstraintName("FK__OrderDeta__Servi__74AE54BC");
 
             entity.HasOne(d => d.StorageCodeNavigation).WithMany(p => p.OrderDetails)
                 .HasForeignKey(d => d.StorageCode)
@@ -416,6 +419,23 @@ public partial class VstorageContext : DbContext
             entity.HasOne(d => d.ProductType).WithMany(p => p.OrderDetailProductTypes)
                 .HasForeignKey(d => d.ProductTypeId)
                 .HasConstraintName("FK_OrderDetailProductType_ProductType");
+        });
+
+        modelBuilder.Entity<OrderDetailService>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__OrderDet__3214EC07CD915A73");
+
+            entity.ToTable("OrderDetailService");
+
+            entity.HasIndex(e => new { e.OrderDetailId, e.ServiceId }, "UQ_OrderDetailService_OrderDetail_Service").IsUnique();
+
+            entity.HasOne(d => d.OrderDetail).WithMany(p => p.OrderDetailServices)
+                .HasForeignKey(d => d.OrderDetailId)
+                .HasConstraintName("FK_OrderDetailService_OrderDetail");
+
+            entity.HasOne(d => d.Service).WithMany(p => p.OrderDetailServices)
+                .HasForeignKey(d => d.ServiceId)
+                .HasConstraintName("FK_OrderDetailService_Service");
         });
 
         modelBuilder.Entity<PaymentHistory>(entity =>
@@ -668,19 +688,6 @@ public partial class VstorageContext : DbContext
                 .HasMaxLength(10)
                 .IsUnicode(false);
         });
-
-        modelBuilder.Entity<RefreshToken>()
-           .HasOne(rt => rt.Employee)
-           .WithMany(e => e.RefreshTokens) 
-           .HasForeignKey(rt => rt.EmployeeId)
-           .OnDelete(DeleteBehavior.Cascade);
-
-        modelBuilder.Entity<RefreshToken>()
-            .HasOne(rt => rt.Customer)
-            .WithMany(c => c.RefreshTokens) 
-            .HasForeignKey(rt => rt.CustomerId)
-            .OnDelete(DeleteBehavior.Cascade);
-
 
         OnModelCreatingPartial(modelBuilder);
     }

@@ -13,8 +13,6 @@ public partial class OrderDetail
 
     public string? ContainerCode { get; set; }
 
-    public int? ServiceId { get; set; }
-
     public decimal? Price { get; set; }
 
     public string? Quantity { get; set; }
@@ -31,7 +29,7 @@ public partial class OrderDetail
 
     public virtual ICollection<OrderDetailProductType> OrderDetailProductTypes { get; set; } = new List<OrderDetailProductType>();
 
-    public virtual Service? Service { get; set; }
+    public virtual ICollection<OrderDetailService> OrderDetailServices { get; set; } = new List<OrderDetailService>();
 
     public virtual Storage? StorageCodeNavigation { get; set; }
 }

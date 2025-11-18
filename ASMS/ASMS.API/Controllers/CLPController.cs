@@ -33,19 +33,27 @@ namespace ASMS.API.Controllers
         ///     }
         /// 
         /// </remarks>
-        [HttpPost("preview-containers")]
-        public async Task<IActionResult> PreviewContainers([FromBody] FindContainerRequest request)
+        [HttpPost("find-suitable-containers")]
+        public async Task<ActionResult<List<ContainerPlacementDto>>> FindSuitableContainers(
+    [FromBody] FindContainerRequest request)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            var result = await _clpService.FindSuitableContainersAsync(request);
-
-            return Ok(new
+            try
             {
-                count = result.Count,
-                containers = result
-            });
+                // Gọi CLP Service
+                var placements = await _clpService.FindSuitableContainersAsync(request);
+
+                if (!placements.Any())
+                {
+                    return NotFound("No suitable containers found");
+                }
+
+                return Ok(placements);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Internal server error");
+            }
         }
+
     }
 }

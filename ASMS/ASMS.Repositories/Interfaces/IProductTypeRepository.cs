@@ -14,5 +14,6 @@ namespace ASMS.Repositories.Interfaces
         Task<ProductType> AddAsync(ProductType role);
         Task<ProductType> UpdateAsync(ProductType role);
         Task<PaginatedList<ProductType>> GetWithFilterAsync(bool? isActive, int pageNumber, int pageSize);
+        Task<List<ProductType>> GetByIdsAsync(List<int> ids);
     }
 }

@@ -38,5 +38,9 @@ namespace ASMS.Repositories.Repositories
             var query = _context.Buildings.OrderBy(b => b.BuildingId);
             return await PaginatedList<Building>.CreateAsync(query, pageNumber, pageSize);
         }
+        public async Task<Building> GetByNameAsync(string name)
+        {
+            return await _context.Buildings.FirstOrDefaultAsync(b => b.Name == name && b.IsActive == true);
+        }
     }
 }

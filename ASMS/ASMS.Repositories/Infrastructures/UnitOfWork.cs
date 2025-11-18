@@ -31,6 +31,8 @@ namespace ASMS.Repositories.Infrastructures
         public IPaymentHistoryRepository PaymentHistories { get; private set; }
         public IShelfTypeRepository ShelvesTypes { get; private set; }
         public IRefreshTokenRepository RefreshToken { get; private set; }
+        public IOrderDetailServiceRepository OrderDetailServices { get; private set; }
+        public IOrderDetailProductTypeRepository OrderDetailProductTypes { get; private set; }
 
         public UnitOfWork(
             VstorageContext context,
@@ -59,6 +61,8 @@ namespace ASMS.Repositories.Infrastructures
             Orders = new OrderRepository(_context, _logger);
             StorageTypes = new StorageTypeRepository(_context, _logger);
             ShelvesTypes = new ShelfTypeRepository(_context, _logger);
+            OrderDetailServices = new OrderDetailServiceRepository(_context, _logger);
+            OrderDetailProductTypes = new OrderDetailProductTypeRepository(_context, _logger);
         }
         public async Task CompleteAsync() => await _context.SaveChangesAsync();
     }
