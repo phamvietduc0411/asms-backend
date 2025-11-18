@@ -1,0 +1,105 @@
+﻿using ASMS.Services.Interfaces;
+using ASMS.Services.Model.ContainerType;
+using Microsoft.AspNetCore.Mvc;
+
+namespace ASMS.API.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class ContainerTypeController : ControllerBase
+    {
+        private readonly IContainerTypeService _containerTypeService;
+        public ContainerTypeController(IContainerTypeService containerTypeService)
+        {
+            _containerTypeService = containerTypeService;
+        }
+        #region CRUD Container Type
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetByIdAsync(int id)
+        {
+            var result = await _containerTypeService.GetByIdAsync(id);
+            if (result == null)
+                return NotFound(new { message = $"Container Type with code {id} not found." });
+            return Ok(result);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddAsync([FromBody] CreateContainerTypeRequest request)
+        {
+            try
+            {
+                var result = await _containerTypeService.AddContainerTypeAsync(request);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    ErrorMessage = ex.Message,
+                });
+            }
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateByIdAsync(int id, [FromBody] UpdateContainerTypeRequest newType)
+        {
+            if (newType == null)
+                return BadRequest(new { message = "Invalid data." });
+
+            var existingContainerType = await _containerTypeService.GetByIdAsync(id);
+            if (existingContainerType == null)
+                return NotFound(new { message = $"Container Type with id {id} not found." });
+
+            existingContainerType.Type = newType.Type;
+            existingContainerType.Length = newType.Length;
+            existingContainerType.Width = newType.Width;
+            existingContainerType.Height = newType.Height;
+            existingContainerType.ImageUrl = newType.ImageUrl;
+            existingContainerType.Price = newType.Price;
+
+            var updateContainerType = await _containerTypeService.UpdateContainerTypeAsync(existingContainerType);
+
+            if (updateContainerType == null)
+                return StatusCode(500, new { message = "Failed to update container type info." });
+
+            return Ok(new
+            {
+                message = "Update successful.",
+                data = updateContainerType
+            });
+        }
+
+        //[HttpDelete("{id}/delete")]
+        //public async Task<IActionResult> SoftDeleteAsync(int id)
+        //{
+        //    var existingContainerType = await _containerTypeService.GetByIdAsync(id);
+        //    if (existingContainerType == null)
+        //        return NotFound(new { message = "Not found" });
+        //    existingContainerType.IsActive = false;
+        //    var deleteContainerType = await _containerTypeService.UpdateContainerTypeAsync(existingContainerType);
+
+        //    if (deleteContainerType == null)
+        //        return StatusCode(500, new { message = "Failed to delete building." });
+
+        //    return Ok(new { message = "Marked as deleted." });
+        //}
+        #endregion
+        [HttpGet]
+        public async Task<IActionResult> GetContainerTypes()
+        {
+            try
+            {
+                var result = await _containerTypeService.GetAllAsync();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    ErrorMessage = ex.Message,
+                });
+            }
+        }
+    }
+}
+

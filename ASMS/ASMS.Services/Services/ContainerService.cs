@@ -1,0 +1,100 @@
+﻿using ASMS.Repositories.Common;
+using ASMS.Repositories.Entities;
+using ASMS.Repositories.Infrastructures;
+using ASMS.Services.Interfaces;
+using ASMS.Services.Model.Container;
+using AutoMapper;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ASMS.Services.Services
+{
+    public class ContainerService : IContainerService
+    {
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
+
+        public ContainerService(IUnitOfWork unitOfWork, IMapper mapper)
+        {
+            _unitOfWork = unitOfWork;
+            _mapper = mapper;
+        }
+
+        public async Task<PaginatedList<ContainerResponse>> GetAllAsync(int pageNumber, int pageSize)
+        {
+            var result = await _unitOfWork.Containers.GetAllAsync(pageNumber, pageSize);
+
+            var mappedItems = _mapper.Map<List<ContainerResponse>>(result.Items);
+
+            return new PaginatedList<ContainerResponse>(
+                mappedItems,
+                result.CurrentPage,
+                result.PageSize,
+                result.TotalRecords)
+            {
+                TotalPages = result.TotalPages
+            };
+        }
+
+        public async Task<ContainerResponse?> GetByCodeAsync(string code)
+        {
+            var container = await _unitOfWork.Containers.GetByCodeAsync(code);
+            return container == null ? null : _mapper.Map<ContainerResponse>(container);
+        }
+
+        public async Task<ContainerResponse> CreateAsync(CreateContainerRequest request)
+        {
+            var container = _mapper.Map<Container>(request);
+            container.IsActive = true;
+
+            await _unitOfWork.Containers.AddAsync(container);
+            await _unitOfWork.CompleteAsync();
+
+            return _mapper.Map<ContainerResponse>(container);
+        }
+
+        public async Task<ContainerResponse?> UpdateAsync(string code, UpdateContainerRequest request)
+        {
+            var container = await _unitOfWork.Containers.GetByCodeAsync(code);
+            if (container == null) return null;
+
+            _mapper.Map(request, container);
+            await _unitOfWork.Containers.UpdateAsync(container);
+            await _unitOfWork.CompleteAsync();
+
+            return _mapper.Map<ContainerResponse>(container);
+        }
+
+        public async Task<bool> DeleteAsync(string code)
+        {
+            var container = await _unitOfWork.Containers.GetByCodeAsync(code);
+            if (container == null) return false;
+
+            await _unitOfWork.Containers.DeleteAsync(code);
+            await _unitOfWork.CompleteAsync();
+            return true;
+        }
+
+        public async Task<bool> UpdateContainerPositionAsync(UpdateContainerPositionRequest request)
+        {
+
+            var container = await _unitOfWork.Containers.GetByCodeAsync(request.ContainerCode);
+            if (container == null)
+            {
+                return false;
+            }
+
+            container.PositionX = request.PositionX;
+            container.PositionY = request.PositionY;
+            container.PositionZ = request.PositionZ;
+
+            await _unitOfWork.Containers.UpdateAsync(container);
+            await _unitOfWork.CompleteAsync();
+
+            return true;
+        }
+    }
+}
