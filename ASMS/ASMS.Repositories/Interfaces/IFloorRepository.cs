@@ -13,5 +13,8 @@ namespace ASMS.Repositories.Interfaces
         Task<IEnumerable<Floor>> GetAllAsync();
         Task<Floor?> GetByCodeAsync(string floorCode);
         Task DeleteAsync(Floor entity);
+        Task<List<Floor>> GetByShelfCodeAsync(string shelfCode);
+        Task<List<Floor>> GetByFloorNumbersAsync(List<int> floorNumbers);
+
     }
 }

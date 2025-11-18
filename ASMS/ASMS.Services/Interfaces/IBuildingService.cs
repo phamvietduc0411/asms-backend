@@ -1,4 +1,5 @@
-﻿using ASMS.Repositories.Entities;
+﻿using ASMS.Repositories.Common;
+using ASMS.Repositories.Entities;
 using ASMS.Services.Model.Building;
 
 namespace ASMS.Services.Interfaces
@@ -9,5 +10,6 @@ namespace ASMS.Services.Interfaces
         Task<Building> AddBuildingAsync(CreateBuildingRequest request);
         Task<Building> UpdateBuildingAsync(Building building);
         Task<string> GetLastRecord();
+        Task<PaginatedList<GetBuildingResponse>> GetAllAsync(int pageNumber, int pageSize);
     }
 }

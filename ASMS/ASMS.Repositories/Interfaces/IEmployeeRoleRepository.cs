@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ASMS.Repositories.Common;
 using ASMS.Repositories.Entities;
+using ASMS.Repositories.Infrastructures;
 
 namespace ASMS.Repositories.Interfaces
 {
-    public interface IEmployeeRoleRepository
+    public interface IEmployeeRoleRepository :IGenericRepository<EmployeeRole>
     {
-        Task<EmployeeRole?> GetEntityByIdAsync(int id);
-        Task<EmployeeRole> AddAsync(EmployeeRole role);
-        Task<EmployeeRole> UpdateAsync(EmployeeRole role);
+        Task<PaginatedList<EmployeeRole>> GetAllAsync(int pageNumber, int pageSize);
     }
 }

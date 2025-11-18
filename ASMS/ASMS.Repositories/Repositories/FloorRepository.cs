@@ -23,7 +23,9 @@ namespace ASMS.Repositories.Repositories
 
         public async Task<Floor?> GetByCodeAsync(string floorCode)
         {
-            return await _dbSet.FirstOrDefaultAsync(f => f.FloorCode == floorCode);
+            return await _dbSet
+                .Include(f => f.ShelfCodeNavigation)
+                .FirstOrDefaultAsync(f => f.FloorCode == floorCode);
         }
 
         public async Task DeleteAsync(Floor entity)
@@ -31,5 +33,21 @@ namespace ASMS.Repositories.Repositories
             _dbSet.Remove(entity);
             await Task.CompletedTask;
         }
+        public async Task<List<Floor>> GetByShelfCodeAsync(string shelfCode)
+        {
+            return await _dbSet
+                .Where(f => f.ShelfCode == shelfCode && f.IsActive == true)
+                .OrderBy(f => f.FloorNumber)
+                .ToListAsync(); 
+        }
+        public async Task<List<Floor>> GetByFloorNumbersAsync(List<int> floorNumbers)
+        {
+            return await _dbSet
+                .Where(f => floorNumbers.Contains(f.FloorNumber.GetValueOrDefault())
+                    && f.IsActive == true)
+                .OrderBy(f => f.FloorNumber)
+                .ToListAsync();
+        }
+
     }
 }

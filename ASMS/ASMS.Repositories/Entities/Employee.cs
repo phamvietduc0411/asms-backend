@@ -23,9 +23,12 @@ public partial class Employee
 
     public string? Status { get; set; }
 
-    public bool? IsActive { get; set; }
+    public bool IsActive { get; set; }
 
-    public virtual Building? BuildingCodeNavigation { get; set; }
+    public int Id { get; set; }
+
+    public virtual Building? Building { get; set; }
 
     public virtual EmployeeRole? EmployeeRole { get; set; }
+    public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
 }

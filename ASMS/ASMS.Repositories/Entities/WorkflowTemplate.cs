@@ -9,11 +9,7 @@ public partial class WorkflowTemplate
 
     public string? Name { get; set; }
 
-    public int? StorageTypeId { get; set; }
-
     public string? Status { get; set; }
-
-    public virtual StorageType? StorageType { get; set; }
 
     public virtual ICollection<WorkflowStep> WorkflowSteps { get; set; } = new List<WorkflowStep>();
 }

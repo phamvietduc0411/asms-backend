@@ -1,12 +1,14 @@
 ﻿using ASMS.Services.Interfaces;
 using ASMS.Services.Model.Building;
 using Azure.Core;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ASMS.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    //[Authorize]
     public class BuildingController : ControllerBase
     {
         private readonly IBuildingService _buildingService;
@@ -63,9 +65,10 @@ namespace ASMS.API.Controllers
             existingBuilding.Name = newBuilding.Name;
             existingBuilding.Area = newBuilding.Area;
             existingBuilding.Address = newBuilding.Address;
-            existingBuilding.FloorQuantity = newBuilding.FloorQuantity;
+            //existingBuilding.FloorQuantity = newBuilding.FloorQuantity;
             existingBuilding.Status = newBuilding.Status;
             existingBuilding.IsActive = newBuilding.IsActive;
+            existingBuilding.ImageUrl = newBuilding.ImageUrl;
 
             var updateBuilding = await _buildingService.UpdateBuildingAsync(existingBuilding);
 
@@ -94,6 +97,37 @@ namespace ASMS.API.Controllers
             return Ok(new { message = "Marked as deleted." });
         }
         #endregion
+        /// <summary>
+        /// Get List Building of the System
+        /// </summary>
+        [HttpGet]   
+        public async Task<IActionResult> GetBuildingsAsync(
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            try
+            {
+
+                var result = await _buildingService.GetAllAsync(pageNumber, pageSize);
+
+                return Ok(new
+                {
+                    success = true,
+                    data = result.Items,
+                    pagination = new
+                    {
+                        currentPage = result.CurrentPage,
+                        pageSize = result.PageSize,
+                        totalRecords = result.TotalRecords,
+                        totalPages = result.TotalPages
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
     }
 
 }

@@ -14,10 +14,22 @@ namespace ASMS.Repositories.Infrastructures
         IWorkflowStepRepository WorkflowSteps { get; }
         IServiceRepository Services { get; } 
         ITrackingHistoryRepository TrackingHistories { get; }
-        IStorageBlockRepository StorageBlocks { get; }
         IBuildingRepository Building { get; }
+        IProductTypeRepository ProductType { get; }
         IFloorRepository Floors { get; }
-
+        IContainerTypeRepository ContainerType { get; }
+        IShelfRepository Shelves { get; }
+        IContainerLocationLogRepository ContainerLocationLogs { get; }
+        IOrderDetailRepository OrderDetails { get; }
+        IContainerRepository Containers { get; }
+        ICustomerRepository Customer { get; }
+        IEmployeeRepository Employee { get; }
+        IStorageRepository Storages { get; }
+        IOrderRepository Orders { get; }
+        IStorageTypeRepository StorageTypes { get; }
+        IPaymentHistoryRepository PaymentHistories { get; }
+        IRefreshTokenRepository RefreshToken { get; }
+        IShelfTypeRepository ShelvesTypes { get; }
         Task CompleteAsync();
     }
 }

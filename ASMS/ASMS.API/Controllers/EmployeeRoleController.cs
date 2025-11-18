@@ -70,7 +70,7 @@ namespace ASMS.API.Controllers
             });
         }
 
-        [HttpPut("{id}/delete")]
+        [HttpDelete("{id}")]
         public async Task<IActionResult> SoftDeleteAsync(int id)
         {
             var existingRole = await _employeeRoleService.GetByIdAsync(id);
@@ -87,6 +87,41 @@ namespace ASMS.API.Controllers
 
 
         #endregion
+
+        /// <summary>
+        /// Retrieves all employee roles with pagination
+        /// </summary>
+        /// <param name="pageNumber">Page number (default: 1)</param>
+        /// <param name="pageSize">Page size (default: 10, max: 100)</param>
+        /// <returns>List of employee roles</returns>
+        [HttpGet]
+        public async Task<IActionResult> GetAllEmployeeRoles(
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            try
+            {
+
+                var result = await _employeeRoleService.GetAllAsync(pageNumber, pageSize);
+
+                return Ok(new
+                {
+                    success = true,
+                    data = result.Items,
+                    pagination = new
+                    {
+                        currentPage = result.CurrentPage,
+                        pageSize = result.PageSize,
+                        totalRecords = result.TotalRecords,
+                        totalPages = result.TotalPages
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
 
     }
 }
