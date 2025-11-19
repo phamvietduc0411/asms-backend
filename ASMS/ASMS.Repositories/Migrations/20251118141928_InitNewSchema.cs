@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ASMS.Repositories.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitNewSchema : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -328,6 +328,36 @@ namespace ASMS.Repositories.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "RefreshToken",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Token = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ExpiresAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    RevokedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    EmployeeId = table.Column<int>(type: "int", nullable: true),
+                    CustomerId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RefreshToken", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_RefreshToken_Customer_CustomerId",
+                        column: x => x.CustomerId,
+                        principalTable: "Customer",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_RefreshToken_Employees_EmployeeId",
+                        column: x => x.EmployeeId,
+                        principalTable: "Employees",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Shelf",
                 columns: table => new
                 {
@@ -404,7 +434,10 @@ namespace ASMS.Repositories.Migrations
                     OptimizationScore = table.Column<decimal>(type: "decimal(5,2)", nullable: true, defaultValue: 0m),
                     Notes = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
                     ImageUrl = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
-                    ContainerTypeId = table.Column<int>(type: "int", nullable: true)
+                    ContainerTypeId = table.Column<int>(type: "int", nullable: true),
+                    SerialNumber = table.Column<int>(type: "int", nullable: true),
+                    Layer = table.Column<int>(type: "int", nullable: true),
+                    ContainerAboveCode = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -430,7 +463,8 @@ namespace ASMS.Repositories.Migrations
                 name: "ContainerLocationLog",
                 columns: table => new
                 {
-                    ContainerLocationLogID = table.Column<int>(type: "int", nullable: false),
+                    ContainerLocationLogID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     ContainerCode = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
                     OrderCode = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
                     PerformedBy = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
@@ -459,7 +493,6 @@ namespace ASMS.Repositories.Migrations
                     OrderCode = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
                     StorageCode = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
                     ContainerCode = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
-                    ServiceID = table.Column<int>(type: "int", nullable: true),
                     Price = table.Column<decimal>(type: "decimal(18,0)", nullable: true),
                     Quantity = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     SubTotal = table.Column<decimal>(type: "decimal(18,0)", nullable: true),
@@ -479,11 +512,6 @@ namespace ASMS.Repositories.Migrations
                         column: x => x.OrderCode,
                         principalTable: "Order",
                         principalColumn: "OrderCode");
-                    table.ForeignKey(
-                        name: "FK__OrderDeta__Servi__74AE54BC",
-                        column: x => x.ServiceID,
-                        principalTable: "Service",
-                        principalColumn: "ServiceID");
                     table.ForeignKey(
                         name: "FK__OrderDeta__Stora__72C60C4A",
                         column: x => x.StorageCode,
@@ -515,6 +543,32 @@ namespace ASMS.Repositories.Migrations
                         column: x => x.ProductTypeId,
                         principalTable: "ProductType",
                         principalColumn: "ProductTypeID",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "OrderDetailService",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    OrderDetailId = table.Column<int>(type: "int", nullable: false),
+                    ServiceId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK__OrderDet__3214EC07CD915A73", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_OrderDetailService_OrderDetail",
+                        column: x => x.OrderDetailId,
+                        principalTable: "OrderDetail",
+                        principalColumn: "OrderDetailID",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_OrderDetailService_Service",
+                        column: x => x.ServiceId,
+                        principalTable: "Service",
+                        principalColumn: "ServiceID",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -579,11 +633,6 @@ namespace ASMS.Repositories.Migrations
                 column: "OrderCode");
 
             migrationBuilder.CreateIndex(
-                name: "IX_OrderDetail_ServiceID",
-                table: "OrderDetail",
-                column: "ServiceID");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_OrderDetail_StorageCode",
                 table: "OrderDetail",
                 column: "StorageCode");
@@ -605,9 +654,30 @@ namespace ASMS.Repositories.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_OrderDetailService_ServiceId",
+                table: "OrderDetailService",
+                column: "ServiceId");
+
+            migrationBuilder.CreateIndex(
+                name: "UQ_OrderDetailService_OrderDetail_Service",
+                table: "OrderDetailService",
+                columns: new[] { "OrderDetailId", "ServiceId" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_PaymentHistory_OrderCode",
                 table: "PaymentHistory",
                 column: "OrderCode");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_RefreshToken_CustomerId",
+                table: "RefreshToken",
+                column: "CustomerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_RefreshToken_EmployeeId",
+                table: "RefreshToken",
+                column: "EmployeeId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Shelf_ShelfTypeId",
@@ -652,13 +722,16 @@ namespace ASMS.Repositories.Migrations
                 name: "ContainerLocationLog");
 
             migrationBuilder.DropTable(
-                name: "Employees");
-
-            migrationBuilder.DropTable(
                 name: "OrderDetailProductType");
 
             migrationBuilder.DropTable(
+                name: "OrderDetailService");
+
+            migrationBuilder.DropTable(
                 name: "PaymentHistory");
+
+            migrationBuilder.DropTable(
+                name: "RefreshToken");
 
             migrationBuilder.DropTable(
                 name: "TrackingHistory");
@@ -667,10 +740,13 @@ namespace ASMS.Repositories.Migrations
                 name: "WorkflowStep");
 
             migrationBuilder.DropTable(
-                name: "EmployeeRole");
+                name: "OrderDetail");
 
             migrationBuilder.DropTable(
-                name: "OrderDetail");
+                name: "Service");
+
+            migrationBuilder.DropTable(
+                name: "Employees");
 
             migrationBuilder.DropTable(
                 name: "WorkflowTemplate");
@@ -682,7 +758,7 @@ namespace ASMS.Repositories.Migrations
                 name: "Order");
 
             migrationBuilder.DropTable(
-                name: "Service");
+                name: "EmployeeRole");
 
             migrationBuilder.DropTable(
                 name: "ContainerType");

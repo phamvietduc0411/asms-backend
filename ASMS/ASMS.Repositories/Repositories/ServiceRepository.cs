@@ -104,12 +104,5 @@ namespace ASMS.Repositories.Repositories
                 throw;
             }
         }
-        public async Task<List<Service>> GetByIdsAsync(List<int?> ids)
-        {
-            if (ids.IsNullOrEmpty()) return [];
-            return await _context.Services
-                .Where(s => ids.Contains(s.ServiceId))
-                .ToListAsync();
-        }
     }
 }
