@@ -27,7 +27,7 @@ namespace ASMS.Repositories.Repositories
                     .AsQueryable();
 
                 if (!string.IsNullOrWhiteSpace(buildingCode))
-                    query = query.Where(s => s.Building != null);
+                    query = query.Where(s => s.BuildingCode == buildingCode);
 
                 if (!string.IsNullOrWhiteSpace(storageTypeName))
                     query = query.Where(s => s.StorageType != null && s.StorageType.Name != null && s.StorageType.Name.Contains(storageTypeName));

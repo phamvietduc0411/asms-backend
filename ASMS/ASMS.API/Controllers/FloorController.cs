@@ -16,11 +16,46 @@ namespace ASMS.API.Controllers
             _floorService = floorService;
         }
 
+        /// <summary>
+        /// Retrieves all floors with optional shelf filter and pagination
+        /// </summary>
+        /// <param name="shelfCode">Optional filter by shelf code</param>
+        /// <param name="pageNumber">Page number (default: 1)</param>
+        /// <param name="pageSize">Page size (default: 10, max: 100)</param>
+        /// <returns>List of floors</returns>
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetFloors(
+            [FromQuery] string? shelfCode,
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10)
         {
-            var result = await _floorService.GetAllAsync();
-            return Ok(result);
+            try
+            {
+                if (pageNumber < 1)
+                    return BadRequest(new { success = false, message = "Page number phải >= 1" });
+
+                if (pageSize < 1 || pageSize > 100)
+                    return BadRequest(new { success = false, message = "Page size phải từ 1-100" });
+
+                var result = await _floorService.GetWithFilterAsync(shelfCode, pageNumber, pageSize);
+
+                return Ok(new
+                {
+                    success = true,
+                    data = result.Items,
+                    pagination = new
+                    {
+                        currentPage = result.CurrentPage,
+                        pageSize = result.PageSize,
+                        totalRecords = result.TotalRecords,
+                        totalPages = result.TotalPages
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
         }
 
         [HttpGet("{floorCode}")]

@@ -16,13 +16,13 @@ namespace ASMS.Services.Services
         {
 
             var serviceIds = details
-                .Select(d => d.ServiceId)
+                //.Select(d => d.ServiceId)
                 .Distinct()
                 .ToList();
 
-            var services = await _unitOfWork.Services.GetByIdsAsync(serviceIds);
+            //var services = await _unitOfWork.Services.GetByIdsAsync(serviceIds);
 
-            var serviceMap = services.ToDictionary(x => x.ServiceId);
+            //var serviceMap = services.ToDictionary(x => x.ServiceId);
             decimal totalPrice = 0m;
 
             //foreach (var d in details)

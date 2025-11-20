@@ -26,9 +26,9 @@ namespace ASMS.Services.Services
             _mapper = mapper;
         }
 
-        public async Task<PaginatedList<ContainerResponse>> GetAllAsync(int pageNumber, int pageSize)
+        public async Task<PaginatedList<ContainerResponse>> GetWithFilterAsync(string? floorCode, string? shelfCode, string? storageCode, int pageNumber, int pageSize)
         {
-            var result = await _unitOfWork.Containers.GetAllAsync(pageNumber, pageSize);
+            var result = await _unitOfWork.Containers.GetWithFilterAsync(floorCode, shelfCode, storageCode, pageNumber, pageSize);
 
             var mappedItems = _mapper.Map<List<ContainerResponse>>(result.Items);
 

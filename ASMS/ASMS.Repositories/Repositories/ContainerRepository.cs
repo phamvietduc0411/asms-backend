@@ -19,11 +19,33 @@ namespace ASMS.Repositories.Repositories
         {
         }
 
-        public async Task<PaginatedList<Container>> GetAllAsync(int pageNumber, int pageSize)
+        public async Task<PaginatedList<Container>> GetWithFilterAsync(string? floorCode, string? shelfCode, string? storageCode, int pageNumber, int pageSize)
         {
             var query = _context.Containers
                 .Include(c => c.ContainerType)
-                .OrderBy(c => c.ContainerCode);
+                .Include(c => c.FloorCodeNavigation)
+                    .ThenInclude(f => f.ShelfCodeNavigation)
+                        .ThenInclude(s => s.StorageCodeNavigation)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(floorCode))
+            {
+                query = query.Where(c => c.FloorCode == floorCode);
+            }
+
+            if (!string.IsNullOrEmpty(shelfCode))
+            {
+                query = query.Where(c => c.FloorCodeNavigation != null && c.FloorCodeNavigation.ShelfCode == shelfCode);
+            }
+
+            if (!string.IsNullOrEmpty(storageCode))
+            {
+                query = query.Where(c => c.FloorCodeNavigation != null
+                    && c.FloorCodeNavigation.ShelfCodeNavigation != null
+                    && c.FloorCodeNavigation.ShelfCodeNavigation.StorageCode == storageCode);
+            }
+
+            query = query.OrderBy(c => c.ContainerCode);
 
             return await PaginatedList<Container>.CreateAsync(query, pageNumber, pageSize);
         }

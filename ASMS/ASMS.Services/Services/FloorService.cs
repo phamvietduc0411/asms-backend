@@ -1,4 +1,5 @@
-﻿using ASMS.Repositories.Entities;
+﻿using ASMS.Repositories.Common;
+using ASMS.Repositories.Entities;
 using ASMS.Repositories.Infrastructures;
 using ASMS.Repositories.Interfaces;
 using ASMS.Services.Interfaces;
@@ -23,10 +24,20 @@ namespace ASMS.Services.Services
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<FloorResponse>> GetAllAsync()
+        public async Task<PaginatedList<FloorResponse>> GetWithFilterAsync(string? shelfCode, int pageNumber, int pageSize)
         {
-            var entities = await _unitOfWork.Floors.GetAllAsync();
-            return _mapper.Map<IEnumerable<FloorResponse>>(entities);
+            var result = await _unitOfWork.Floors.GetWithFilterAsync(shelfCode, pageNumber, pageSize);
+
+            var mappedItems = _mapper.Map<List<FloorResponse>>(result.Items);
+
+            return new PaginatedList<FloorResponse>(
+                mappedItems,
+                result.CurrentPage,
+                result.PageSize,
+                result.TotalRecords)
+            {
+                TotalPages = result.TotalPages
+            };
         }
 
         public async Task<FloorResponse?> GetByCodeAsync(string floorCode)

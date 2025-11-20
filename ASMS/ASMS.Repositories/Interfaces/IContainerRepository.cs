@@ -11,7 +11,7 @@ namespace ASMS.Repositories.Interfaces
 {
     public interface IContainerRepository : IGenericRepository<Container>
     {
-        Task<PaginatedList<Container>> GetAllAsync(int pageNumber, int pageSize);
+        Task<PaginatedList<Container>> GetWithFilterAsync(string? floorCode, string? shelfCode, string? storageCode, int pageNumber, int pageSize);
         Task<Container?> GetByCodeAsync(string containerCode);
         Task DeleteAsync(string code);
         Task<List<Container>> GetByFloorCodeAsync(string floorCode);
