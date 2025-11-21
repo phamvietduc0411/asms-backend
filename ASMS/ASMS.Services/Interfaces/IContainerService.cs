@@ -10,7 +10,7 @@ namespace ASMS.Services.Interfaces
 {
     public interface IContainerService
     {
-        Task<PaginatedList<ContainerResponse>> GetAllAsync(int pageNumber, int pageSize);
+        Task<PaginatedList<ContainerResponse>> GetWithFilterAsync(string? floorCode, string? shelfCode, string? storageCode, int pageNumber, int pageSize);
         Task<ContainerResponse?> GetByCodeAsync(string code);
         Task<ContainerResponse> CreateAsync(CreateContainerRequest request);
         Task<ContainerResponse?> UpdateAsync(string code, UpdateContainerRequest request);

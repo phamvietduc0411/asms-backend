@@ -1,4 +1,5 @@
-﻿using ASMS.Repositories.Data;
+﻿using ASMS.Repositories.Common;
+using ASMS.Repositories.Data;
 using ASMS.Repositories.Entities;
 using ASMS.Repositories.Infrastructures;
 using ASMS.Repositories.Interfaces;
@@ -16,9 +17,18 @@ namespace ASMS.Repositories.Repositories
     {
         public FloorRepository(VstorageContext context, ILogger logger) : base(context, logger) { }
 
-        public async Task<IEnumerable<Floor>> GetAllAsync()
+        public async Task<PaginatedList<Floor>> GetWithFilterAsync(string? shelfCode, int pageNumber, int pageSize)
         {
-            return await _dbSet.AsNoTracking().ToListAsync();
+            var query = _context.Floors.AsQueryable();
+
+            if (!string.IsNullOrEmpty(shelfCode))
+            {
+                query = query.Where(f => f.ShelfCode == shelfCode);
+            }
+
+            query = query.OrderBy(f => f.FloorCode);
+
+            return await PaginatedList<Floor>.CreateAsync(query, pageNumber, pageSize);
         }
 
         public async Task<Floor?> GetByCodeAsync(string floorCode)

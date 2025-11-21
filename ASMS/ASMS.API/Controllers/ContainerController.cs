@@ -16,20 +16,26 @@ namespace ASMS.API.Controllers
         }
 
         /// <summary>
-        /// Retrieves all containers with pagination
+        /// Retrieves all containers with optional filters (Floor, Shelf, Storage) and pagination
         /// </summary>
+        /// <param name="floorCode">Optional filter by floor code</param>
+        /// <param name="shelfCode">Optional filter by shelf code</param>
+        /// <param name="storageCode">Optional filter by storage code</param>
         /// <param name="pageNumber">Page number (default: 1)</param>
         /// <param name="pageSize">Page size (default: 10, max: 100)</param>
         /// <returns>List of containers with Type from ContainerType</returns>
         [HttpGet]
-        public async Task<IActionResult> GetAllContainers(
+        public async Task<IActionResult> GetContainers(
+            [FromQuery] string? floorCode,
+            [FromQuery] string? shelfCode,
+            [FromQuery] string? storageCode,
             [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 10)
         {
             try
             {
 
-                var result = await _containerService.GetAllAsync(pageNumber, pageSize);
+                var result = await _containerService.GetWithFilterAsync(floorCode, shelfCode, storageCode, pageNumber, pageSize);
 
                 return Ok(new
                 {

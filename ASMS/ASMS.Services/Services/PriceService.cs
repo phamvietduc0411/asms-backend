@@ -16,7 +16,7 @@ namespace ASMS.Services.Services
         {
             var services = await _unitOfWork.OrderDetailServices.GetByIdsAsync(details);
 
-            var serviceMap = services.ToDictionary(x => x.ServiceId);
+            //var serviceMap = services.ToDictionary(x => x.ServiceId);
             decimal totalPrice = 0m;
 
             foreach (var id in details)

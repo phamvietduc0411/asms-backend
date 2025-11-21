@@ -484,6 +484,7 @@ public partial class VstorageContext : DbContext
             entity.Property(e => e.ServiceId)
                 .ValueGeneratedNever()
                 .HasColumnName("ServiceID");
+            entity.Property(e => e.Description).HasMaxLength(1000);
             entity.Property(e => e.Name)
                 .HasMaxLength(50)
                 .IsUnicode(false);
