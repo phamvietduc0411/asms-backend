@@ -20,8 +20,12 @@ namespace ASMS.API
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
-            builder.Services.ConfigureServicesLayers();
+            builder.Services.ConfigureServicesLayers(builder.Configuration);
+
             builder.Services.ConfigureRepositoryServices();
+            
+
+
 
             //Auto Mapper
             var mapperKey = builder.Configuration["KeyAutoMapper:Key"];
@@ -96,7 +100,7 @@ namespace ASMS.API
             builder.Services.AddHttpClient();
             builder.Services.AddHttpContextAccessor();
 
-            builder.Services.ConfigureServicesLayers().ConfigureRepositoryServices();
+            builder.Services.ConfigureServicesLayers(builder.Configuration).ConfigureRepositoryServices();
 
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
