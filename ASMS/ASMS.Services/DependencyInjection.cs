@@ -1,8 +1,13 @@
 using ASMS.Services.Interfaces;
 using ASMS.Services.Mappings;
 using ASMS.Services.Services;
+using ASMS.Services.Setting;
 using ASMS.Services.Utilities;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using Net.payOS;
+
 
 
 namespace ASMS.Services
@@ -10,7 +15,7 @@ namespace ASMS.Services
 {
     public static class DependencyInjection
     {
-        public static IServiceCollection ConfigureServicesLayers(this IServiceCollection services)
+        public static IServiceCollection ConfigureServicesLayers(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddAutoMapper(cfg => { }, typeof(MappingProfiles).Assembly);
             services.AddScoped<IBuildingService, BuildingService>();
@@ -38,6 +43,22 @@ namespace ASMS.Services
             services.AddScoped<IPaymentHistoryService, PaymentHistoryService>();
             services.AddScoped<IImageUrlService, ImageUrlService>();
             services.AddScoped<IShelfTypeService, ShelfTypeService>();
+            services.AddScoped<IPayOSService, PayOSService>();
+            services.Configure<PayOSSettings>(
+            configuration.GetSection("PayOSSettings"));
+
+            services.AddSingleton(sp =>
+            {
+                var settings = sp.GetRequiredService<IOptions<PayOSSettings>>().Value;
+                if (string.IsNullOrEmpty(settings.ClientId) ||
+                    string.IsNullOrEmpty(settings.ApiKey) ||
+                    string.IsNullOrEmpty(settings.ChecksumKey))
+                {
+                    throw new InvalidOperationException("PayOS configuration is missing or incomplete");
+                }
+                return new PayOS(settings.ClientId, settings.ApiKey, settings.ChecksumKey);
+            });
+
             return services;
         }
     }
