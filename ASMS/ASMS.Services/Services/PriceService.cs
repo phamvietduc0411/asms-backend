@@ -12,27 +12,56 @@ namespace ASMS.Services.Services
 
         }
 
-        public async Task CalculateOrderDetailsPriceAsync(List<OrderDetail> details)
+        public async Task CalculateOrderDetailsPriceAsync(List<int> details)
         {
-
-            var serviceIds = details
-                //.Select(d => d.ServiceId)
-                .Distinct()
-                .ToList();
-
-            //var services = await _unitOfWork.Services.GetByIdsAsync(serviceIds);
+            var services = await _unitOfWork.OrderDetailServices.GetByIdsAsync(details);
 
             //var serviceMap = services.ToDictionary(x => x.ServiceId);
             decimal totalPrice = 0m;
 
-            //foreach (var d in details)
-            //{
-            //    var service = serviceMap[d.ServiceId];
+            foreach (var id in details)
+            {
+                var service = serviceMap[id];
+                decimal servicePrice = service.Price.GetValueOrDefault();
+                totalPrice += servicePrice;
+            }
+        }
 
-            //    decimal servicePrice = service.Price.GetValueOrDefault();
+        //public async Task StoragePriceAsync(List<int> details)
+        //{
+        //    //var services = await _unitOfWork.OrderDetailServices.GetByIdsAsync(details);
 
-            //    totalPrice += servicePrice;
-            //}
+        //    //var serviceMap = services.ToDictionary(x => x.ServiceId);
+        //    //decimal totalPrice = 0m;
+
+        //    //foreach (var id in details)
+        //    //{
+        //    //    var service = serviceMap[id];
+        //    //    decimal servicePrice = service.Price.GetValueOrDefault();
+        //    //    totalPrice += servicePrice;
+        //    //}
+        //}
+        #region Self Storage
+        #endregion
+        public async Task<decimal> ShelfPriceAsync(string storageCode)
+        {
+            if (string.IsNullOrEmpty(storageCode)) return 0;
+
+            // get all list shelf of selfStorage
+            var listshelf = await _unitOfWork.Shelves.GetAllShelvesByStorageCodeAsync(storageCode);
+
+            decimal total = 0;
+
+            foreach (var item in listshelf)
+            {
+                var price = item.ShelfType?.Price;
+                if (price != null)
+                {
+                    total += price.Value;
+                }
+            }
+
+            return total;
         }
     }
 }

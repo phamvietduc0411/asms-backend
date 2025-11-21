@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ASMS.Repositories.Migrations
 {
     [DbContext(typeof(VstorageContext))]
-    [Migration("20251115094809_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20251118141928_InitNewSchema")]
+    partial class InitNewSchema
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -79,6 +79,11 @@ namespace ASMS.Repositories.Migrations
                         .IsUnicode(false)
                         .HasColumnType("varchar(50)");
 
+                    b.Property<string>("ContainerAboveCode")
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
+
                     b.Property<int?>("ContainerTypeId")
                         .HasColumnType("int");
 
@@ -102,6 +107,9 @@ namespace ASMS.Repositories.Migrations
 
                     b.Property<DateTime?>("LastOptimizedDate")
                         .HasColumnType("datetime");
+
+                    b.Property<int?>("Layer")
+                        .HasColumnType("int");
 
                     b.Property<decimal?>("MaxWeight")
                         .ValueGeneratedOnAdd()
@@ -133,6 +141,9 @@ namespace ASMS.Repositories.Migrations
                         .HasColumnType("int")
                         .HasColumnName("ProductTypeID");
 
+                    b.Property<int?>("SerialNumber")
+                        .HasColumnType("int");
+
                     b.Property<string>("Status")
                         .HasMaxLength(10)
                         .IsUnicode(false)
@@ -153,8 +164,11 @@ namespace ASMS.Repositories.Migrations
             modelBuilder.Entity("ASMS.Repositories.Entities.ContainerLocationLog", b =>
                 {
                     b.Property<int>("ContainerLocationLogId")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .HasColumnName("ContainerLocationLogID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ContainerLocationLogId"));
 
                     b.Property<string>("Algorithm")
                         .HasMaxLength(50)
@@ -537,10 +551,6 @@ namespace ASMS.Repositories.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<int?>("ServiceId")
-                        .HasColumnType("int")
-                        .HasColumnName("ServiceID");
-
                     b.Property<string>("StorageCode")
                         .HasMaxLength(50)
                         .IsUnicode(false)
@@ -555,8 +565,6 @@ namespace ASMS.Repositories.Migrations
                     b.HasIndex(new[] { "ContainerCode" }, "IX_OrderDetail_ContainerCode");
 
                     b.HasIndex(new[] { "OrderCode" }, "IX_OrderDetail_OrderCode");
-
-                    b.HasIndex(new[] { "ServiceId" }, "IX_OrderDetail_ServiceID");
 
                     b.HasIndex(new[] { "StorageCode" }, "IX_OrderDetail_StorageCode");
 
@@ -592,6 +600,31 @@ namespace ASMS.Repositories.Migrations
                         .IsUnique();
 
                     b.ToTable("OrderDetailProductType", (string)null);
+                });
+
+            modelBuilder.Entity("ASMS.Repositories.Entities.OrderDetailService", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("OrderDetailId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ServiceId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id")
+                        .HasName("PK__OrderDet__3214EC07CD915A73");
+
+                    b.HasIndex("ServiceId");
+
+                    b.HasIndex(new[] { "OrderDetailId", "ServiceId" }, "UQ_OrderDetailService_OrderDetail_Service")
+                        .IsUnique();
+
+                    b.ToTable("OrderDetailService", (string)null);
                 });
 
             modelBuilder.Entity("ASMS.Repositories.Entities.PaymentHistory", b =>
@@ -667,6 +700,42 @@ namespace ASMS.Repositories.Migrations
                         .HasName("PK__ProductT__A1312F4E69BB1C0D");
 
                     b.ToTable("ProductType", (string)null);
+                });
+
+            modelBuilder.Entity("ASMS.Repositories.Entities.RefreshToken", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("CustomerId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("EmployeeId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("RevokedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.ToTable("RefreshToken");
                 });
 
             modelBuilder.Entity("ASMS.Repositories.Entities.Service", b =>
@@ -1089,11 +1158,6 @@ namespace ASMS.Repositories.Migrations
                         .HasForeignKey("OrderCode")
                         .HasConstraintName("FK__OrderDeta__Order__71D1E811");
 
-                    b.HasOne("ASMS.Repositories.Entities.Service", "Service")
-                        .WithMany("OrderDetails")
-                        .HasForeignKey("ServiceId")
-                        .HasConstraintName("FK__OrderDeta__Servi__74AE54BC");
-
                     b.HasOne("ASMS.Repositories.Entities.Storage", "StorageCodeNavigation")
                         .WithMany("OrderDetails")
                         .HasForeignKey("StorageCode")
@@ -1102,8 +1166,6 @@ namespace ASMS.Repositories.Migrations
                     b.Navigation("ContainerCodeNavigation");
 
                     b.Navigation("OrderCodeNavigation");
-
-                    b.Navigation("Service");
 
                     b.Navigation("StorageCodeNavigation");
                 });
@@ -1129,6 +1191,27 @@ namespace ASMS.Repositories.Migrations
                     b.Navigation("ProductType");
                 });
 
+            modelBuilder.Entity("ASMS.Repositories.Entities.OrderDetailService", b =>
+                {
+                    b.HasOne("ASMS.Repositories.Entities.OrderDetail", "OrderDetail")
+                        .WithMany("OrderDetailServices")
+                        .HasForeignKey("OrderDetailId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_OrderDetailService_OrderDetail");
+
+                    b.HasOne("ASMS.Repositories.Entities.Service", "Service")
+                        .WithMany("OrderDetailServices")
+                        .HasForeignKey("ServiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_OrderDetailService_Service");
+
+                    b.Navigation("OrderDetail");
+
+                    b.Navigation("Service");
+                });
+
             modelBuilder.Entity("ASMS.Repositories.Entities.PaymentHistory", b =>
                 {
                     b.HasOne("ASMS.Repositories.Entities.Order", "OrderCodeNavigation")
@@ -1137,6 +1220,23 @@ namespace ASMS.Repositories.Migrations
                         .HasConstraintName("FK__PaymentHi__Order__29221CFB");
 
                     b.Navigation("OrderCodeNavigation");
+                });
+
+            modelBuilder.Entity("ASMS.Repositories.Entities.RefreshToken", b =>
+                {
+                    b.HasOne("ASMS.Repositories.Entities.Customer", "Customer")
+                        .WithMany("RefreshTokens")
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("ASMS.Repositories.Entities.Employee", "Employee")
+                        .WithMany("RefreshTokens")
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("Customer");
+
+                    b.Navigation("Employee");
                 });
 
             modelBuilder.Entity("ASMS.Repositories.Entities.Shelf", b =>
@@ -1222,6 +1322,13 @@ namespace ASMS.Repositories.Migrations
             modelBuilder.Entity("ASMS.Repositories.Entities.Customer", b =>
                 {
                     b.Navigation("Orders");
+
+                    b.Navigation("RefreshTokens");
+                });
+
+            modelBuilder.Entity("ASMS.Repositories.Entities.Employee", b =>
+                {
+                    b.Navigation("RefreshTokens");
                 });
 
             modelBuilder.Entity("ASMS.Repositories.Entities.EmployeeRole", b =>
@@ -1246,6 +1353,8 @@ namespace ASMS.Repositories.Migrations
             modelBuilder.Entity("ASMS.Repositories.Entities.OrderDetail", b =>
                 {
                     b.Navigation("OrderDetailProductTypes");
+
+                    b.Navigation("OrderDetailServices");
                 });
 
             modelBuilder.Entity("ASMS.Repositories.Entities.ProductType", b =>
@@ -1259,7 +1368,7 @@ namespace ASMS.Repositories.Migrations
 
             modelBuilder.Entity("ASMS.Repositories.Entities.Service", b =>
                 {
-                    b.Navigation("OrderDetails");
+                    b.Navigation("OrderDetailServices");
                 });
 
             modelBuilder.Entity("ASMS.Repositories.Entities.Shelf", b =>

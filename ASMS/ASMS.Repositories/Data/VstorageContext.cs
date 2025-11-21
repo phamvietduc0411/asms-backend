@@ -204,11 +204,6 @@ public partial class VstorageContext : DbContext
         modelBuilder.Entity<Customer>(entity =>
         {
             entity.ToTable("Customer");
-
-            entity.HasIndex(e => e.CustomerCode, "AK_Customer_CustomerCode").IsUnique();
-
-            entity.HasIndex(e => e.CustomerCode, "UQ_Customer_CustomerCode").IsUnique();
-
             entity.Property(e => e.Address).HasMaxLength(500);
             entity.Property(e => e.CustomerCode)
                 .HasMaxLength(50)
@@ -689,6 +684,19 @@ public partial class VstorageContext : DbContext
                 .HasMaxLength(10)
                 .IsUnicode(false);
         });
+
+        modelBuilder.Entity<RefreshToken>()
+        .HasOne(rt => rt.Employee)
+        .WithMany(e => e.RefreshTokens)
+        .HasForeignKey(rt => rt.EmployeeId)
+        .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<RefreshToken>()
+            .HasOne(rt => rt.Customer)
+            .WithMany(c => c.RefreshTokens)
+            .HasForeignKey(rt => rt.CustomerId)
+            .OnDelete(DeleteBehavior.Cascade);
+
 
         OnModelCreatingPartial(modelBuilder);
     }
