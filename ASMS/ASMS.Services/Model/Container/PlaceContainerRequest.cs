@@ -17,6 +17,7 @@ namespace ASMS.Services.Model.Container
         public string? PerformedBy { get; set; }
         public bool RequiresRearrangement { get; set; } 
         public string? RearrangeContainerCode {  get; set; }
+        public int? OrderDetailId { get; set; }
 
     }
 }

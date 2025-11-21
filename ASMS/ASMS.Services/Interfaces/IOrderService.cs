@@ -17,5 +17,6 @@ namespace ASMS.Services.Interfaces
         Task<OrderResponse> UpdateAsync(string orderCode, UpdateOrderRequest request);
         Task<CreateOrderDetailResponse> CreateOrderDetailAsync(CreateOrderDetailRequest request);
         Task<List<CreateOrderDetailResponse>> GetOrderDetailsAsync(string orderCode);
+        Task<CreateOrderWithDetailsResponse> CreateOrderWithDetailsAsync(CreateOrderWithDetailsRequest request);
     }
 }

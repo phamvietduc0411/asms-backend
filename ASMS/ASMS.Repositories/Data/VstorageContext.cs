@@ -122,6 +122,7 @@ public partial class VstorageContext : DbContext
             entity.Property(e => e.OptimizationScore)
                 .HasDefaultValue(0m)
                 .HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.OrderDetailId).HasColumnName("OrderDetailID");
             entity.Property(e => e.PositionX).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.PositionY).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.PositionZ).HasColumnType("decimal(10, 2)");
@@ -204,6 +205,11 @@ public partial class VstorageContext : DbContext
         modelBuilder.Entity<Customer>(entity =>
         {
             entity.ToTable("Customer");
+
+            entity.HasIndex(e => e.CustomerCode, "AK_Customer_CustomerCode").IsUnique();
+
+            entity.HasIndex(e => e.CustomerCode, "UQ_Customer_CustomerCode").IsUnique();
+
             entity.Property(e => e.Address).HasMaxLength(500);
             entity.Property(e => e.CustomerCode)
                 .HasMaxLength(50)
@@ -333,12 +339,17 @@ public partial class VstorageContext : DbContext
             entity.Property(e => e.CustomerCode)
                 .HasMaxLength(50)
                 .IsUnicode(false);
+            entity.Property(e => e.CustomerName).HasMaxLength(1000);
+            entity.Property(e => e.Email).HasMaxLength(500);
+            entity.Property(e => e.Note).HasMaxLength(1000);
             entity.Property(e => e.PaymentStatus)
                 .HasMaxLength(20)
                 .IsUnicode(false);
+            entity.Property(e => e.PhoneContact).HasMaxLength(50);
             entity.Property(e => e.Status)
                 .HasMaxLength(20)
                 .IsUnicode(false);
+            entity.Property(e => e.StorageTypeId).HasColumnName("StorageTypeID");
             entity.Property(e => e.TotalPrice).HasColumnType("decimal(18, 0)");
             entity.Property(e => e.UnpaidAmount).HasColumnType("decimal(18, 0)");
 

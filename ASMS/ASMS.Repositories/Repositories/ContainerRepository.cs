@@ -56,7 +56,11 @@ namespace ASMS.Repositories.Repositories
                 .Include(c => c.ContainerType)
                 .FirstOrDefaultAsync(c => c.ContainerCode == containerCode);
         }
-
+        public async Task<Container?> GetByCodeForUpdateAsync(string containerCode)
+        {
+            return await _dbSet
+                .FirstOrDefaultAsync(c => c.ContainerCode == containerCode);
+        }
         public async Task DeleteAsync(string code)
         {
             var entity = await _dbSet.FirstOrDefaultAsync(c => c.ContainerCode == code);

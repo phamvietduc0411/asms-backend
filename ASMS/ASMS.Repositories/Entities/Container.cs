@@ -43,6 +43,8 @@ public partial class Container
 
     public string? ContainerAboveCode { get; set; }
 
+    public int? OrderDetailId { get; set; }
+
     public virtual ICollection<ContainerLocationLog> ContainerLocationLogs { get; set; } = new List<ContainerLocationLog>();
 
     public virtual ContainerType? ContainerType { get; set; }

@@ -23,6 +23,10 @@ public partial class OrderDetail
 
     public string? Image { get; set; }
 
+    public int? ContainerType { get; set; }
+
+    public int? ContainerQuantity { get; set; }
+
     public virtual Container? ContainerCodeNavigation { get; set; }
 
     public virtual Order? OrderCodeNavigation { get; set; }
