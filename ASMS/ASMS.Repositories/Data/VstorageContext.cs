@@ -336,11 +336,13 @@ public partial class VstorageContext : DbContext
             entity.Property(e => e.OrderCode)
                 .HasMaxLength(50)
                 .IsUnicode(false);
+            entity.Property(e => e.Address).HasMaxLength(1000);
             entity.Property(e => e.CustomerCode)
                 .HasMaxLength(50)
                 .IsUnicode(false);
             entity.Property(e => e.CustomerName).HasMaxLength(1000);
             entity.Property(e => e.Email).HasMaxLength(500);
+            entity.Property(e => e.Image).HasMaxLength(1000);
             entity.Property(e => e.Note).HasMaxLength(1000);
             entity.Property(e => e.PaymentStatus)
                 .HasMaxLength(20)
@@ -374,7 +376,6 @@ public partial class VstorageContext : DbContext
             entity.Property(e => e.OrderDetailId)
                 .ValueGeneratedNever()
                 .HasColumnName("OrderDetailID");
-            entity.Property(e => e.Address).HasMaxLength(500);
             entity.Property(e => e.ContainerCode)
                 .HasMaxLength(50)
                 .IsUnicode(false);

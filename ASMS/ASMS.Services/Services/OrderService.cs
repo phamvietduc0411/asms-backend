@@ -134,7 +134,7 @@ namespace ASMS.Services.Services
                     Price = request.Price,
                     Quantity = request.Quantity,
                     SubTotal = subTotal,
-                    Address = request.Address,
+                    //Address = request.Address,
                     Image = request.Image
                 };
 
@@ -235,7 +235,9 @@ namespace ASMS.Services.Services
                 CustomerName = request.CustomerName,
                 PhoneContact = request.PhoneContact,
                 Email = request.Email,
-                Note = request.Note
+                Note = request.Note,
+                Image = request.Image,
+                Address = request.Address,
             };
 
             await _unitOfWork.Orders.AddAsync(order);
@@ -286,7 +288,7 @@ namespace ASMS.Services.Services
                     Price = detailRequest.Price,
                     Quantity = detailRequest.Quantity,
                     SubTotal = subTotal,
-                    Address = detailRequest.Address,
+                    //Address = detailRequest.Address,
                     Image = detailRequest.Image,
                     ContainerType = detailRequest.ContainerType,
                     ContainerQuantity = detailRequest.ContainerQuantity
@@ -332,7 +334,7 @@ namespace ASMS.Services.Services
                     Price = detailRequest.Price,
                     Quantity = detailRequest.Quantity,
                     SubTotal = subTotal,
-                    Address = detailRequest.Address,
+                    //Address = detailRequest.Address,
                     Image = detailRequest.Image,
                     ContainerType = detailRequest.ContainerType,
                     ContainerQuantity = detailRequest.ContainerQuantity,
@@ -378,6 +380,8 @@ namespace ASMS.Services.Services
                 PhoneContact = request.PhoneContact,
                 Email = request.Email,
                 Note = request.Note,
+                Image = request.Image,
+                Address = request.Address,  
                 OrderDetails = orderDetailResponses
             };
         }
@@ -398,7 +402,7 @@ namespace ASMS.Services.Services
                 Price = od.Price,
                 Quantity = od.Quantity,
                 SubTotal = od.SubTotal,
-                Address = od.Address,
+                //Address = od.Address,
                 Image = od.Image,
                 Status = "Assigned"
             }).ToList();

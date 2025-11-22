@@ -19,8 +19,6 @@ public partial class OrderDetail
 
     public decimal? SubTotal { get; set; }
 
-    public string? Address { get; set; }
-
     public string? Image { get; set; }
 
     public int? ContainerType { get; set; }
