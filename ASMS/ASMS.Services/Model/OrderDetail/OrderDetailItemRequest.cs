@@ -6,20 +6,26 @@ using System.Threading.Tasks;
 
 namespace ASMS.Services.Model.OrderDetail
 {
-    public class UpdateOrderDetailRequest
+    public class OrderDetailItemRequest
     {
-        //public int OrderDetailId { get; set; }
-        public string? OrderCode { get; set; }
         public string? StorageCode { get; set; }
+
         public string? ContainerCode { get; set; }
-        public int? ServiceId { get; set; }
+
         public decimal? Price { get; set; }
+
         public string? Quantity { get; set; }
-        public decimal? SubTotal { get; set; }
-        public string? Address { get; set; }
+
+        //public string? Address { get; set; }
+
         public string? Image { get; set; }
 
         public int? ContainerType { get; set; }
+
         public int? ContainerQuantity { get; set; }
+
+        public List<int>? ProductTypeIds { get; set; }
+
+        public List<int>? ServiceIds { get; set; }
     }
 }

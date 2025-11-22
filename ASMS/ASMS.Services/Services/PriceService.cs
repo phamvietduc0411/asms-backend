@@ -12,20 +12,20 @@ namespace ASMS.Services.Services
 
         }
 
-        public async Task CalculateOrderDetailsPriceAsync(List<int> details)
-        {
-            var services = await _unitOfWork.OrderDetailServices.GetByIdsAsync(details);
+        //public async Task CalculateOrderDetailsPriceAsync(List<int> details)
+        //{
+        //    var services = await _unitOfWork.OrderDetailServices.GetByIdsAsync(details);
 
-            //var serviceMap = services.ToDictionary(x => x.ServiceId);
-            decimal totalPrice = 0m;
+        //    //var serviceMap = services.ToDictionary(x => x.ServiceId);
+        //    decimal totalPrice = 0m;
 
-            foreach (var id in details)
-            {
-                var service = serviceMap[id];
-                decimal servicePrice = service.Price.GetValueOrDefault();
-                totalPrice += servicePrice;
-            }
-        }
+        //    foreach (var id in details)
+        //    {
+        //        var service = serviceMap[id];
+        //        decimal servicePrice = service.Price.GetValueOrDefault();
+        //        totalPrice += servicePrice;
+        //    }
+        //}
 
         //public async Task StoragePriceAsync(List<int> details)
         //{

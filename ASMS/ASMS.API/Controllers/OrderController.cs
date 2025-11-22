@@ -146,5 +146,20 @@ namespace ASMS.API.Controllers
                 });
             }
         }
+
+        [HttpPost("with-details")]
+        public async Task<ActionResult<CreateOrderWithDetailsResponse>> CreateOrderWithDetails([FromBody] CreateOrderWithDetailsRequest request)
+        {
+            try
+            {
+                var result = await _orderService.CreateOrderWithDetailsAsync(request);
+                return Created($"/api/Order/{result.OrderCode}", result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating order with details");
+                return StatusCode(500, new { message = "Đã xảy ra lỗi khi tạo đơn hàng", details = ex.Message });
+            }
+        }
     }
 }

@@ -134,7 +134,7 @@ namespace ASMS.Services.Services
                     Price = request.Price,
                     Quantity = request.Quantity,
                     SubTotal = subTotal,
-                    Address = request.Address,
+                    //Address = request.Address,
                     Image = request.Image
                 };
 
@@ -195,6 +195,196 @@ namespace ASMS.Services.Services
                 throw;
             }
         }
+
+        public async Task<CreateOrderWithDetailsResponse> CreateOrderWithDetailsAsync(CreateOrderWithDetailsRequest request)
+        {
+            _logger.LogInformation("Creating new order with details for customer {Code}", request.CustomerCode);
+
+            // Generate order code
+            var orderDate = DateOnly.FromDateTime(DateTime.Now);
+            var orderCode = await GenerateOrderCodeAsync(orderDate);
+
+            // Calculate total price and unpaid amount
+            decimal totalPrice = 0;
+            foreach (var detail in request.OrderDetails)
+            {
+                if (detail.Price.HasValue && !string.IsNullOrEmpty(detail.Quantity))
+                {
+                    if (int.TryParse(detail.Quantity, out var qty))
+                    {
+                        totalPrice += detail.Price.Value * qty;
+                    }
+                }
+            }
+
+            // Create Order entity
+            var order = new Order
+            {
+                OrderCode = orderCode,
+                CustomerCode = request.CustomerCode,
+                OrderDate = orderDate,
+                DepositDate = request.DepositDate,
+                ReturnDate = request.ReturnDate,
+                Status = request.Status ?? "Pending",
+                PaymentStatus = request.PaymentStatus ?? "Unpaid",
+                TotalPrice = totalPrice,
+                UnpaidAmount = totalPrice,
+                StorageTypeId = request.StorageTypeId,
+                ShelfTypeId = request.ShelfTypeId,
+                ShelfQuantity = request.ShelfQuantity,
+                CustomerName = request.CustomerName,
+                PhoneContact = request.PhoneContact,
+                Email = request.Email,
+                Note = request.Note,
+                Image = request.Image,
+                Address = request.Address,
+            };
+
+            await _unitOfWork.Orders.AddAsync(order);
+            await _unitOfWork.CompleteAsync();
+
+            _logger.LogInformation("Order {OrderCode} created, now creating order details", orderCode);
+
+            var baseOrderDetailId = await GenerateOrderDetailIdAsync();
+
+            var orderDetailResponses = new List<OrderDetailItemResponse>();
+            var orderDetailsToAdd = new List<OrderDetail>();
+            var productTypesToAdd = new List<OrderDetailProductType>();
+            var servicesToAdd = new List<ASMS.Repositories.Entities.OrderDetailService>();
+
+            for (int i = 0; i < request.OrderDetails.Count; i++)
+            {
+                var detailRequest = request.OrderDetails[i];
+
+                var orderDetailId = baseOrderDetailId + i;
+
+                Container container = null;
+                if (!string.IsNullOrEmpty(detailRequest.ContainerCode))
+                {
+                    container = await _unitOfWork.Containers.GetByCodeAsync(detailRequest.ContainerCode);
+                    if (container == null)
+                    {
+                        _logger.LogWarning("Container {ContainerCode} not found", detailRequest.ContainerCode);
+                    }
+                }
+
+                // Calculate SubTotal
+                decimal? subTotal = null;
+                if (detailRequest.Price.HasValue && !string.IsNullOrEmpty(detailRequest.Quantity))
+                {
+                    if (int.TryParse(detailRequest.Quantity, out var qty))
+                    {
+                        subTotal = detailRequest.Price.Value * qty;
+                    }
+                }
+
+                // Create OrderDetail
+                var orderDetail = new OrderDetail
+                {
+                    OrderDetailId = orderDetailId,
+                    OrderCode = orderCode,
+                    StorageCode = detailRequest.StorageCode,
+                    ContainerCode = detailRequest.ContainerCode,
+                    Price = detailRequest.Price,
+                    Quantity = detailRequest.Quantity,
+                    SubTotal = subTotal,
+                    //Address = detailRequest.Address,
+                    Image = detailRequest.Image,
+                    ContainerType = detailRequest.ContainerType,
+                    ContainerQuantity = detailRequest.ContainerQuantity
+                };
+
+                orderDetailsToAdd.Add(orderDetail);
+
+
+                if (detailRequest.ProductTypeIds != null && detailRequest.ProductTypeIds.Any())
+                {
+                    foreach (var productTypeId in detailRequest.ProductTypeIds)
+                    {
+                        productTypesToAdd.Add(new OrderDetailProductType
+                        {
+                            OrderDetailId = orderDetailId,
+                            ProductTypeId = productTypeId,
+                            IsActive = true
+                        });
+                    }
+                }
+
+                // Prepare Services
+                if (detailRequest.ServiceIds != null && detailRequest.ServiceIds.Any())
+                {
+                    foreach (var serviceId in detailRequest.ServiceIds)
+                    {
+                        servicesToAdd.Add(new ASMS.Repositories.Entities.OrderDetailService
+                        {
+                            OrderDetailId = orderDetailId,
+                            ServiceId = serviceId
+                        });
+                    }
+                }
+
+                // Add to response list
+                orderDetailResponses.Add(new OrderDetailItemResponse
+                {
+                    OrderDetailId = orderDetailId,
+                    StorageCode = detailRequest.StorageCode,
+                    ContainerCode = detailRequest.ContainerCode,
+                    FloorCode = container?.FloorCode,
+                    FloorNumber = container?.FloorCodeNavigation?.FloorNumber,
+                    Price = detailRequest.Price,
+                    Quantity = detailRequest.Quantity,
+                    SubTotal = subTotal,
+                    //Address = detailRequest.Address,
+                    Image = detailRequest.Image,
+                    ContainerType = detailRequest.ContainerType,
+                    ContainerQuantity = detailRequest.ContainerQuantity,
+                    Status = string.IsNullOrEmpty(detailRequest.ContainerCode) ? "Pending" : "Assigned"
+                });
+            }
+
+            foreach (var detail in orderDetailsToAdd)
+            {
+                await _unitOfWork.OrderDetails.AddAsync(detail);
+            }
+            await _unitOfWork.CompleteAsync();
+
+            foreach (var productType in productTypesToAdd)
+            {
+                await _unitOfWork.OrderDetailProductTypes.AddAsync(productType);
+            }
+
+            foreach (var service in servicesToAdd)
+            {
+                await _unitOfWork.OrderDetailServices.AddAsync(service);
+            }
+
+            await _unitOfWork.CompleteAsync();
+
+            _logger.LogInformation("Order {OrderCode} with {Count} details created successfully", orderCode, orderDetailResponses.Count);
+
+            return new CreateOrderWithDetailsResponse
+            {
+                OrderCode = orderCode,
+                CustomerCode = request.CustomerCode,
+                OrderDate = orderDate,
+                DepositDate = request.DepositDate,
+                ReturnDate = request.ReturnDate,
+                Status = order.Status,
+                PaymentStatus = order.PaymentStatus,
+                TotalPrice = totalPrice,
+                UnpaidAmount = totalPrice,
+                StorageTypeId = request.StorageTypeId,
+                ShelfTypeId = request.ShelfTypeId,
+                ShelfQuantity = request.ShelfQuantity,
+                CustomerName = request.CustomerName,
+                PhoneContact = request.PhoneContact,
+                Email = request.Email,
+                Note = request.Note,
+                Image = request.Image,
+                Address = request.Address,  
+                OrderDetails = orderDetailResponses
+            };
+        }
         // Lấy order details
         public async Task<List<CreateOrderDetailResponse>> GetOrderDetailsAsync(string orderCode)
         {
@@ -212,7 +402,7 @@ namespace ASMS.Services.Services
                 Price = od.Price,
                 Quantity = od.Quantity,
                 SubTotal = od.SubTotal,
-                Address = od.Address,
+                //Address = od.Address,
                 Image = od.Image,
                 Status = "Assigned"
             }).ToList();

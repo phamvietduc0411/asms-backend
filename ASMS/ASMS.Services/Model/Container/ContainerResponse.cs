@@ -24,5 +24,13 @@ namespace ASMS.Services.Model.Container
         public string? Notes { get; set; }
         public string? ImageUrl { get; set; }
         public string? Type { get; set; }
+        public int? SerialNumber { get; set; }
+
+        public int? Layer { get; set; }
+
+        public string? ContainerAboveCode { get; set; }
+
+        public int? OrderDetailId { get; set; }
+
     }
 }

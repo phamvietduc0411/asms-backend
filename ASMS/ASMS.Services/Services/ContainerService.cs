@@ -84,20 +84,40 @@ namespace ASMS.Services.Services
         public async Task<bool> UpdateContainerPositionAsync(UpdateContainerPositionRequest request)
         {
 
-            var container = await _unitOfWork.Containers.GetByCodeAsync(request.ContainerCode);
-            if (container == null)
+            try
+            {
+                var allSuccess = true;
+
+                var containersToUpdate = new List<ASMS.Repositories.Entities.Container>();
+
+                foreach (var item in request.Containers)
+                {
+                    var container = await _unitOfWork.Containers.GetByCodeForUpdateAsync(item.ContainerCode);
+                    if (container == null)
+                    {
+                        allSuccess = false;
+                        continue;
+                    }
+
+                    container.PositionX = item.PositionX;
+                    container.PositionY = item.PositionY;
+                    container.PositionZ = item.PositionZ;
+
+                    containersToUpdate.Add(container);
+                }
+                foreach (var container in containersToUpdate)
+                {
+                    await _unitOfWork.Containers.UpdateAsync(container);
+                }
+
+                await _unitOfWork.CompleteAsync();
+
+                return allSuccess;
+            }
+            catch (Exception ex)
             {
                 return false;
             }
-
-            container.PositionX = request.PositionX;
-            container.PositionY = request.PositionY;
-            container.PositionZ = request.PositionZ;
-
-            await _unitOfWork.Containers.UpdateAsync(container);
-            await _unitOfWork.CompleteAsync();
-
-            return true;
         }
         public async Task<PlaceContainerResponse> PlaceContainerAsync(PlaceContainerRequest request)
         {
@@ -129,6 +149,34 @@ namespace ASMS.Services.Services
                         Message = $"Floor {request.FloorCode} not found"
                     };
                 }
+                OrderDetail orderDetail = null;
+                if (request.OrderDetailId.HasValue)
+                {
+                    orderDetail = await _unitOfWork.OrderDetails.GetByIdAsync(request.OrderDetailId.Value);
+                    if (orderDetail == null)
+                    {
+                        return new PlaceContainerResponse
+                        {
+                            Success = false,
+                            Message = $"OrderDetail with ID {request.OrderDetailId.Value} not found"
+                        };
+                    }
+
+                    if (!string.IsNullOrEmpty(request.OrderCode) &&
+                        orderDetail.OrderCode != request.OrderCode)
+                    {
+                        return new PlaceContainerResponse
+                        {
+                            Success = false,
+                            Message = $"OrderDetail {request.OrderDetailId.Value} does not belong to Order {request.OrderCode}"
+                        };
+                    }
+
+                    if (string.IsNullOrEmpty(request.OrderCode))
+                    {
+                        request.OrderCode = orderDetail.OrderCode;
+                    }
+                }
                 var oldFloor = container.FloorCode;
                 if(request.RequiresRearrangement && !string.IsNullOrEmpty(request.RearrangeContainerCode))
                 {
@@ -139,10 +187,13 @@ namespace ASMS.Services.Services
                         return rearrangeResult;
                     }
                 }
+                var storage = floor.ShelfCodeNavigation?.StorageCodeNavigation;
+                string storageCode = storage?.StorageCode;
                 container.FloorCode = request.FloorCode;
                 container.Status = "Occupied";
                 container.Layer =  request.Layer;
                 container.SerialNumber = request.SerialNumber;
+                container.OrderDetailId = request.OrderDetailId;
                 if(request.Layer == 1)
                 {
                     var belowContainerCode = await FindContainerBelowAsync(request.FloorCode, container.ContainerType);
@@ -162,6 +213,14 @@ namespace ASMS.Services.Services
                     }
                 }
                 await _unitOfWork.Containers.UpdateAsync(container);
+                if (orderDetail != null)
+                {
+                    orderDetail.StorageCode = storageCode;
+                    orderDetail.ContainerCode = request.ContainerCode;
+
+                    await _unitOfWork.OrderDetails.UpdateAsync(orderDetail);
+
+                }
                 //var logId = await GenerateContainerLocationLogIdAsync();
                 var log = new ContainerLocationLog
                 {
@@ -356,6 +415,7 @@ namespace ASMS.Services.Services
                 container.SerialNumber = null;
                 container.ContainerAboveCode = null;
                 container.CurrentWeight = 0;
+                container.OrderDetailId = null;
                 await _unitOfWork.Containers.UpdateAsync(container);
                 //var logId = await GenerateContainerLocationLogIdAsync();
                 var log = new ContainerLocationLog

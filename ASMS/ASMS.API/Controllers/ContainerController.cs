@@ -90,9 +90,9 @@ namespace ASMS.API.Controllers
             return NoContent();
         }
 
-        // PUT: api/container/position
-        [HttpPut("position")]
-        public async Task<IActionResult> UpdatePosition([FromBody] UpdateContainerPositionRequest request)
+        // PUT: api/containers/positions
+        [HttpPut("positions")]
+        public async Task<IActionResult> UpdatePositions([FromBody] UpdateContainerPositionRequest request)
         {
             try
             {
@@ -100,22 +100,21 @@ namespace ASMS.API.Controllers
 
                 if (!result)
                 {
-                    return NotFound(new
+                    return BadRequest(new
                     {
                         success = false,
-                        message = $"Container {request.ContainerCode} not found"
+                        message = "Một hoặc nhiều containers không tìm thấy hoặc cập nhật thất bại"
                     });
                 }
 
                 return Ok(new
                 {
                     success = true,
-                    message = "Container position updated successfully"
+                    message = "Container positions updated successfully"
                 });
             }
             catch (Exception ex)
             {
-
                 return BadRequest(new
                 {
                     success = false,

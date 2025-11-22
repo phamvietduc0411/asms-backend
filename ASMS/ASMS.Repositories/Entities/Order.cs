@@ -23,6 +23,24 @@ public partial class Order
 
     public decimal? UnpaidAmount { get; set; }
 
+    public int? StorageTypeId { get; set; }
+
+    public int? ShelfTypeId { get; set; }
+
+    public int? ShelfQuantity { get; set; }
+
+    public string? CustomerName { get; set; }
+
+    public string? PhoneContact { get; set; }
+
+    public string? Email { get; set; }
+
+    public string? Note { get; set; }
+
+    public string? Address { get; set; }
+
+    public string? Image { get; set; }
+
     public virtual Customer? CustomerCodeNavigation { get; set; }
 
     public virtual ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
