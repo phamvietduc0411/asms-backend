@@ -36,11 +36,11 @@ namespace ASMS.Services.Services
             if (order.UnpaidAmount == null || order.UnpaidAmount <= 0)
                 throw new Exception("Order is already paid or has no unpaid amount.");
 
-            // Tạo mã thanh toán duy nhất
-            long paymentCode = long.Parse(DateTimeOffset.Now.ToString("yyyyMMddHHmmssfff"));
+            
+            long paymentCode = long.Parse($"{DateTime.UtcNow:yyMMddHHmmss}");
 
             ItemData item = new ItemData(
-                name: "Thanh toán đơn hàng",
+                name: "Payment for the order",
                 quantity: 1,
                 price: (int)order.UnpaidAmount.Value
             );
@@ -52,13 +52,12 @@ namespace ASMS.Services.Services
             PaymentData paymentData = new PaymentData(
                 orderCode: paymentCode,
                 amount: (int)order.UnpaidAmount.Value,
-                description: $"Payment for the order {orderCode}",
+                description: $"Payment {orderCode}",
                 items: new List<ItemData> { item },
                 cancelUrl,
                 successUrl
             );
 
-          
             CreatePaymentResult result = await _payOS.createPaymentLink(paymentData);
 
             return new
@@ -67,6 +66,7 @@ namespace ASMS.Services.Services
                 checkoutUrl = result.checkoutUrl
             };
         }
+
 
         public async Task HandlePaymentWebhook(WebhookType webhookData)
         {
@@ -81,14 +81,14 @@ namespace ASMS.Services.Services
 
             bool isSuccess = data.code == "00";
 
-            // Cập nhật Order
+           
             order.PaymentStatus = isSuccess ? "Paid" : "Failed";
 
             if (isSuccess)
             {
                 order.UnpaidAmount = 0;
 
-                // Lưu vào PaymentHistory
+               
                 var payment = new PaymentHistory
                 {
                     PaymentHistoryCode = Guid.NewGuid().ToString(),
