@@ -9,6 +9,7 @@ using ASMS.Services.Interfaces;
 using ASMS.Services.Model.CLP;
 using ASMS.Services.Model.OrderDetail;
 using ASMS.Services.Model.Orders;
+using ASMS.Services.Model.TrackingHistories;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
 
@@ -435,6 +436,48 @@ namespace ASMS.Services.Services
             await _unitOfWork.CompleteAsync();
 
             return _mapper.Map<OrderResponse>(existing);
+        }
+
+        public async Task<TrackingHistoryResponse> UpdateOrderProcessAsync(UpdateOrderProcessRequest request)
+        {
+            
+            var order = await _unitOfWork.Orders.GetByCodeAsync(request.OrderCode);
+            if (order == null)
+                throw new Exception($"Order {request.OrderCode} not found");
+
+            string oldStatus = order.Status ?? "";
+
+            
+            if (request.ActionByRole == "Delivery" && request.NewStatus == "ProgressTask")
+            {
+                request.NewStatus = "Ready";
+            }
+
+            
+            order.Status = request.NewStatus;
+            await _unitOfWork.Orders.UpdateAsync(order);
+
+            
+            var tracking = new TrackingHistory
+            {
+                OrderCode = request.OrderCode,
+                OrderDetailCode = request.OrderDetailCode,
+                OldStatus = oldStatus,
+                NewStatus = request.NewStatus,
+                ActionType = request.ActionType,
+                CurrentAssign = request.EmployeeCode,
+                NextAssign = request.NextAssign,
+                Image = request.Image,
+                CreateAt = DateOnly.FromDateTime(DateTime.Now)
+            };
+
+            await _unitOfWork.TrackingHistories.AddAsync(tracking);
+
+            
+            await _unitOfWork.CompleteAsync();
+
+            
+            return _mapper.Map<TrackingHistoryResponse>(tracking);
         }
     }
 }

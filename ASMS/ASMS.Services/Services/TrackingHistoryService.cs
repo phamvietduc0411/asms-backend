@@ -53,6 +53,89 @@ namespace ASMS.Services.Services
             return _mapper.Map<TrackingHistoryResponse>(created);
         }
 
+        public async Task<TrackingHistoryResponse> UpdateStatusAsync(UpdateTrackingStatusRequest request)
+        {
+            
+            var order = await _unitOfWork.Orders.GetByCodeAsync(request.OrderCode);
+            if (order == null)
+            {
+                throw new Exception($"Order with code '{request.OrderCode}' not found.");
+            }
+
+            
+            var currentEmployee = await _unitOfWork.Employee.GetByCodeAsync(request.CurrentAssign);
+            if (currentEmployee == null)
+            {
+                throw new Exception($"Employee with code '{request.CurrentAssign}' not found.");
+            }
+
+            if (!string.IsNullOrEmpty(request.NextAssign))
+            {
+                var nextEmployee = await _unitOfWork.Employee.GetByCodeAsync(request.NextAssign);
+                if (nextEmployee == null)
+                {
+                    throw new Exception($"Next assign employee with code '{request.NextAssign}' not found.");
+                }
+            }
+
+            
+            string newStatus = request.NewStatus;
+
+            // Delivery Staff completing ProgressTask -> Ready
+            if (currentEmployee.EmployeeRole?.Name == "Delivery Staff" &&
+                request.OldStatus == "ProgressTask")
+            {
+                newStatus = "Ready";
+            }
+
+            // 5. Create new TrackingHistory record
+            var trackingHistory = new TrackingHistory
+            {
+                OrderDetailCode = request.OrderDetailCode,
+                OrderCode = request.OrderCode,
+                OldStatus = request.OldStatus,
+                NewStatus = newStatus,
+                ActionType = request.ActionType,
+                CreateAt = DateOnly.FromDateTime(DateTime.Now),
+                CurrentAssign = request.CurrentAssign,
+                NextAssign = request.NextAssign,
+                Image = request.Image
+            };
+
+            await _unitOfWork.TrackingHistories.AddAsync(trackingHistory);
+
+            // Update Order Status based on NewStatus
+            order.Status = newStatus;
+            await _unitOfWork.Orders.UpdateAsync(order);
+
+            
+            await _unitOfWork.CompleteAsync();
+
+            return _mapper.Map<TrackingHistoryResponse>(trackingHistory);
+        }
+        public async Task<OrderTrackingFlowResponse> GetOrderTrackingFlowAsync(string orderCode)
+        {
+            var order = await _unitOfWork.Orders.GetByCodeAsync(orderCode);
+            if (order == null)
+            {
+                throw new Exception($"Order with code '{orderCode}' not found.");
+            }
+
+            // Get all tracking history for this order (ordered by time)
+            var trackingHistories = await _unitOfWork.TrackingHistories
+                .GetWithFilterAsync(1, 1000, orderCode); // Get all records
+
+            var mappedHistories = _mapper.Map<List<TrackingHistoryResponse>>(trackingHistories);
+
+            return new OrderTrackingFlowResponse
+            {
+                OrderCode = orderCode,
+                CurrentStatus = order.Status,
+                TrackingFlow = mappedHistories,
+                TotalSteps = mappedHistories.Count
+            };
+        }
+
         public async Task<TrackingHistoryResponse> UpdateAsync(int id, UpdateTrackingHistoryRequest request)
         {
             var existing = await _unitOfWork.TrackingHistories.GetEntityByIdAsync(id);

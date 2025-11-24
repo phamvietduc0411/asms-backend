@@ -72,6 +72,43 @@ namespace ASMS.API.Controllers
         }
         #endregion
 
+        [HttpPost("update-status")]
+        public async Task<IActionResult> UpdateStatusAsync([FromBody] UpdateTrackingStatusRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                var result = await _trackingHistoryService.UpdateStatusAsync(request);
+                return Created($"/api/TrackingHistory/{result.TrackingHistoryId}", result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+        [HttpGet("order/{orderCode}")]
+        public async Task<IActionResult> GetOrderTrackingFlowAsync(string orderCode)
+        {
+            try
+            {
+                var result = await _trackingHistoryService.GetOrderTrackingFlowAsync(orderCode);
+                return Ok(new
+                {
+                    success = true,
+                    message = "Tracking flow retrieved successfully",
+                    data = result
+                });
+            }
+            catch (Exception ex)
+            {
+                return NotFound(new { success = false, message = ex.Message });
+            }
+        }
+
         #region Update Tracking History
         /// <summary>
         /// Update an existing tracking history.

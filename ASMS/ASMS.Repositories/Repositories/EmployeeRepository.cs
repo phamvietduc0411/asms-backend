@@ -20,6 +20,14 @@ namespace ASMS.Repositories.Repositories
                 .FirstOrDefaultAsync(e => e.Username == email);
         }
 
+        public async Task<Employee?> GetByCodeAsync(string employeeCode)
+        {
+            return await _dbSet
+                .Include(e => e.EmployeeRole)
+                .FirstOrDefaultAsync(e => e.EmployeeCode == employeeCode);
+        }
+
+
         public async Task<PaginatedList<Employee>> GetWithFilterAsync(string? roleName, int pageNumber, int pageSize)
         {
             var query = _context.Employees

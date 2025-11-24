@@ -78,6 +78,10 @@ namespace ASMS.Services.Mappings
                 .ForMember(d => d.TrackingHistoryId, o => o.Ignore())
                 .ForMember(d => d.OrderCodeNavigation, o => o.Ignore()) 
                 .ForAllMembers(o => o.Condition((src, dest, srcMember) => srcMember != null));
+            CreateMap<UpdateTrackingStatusRequest, TrackingHistory>()
+            .ForMember(dest => dest.TrackingHistoryId, opt => opt.Ignore()) 
+            .ForMember(dest => dest.CreateAt, opt => opt.MapFrom(src => DateOnly.FromDateTime(DateTime.Now)))
+            .ForMember(dest => dest.OrderCodeNavigation, opt => opt.Ignore()); 
             #endregion
             #region Building
             CreateMap<CreateBuildingRequest, Building>()
@@ -173,6 +177,8 @@ namespace ASMS.Services.Mappings
             CreateMap<CreateOrderRequest, Order>();
             CreateMap<UpdateOrderRequest, Order>()
                 .ForMember(d => d.OrderCode, o => o.Ignore());
+            CreateMap<UpdateOrderProcessRequest, TrackingHistory>();
+
             #endregion
             #region StorageType
             CreateMap<StorageType, StorageTypeResponse>();
