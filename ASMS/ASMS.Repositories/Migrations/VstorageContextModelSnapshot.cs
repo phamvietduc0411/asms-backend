@@ -122,6 +122,10 @@ namespace ASMS.Repositories.Migrations
                         .HasColumnType("decimal(5, 2)")
                         .HasDefaultValue(0m);
 
+                    b.Property<int?>("OrderDetailId")
+                        .HasColumnType("int")
+                        .HasColumnName("OrderDetailID");
+
                     b.Property<decimal?>("PositionX")
                         .HasColumnType("decimal(10, 2)");
 
@@ -478,13 +482,33 @@ namespace ASMS.Repositories.Migrations
                         .IsUnicode(false)
                         .HasColumnType("varchar(50)");
 
+                    b.Property<string>("Address")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
                     b.Property<string>("CustomerCode")
                         .HasMaxLength(50)
                         .IsUnicode(false)
                         .HasColumnType("varchar(50)");
 
+                    b.Property<string>("CustomerName")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
                     b.Property<DateOnly?>("DepositDate")
                         .HasColumnType("date");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Image")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<DateOnly?>("OrderDate")
                         .HasColumnType("date");
@@ -494,6 +518,10 @@ namespace ASMS.Repositories.Migrations
                         .IsUnicode(false)
                         .HasColumnType("varchar(20)");
 
+                    b.Property<string>("PhoneContact")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
                     b.Property<DateOnly?>("ReturnDate")
                         .HasColumnType("date");
 
@@ -501,6 +529,10 @@ namespace ASMS.Repositories.Migrations
                         .HasMaxLength(20)
                         .IsUnicode(false)
                         .HasColumnType("varchar(20)");
+
+                    b.Property<string>("Style")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<decimal?>("TotalPrice")
                         .HasColumnType("decimal(18, 0)");
@@ -522,14 +554,16 @@ namespace ASMS.Repositories.Migrations
                         .HasColumnType("int")
                         .HasColumnName("OrderDetailID");
 
-                    b.Property<string>("Address")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
                     b.Property<string>("ContainerCode")
                         .HasMaxLength(50)
                         .IsUnicode(false)
                         .HasColumnType("varchar(50)");
+
+                    b.Property<int?>("ContainerQuantity")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ContainerType")
+                        .HasColumnType("int");
 
                     b.Property<string>("Image")
                         .HasMaxLength(500)
@@ -548,10 +582,20 @@ namespace ASMS.Repositories.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<int?>("ShelfQuantity")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ShelfTypeId")
+                        .HasColumnType("int");
+
                     b.Property<string>("StorageCode")
                         .HasMaxLength(50)
                         .IsUnicode(false)
                         .HasColumnType("varchar(50)");
+
+                    b.Property<int?>("StorageTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("StorageTypeID");
 
                     b.Property<decimal?>("SubTotal")
                         .HasColumnType("decimal(18, 0)");
@@ -657,6 +701,52 @@ namespace ASMS.Repositories.Migrations
                     b.ToTable("PaymentHistory", (string)null);
                 });
 
+            modelBuilder.Entity("ASMS.Repositories.Entities.PaymentResult", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<string>("Message")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("OrderCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("PaymentCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Url")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderCode");
+
+                    b.ToTable("PaymentResults", (string)null);
+                });
+
             modelBuilder.Entity("ASMS.Repositories.Entities.ProductType", b =>
                 {
                     b.Property<int>("ProductTypeId")
@@ -740,6 +830,10 @@ namespace ASMS.Repositories.Migrations
                     b.Property<int>("ServiceId")
                         .HasColumnType("int")
                         .HasColumnName("ServiceID");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<string>("Name")
                         .HasMaxLength(50)
@@ -1219,6 +1313,18 @@ namespace ASMS.Repositories.Migrations
                     b.Navigation("OrderCodeNavigation");
                 });
 
+            modelBuilder.Entity("ASMS.Repositories.Entities.PaymentResult", b =>
+                {
+                    b.HasOne("ASMS.Repositories.Entities.Order", "Order")
+                        .WithMany("PaymentResults")
+                        .HasForeignKey("OrderCode")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_PaymentResults_Order");
+
+                    b.Navigation("Order");
+                });
+
             modelBuilder.Entity("ASMS.Repositories.Entities.RefreshToken", b =>
                 {
                     b.HasOne("ASMS.Repositories.Entities.Customer", "Customer")
@@ -1343,6 +1449,8 @@ namespace ASMS.Repositories.Migrations
                     b.Navigation("OrderDetails");
 
                     b.Navigation("PaymentHistories");
+
+                    b.Navigation("PaymentResults");
 
                     b.Navigation("TrackingHistories");
                 });

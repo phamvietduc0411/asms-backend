@@ -61,11 +61,14 @@ public partial class VstorageContext : DbContext
 
     public virtual DbSet<RefreshToken> RefreshToken { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    //=> optionsBuilder.UseSqlServer("Server=ROG-ZEPHYRUS-G1\\VIETDUC;Database=VStorage;Uid=sa;Pwd=123456;Trusted_Connection=True;TrustServerCertificate=True");
-    //=> optionsBuilder.UseSqlServer("Server=LAPTOP-39B7IASC\\SQLEXPRESS;Database=VStoragePublic;Uid=sa;Pwd=1;Trusted_Connection=True;TrustServerCertificate=True;");
-    => optionsBuilder.UseSqlServer("Server=tcp:asmsdb.database.windows.net,1433;Initial Catalog=VStoragePublic;Persist Security Info=False;User ID=asmsadminlogin;Password=@Testpassword;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=True;Connection Timeout=30;");
+    public virtual DbSet<PaymentResult> PaymentResults { get; set; }
 
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        //=> optionsBuilder.UseSqlServer("Server=ROG-ZEPHYRUS-G1\\VIETDUC;Database=VStorage;Uid=sa;Pwd=123456;Trusted_Connection=True;TrustServerCertificate=True");
+        //=> optionsBuilder.UseSqlServer("Server=LAPTOP-39B7IASC\\SQLEXPRESS;Database=VStoragePublic;Uid=sa;Pwd=1;Trusted_Connection=True;TrustServerCertificate=True;");
+         => optionsBuilder.UseSqlServer("Server=tcp:asmsdb.database.windows.net,1433;Initial Catalog=VStoragePublic;Persist Security Info=False;User ID=asmsadminlogin;Password=@Testpassword;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=True;Connection Timeout=30;");
+
+   // => optionsBuilder.UseSqlServer("Server=DESKTOP-F3F1PD5\\SQLEXPRESS;Database=VStorage;Uid=sa;Pwd=12345;Trusted_Connection=True;TrustServerCertificate=True");
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Building>(entity =>
@@ -205,9 +208,7 @@ public partial class VstorageContext : DbContext
         {
             entity.ToTable("Customer");
 
-            entity.HasIndex(e => e.CustomerCode, "AK_Customer_CustomerCode").IsUnique();
-
-            entity.HasIndex(e => e.CustomerCode, "UQ_Customer_CustomerCode").IsUnique();
+            
 
             entity.Property(e => e.Address).HasMaxLength(500);
             entity.Property(e => e.CustomerCode)
@@ -469,6 +470,29 @@ public partial class VstorageContext : DbContext
                 .HasForeignKey(d => d.OrderCode)
                 .HasConstraintName("FK__PaymentHi__Order__29221CFB");
         });
+
+        modelBuilder.Entity<PaymentResult>(entity =>
+        {
+            entity.ToTable("PaymentResults");
+
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.PaymentCode).HasMaxLength(50).IsRequired();
+            entity.Property(e => e.OrderCode).HasMaxLength(50).IsRequired();
+            entity.Property(e => e.Status).HasMaxLength(20).IsRequired();
+            entity.Property(e => e.Message).HasMaxLength(500);
+            entity.Property(e => e.Url).HasMaxLength(1000);
+            entity.Property(e => e.Amount).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.CreatedAt)
+                  .HasDefaultValueSql("GETUTCDATE()");
+
+            // FK
+            entity.HasOne(d => d.Order)
+                .WithMany(p => p.PaymentResults)
+                .HasForeignKey(d => d.OrderCode)
+                .HasConstraintName("FK_PaymentResults_Order");
+        });
+
 
         modelBuilder.Entity<ProductType>(entity =>
         {
