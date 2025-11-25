@@ -94,8 +94,8 @@ namespace ASMS.Services.Services
                 OrderCode = orderCode,
                 Status = isSuccess ? "Success" : "Failed",
                 Message = isSuccess
-                    ? "Thanh toán thành công! Đơn hàng của bạn đã được xác nhận."
-                    : "Thanh toán thất bại. Vui lòng thử lại.",
+                    ? "Payment successful! Your order has been confirmed."
+                    : "Payment failed. Please try again.",
                 Url = redirectUrl,
                 Amount = data.amount,
                 CreatedAt = DateTime.UtcNow
