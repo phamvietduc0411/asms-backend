@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ASMS.Repositories.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreateDb1 : Migration
+    public partial class InitNewSchema : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -106,8 +106,7 @@ namespace ASMS.Repositories.Migrations
                 {
                     ServiceID = table.Column<int>(type: "int", nullable: false),
                     Name = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
-                    Price = table.Column<decimal>(type: "decimal(18,0)", nullable: true),
-                    Description = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true)
+                    Price = table.Column<decimal>(type: "decimal(18,0)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -176,16 +175,7 @@ namespace ASMS.Repositories.Migrations
                     Status = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: true),
                     PaymentStatus = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: true),
                     TotalPrice = table.Column<decimal>(type: "decimal(18,0)", nullable: true),
-                    UnpaidAmount = table.Column<decimal>(type: "decimal(18,0)", nullable: true),
-                    StorageTypeID = table.Column<int>(type: "int", nullable: true),
-                    ShelfTypeId = table.Column<int>(type: "int", nullable: true),
-                    ShelfQuantity = table.Column<int>(type: "int", nullable: true),
-                    CustomerName = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
-                    PhoneContact = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                    Email = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    Note = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
-                    Address = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
-                    Image = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true)
+                    UnpaidAmount = table.Column<decimal>(type: "decimal(18,0)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -309,31 +299,6 @@ namespace ASMS.Repositories.Migrations
                         column: x => x.OrderCode,
                         principalTable: "Order",
                         principalColumn: "OrderCode");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "PaymentResult",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    PaymentCode = table.Column<string>(type: "varchar(100)", unicode: false, maxLength: 100, nullable: false),
-                    OrderCode = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: false),
-                    Status = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: false),
-                    Message = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
-                    Url = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
-                    Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_PaymentResult", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_PaymentResult_Order_OrderCode",
-                        column: x => x.OrderCode,
-                        principalTable: "Order",
-                        principalColumn: "OrderCode",
-                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -472,8 +437,7 @@ namespace ASMS.Repositories.Migrations
                     ContainerTypeId = table.Column<int>(type: "int", nullable: true),
                     SerialNumber = table.Column<int>(type: "int", nullable: true),
                     Layer = table.Column<int>(type: "int", nullable: true),
-                    ContainerAboveCode = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
-                    OrderDetailID = table.Column<int>(type: "int", nullable: true)
+                    ContainerAboveCode = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -532,9 +496,8 @@ namespace ASMS.Repositories.Migrations
                     Price = table.Column<decimal>(type: "decimal(18,0)", nullable: true),
                     Quantity = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     SubTotal = table.Column<decimal>(type: "decimal(18,0)", nullable: true),
-                    Image = table.Column<string>(type: "varchar(500)", unicode: false, maxLength: 500, nullable: true),
-                    ContainerType = table.Column<int>(type: "int", nullable: true),
-                    ContainerQuantity = table.Column<int>(type: "int", nullable: true)
+                    Address = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    Image = table.Column<string>(type: "varchar(500)", unicode: false, maxLength: 500, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -640,12 +603,6 @@ namespace ASMS.Repositories.Migrations
                 column: "OrderCode");
 
             migrationBuilder.CreateIndex(
-                name: "UQ_Customer_CustomerCode",
-                table: "Customer",
-                column: "CustomerCode",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Employees_BuildingId",
                 table: "Employees",
                 column: "BuildingId");
@@ -713,11 +670,6 @@ namespace ASMS.Repositories.Migrations
                 column: "OrderCode");
 
             migrationBuilder.CreateIndex(
-                name: "IX_PaymentResult_OrderCode",
-                table: "PaymentResult",
-                column: "OrderCode");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_RefreshToken_CustomerId",
                 table: "RefreshToken",
                 column: "CustomerId");
@@ -777,9 +729,6 @@ namespace ASMS.Repositories.Migrations
 
             migrationBuilder.DropTable(
                 name: "PaymentHistory");
-
-            migrationBuilder.DropTable(
-                name: "PaymentResult");
 
             migrationBuilder.DropTable(
                 name: "RefreshToken");

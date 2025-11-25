@@ -48,7 +48,4 @@ public partial class Order
     public virtual ICollection<PaymentHistory> PaymentHistories { get; set; } = new List<PaymentHistory>();
 
     public virtual ICollection<TrackingHistory> TrackingHistories { get; set; } = new List<TrackingHistory>();
-
-    public virtual ICollection<PaymentResult> PaymentResults { get; set; } = new List<PaymentResult>();
-
 }
