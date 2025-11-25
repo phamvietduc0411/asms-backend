@@ -11,12 +11,12 @@ namespace ASMS.Services.Interfaces
 {
     public interface IOrderService
     {
-        Task<PaginatedOrderResponse> GetWithFilterAsync(int pageNumber, int pageSize, string? customerCode, DateOnly? orderDate, DateOnly? depositDate, DateOnly? returnDate);
+        Task<PaginatedOrderResponse> GetWithFilterAsync(int pageNumber, int pageSize, string? customerCode, DateOnly? orderDate, DateOnly? depositDate, DateOnly? returnDate, string style);
         Task<OrderResponse?> GetByCodeAsync(string orderCode);
         Task<CreateOrderResponse> CreateAsync(CreateOrderRequest request);
         Task<OrderResponse> UpdateAsync(string orderCode, UpdateOrderRequest request);
         Task<CreateOrderDetailResponse> CreateOrderDetailAsync(CreateOrderDetailRequest request);
-        Task<List<CreateOrderDetailResponse>> GetOrderDetailsAsync(string orderCode);
+        Task<List<OrderDetailItemResponse>> GetOrderDetailsAsync(string orderCode);
         Task<CreateOrderWithDetailsResponse> CreateOrderWithDetailsAsync(CreateOrderWithDetailsRequest request);
     }
 }
