@@ -41,6 +41,8 @@ public partial class VstorageContext : DbContext
     public virtual DbSet<OrderDetailService> OrderDetailServices { get; set; }
 
     public virtual DbSet<PaymentHistory> PaymentHistories { get; set; }
+    public virtual DbSet<PaymentResult> PaymentResults { get; set; }
+
 
     public virtual DbSet<ProductType> ProductTypes { get; set; }
 
@@ -65,10 +67,43 @@ public partial class VstorageContext : DbContext
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     //=> optionsBuilder.UseSqlServer("Server=ROG-ZEPHYRUS-G1\\VIETDUC;Database=VStorage;Uid=sa;Pwd=123456;Trusted_Connection=True;TrustServerCertificate=True");
     //=> optionsBuilder.UseSqlServer("Server=LAPTOP-39B7IASC\\SQLEXPRESS;Database=VStoragePublic;Uid=sa;Pwd=1;Trusted_Connection=True;TrustServerCertificate=True;");
-    => optionsBuilder.UseSqlServer("Server=tcp:asmsdb.database.windows.net,1433;Initial Catalog=VStoragePublic;Persist Security Info=False;User ID=asmsadminlogin;Password=@Testpassword;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=True;Connection Timeout=30;");
+     => optionsBuilder.UseSqlServer("Server=tcp:asmsdb.database.windows.net,1433;Initial Catalog=VStoragePublic;Persist Security Info=False;User ID=asmsadminlogin;Password=@Testpassword;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=True;Connection Timeout=30;");
+    //"DefaultConnection": "Server=DESKTOP-F3F1PD5\\SQLEXPRESS;Database=VStorage;Uid=sa;Pwd=12345;Trusted_Connection=True;TrustServerCertificate=True"
+    //=> optionsBuilder.UseSqlServer("Server=DESKTOP-F3F1PD5\\SQLEXPRESS;Database=VStorage;Uid=sa;Pwd=12345;Trusted_Connection=True;TrustServerCertificate=True");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+
+        modelBuilder.Entity<PaymentResult>(entity =>
+        {
+            entity.ToTable("PaymentResult");
+
+            entity.Property(e => e.PaymentCode)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+
+            entity.Property(e => e.OrderCode)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+
+            entity.Property(e => e.Status)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+
+            entity.Property(e => e.Message)
+                .HasMaxLength(1000);
+
+            entity.Property(e => e.Url)
+                .HasMaxLength(1000);
+
+            // Quan hệ FK với Order
+            entity.HasOne(e => e.Order)
+                .WithMany(o => o.PaymentResults)
+                .HasForeignKey(e => e.OrderCode)
+                .HasPrincipalKey(o => o.OrderCode)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
         modelBuilder.Entity<Building>(entity =>
         {
             entity.ToTable("Building");
@@ -206,7 +241,7 @@ public partial class VstorageContext : DbContext
         {
             entity.ToTable("Customer");
 
-            entity.HasIndex(e => e.CustomerCode, "AK_Customer_CustomerCode").IsUnique();
+           // entity.HasIndex(e => e.CustomerCode, "AK_Customer_CustomerCode").IsUnique();
 
             entity.HasIndex(e => e.CustomerCode, "UQ_Customer_CustomerCode").IsUnique();
 
