@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using ASMS.Repositories.Infrastructures;
 using ASMS.Services.Model.OrderDetail;
 using ASMS.Services.Model.Orders;
+using ASMS.Services.Model.TrackingHistories;
 
 namespace ASMS.Services.Interfaces
 {
@@ -18,5 +19,7 @@ namespace ASMS.Services.Interfaces
         Task<CreateOrderDetailResponse> CreateOrderDetailAsync(CreateOrderDetailRequest request);
         Task<List<CreateOrderDetailResponse>> GetOrderDetailsAsync(string orderCode);
         Task<CreateOrderWithDetailsResponse> CreateOrderWithDetailsAsync(CreateOrderWithDetailsRequest request);
+
+        Task<TrackingHistoryResponse> UpdateOrderProcessAsync(UpdateOrderProcessRequest request);
     }
 }

@@ -13,5 +13,7 @@ namespace ASMS.Services.Interfaces
         Task<TrackingHistoryResponse> CreateAsync(CreateTrackingHistoryRequest request);
         Task<TrackingHistoryResponse> UpdateAsync(int id, UpdateTrackingHistoryRequest request);
         Task<bool> DeleteAsync(int id);
+        Task<TrackingHistoryResponse> UpdateStatusAsync(UpdateTrackingStatusRequest request);
+        Task<OrderTrackingFlowResponse> GetOrderTrackingFlowAsync(string orderCode);
     }
 }
