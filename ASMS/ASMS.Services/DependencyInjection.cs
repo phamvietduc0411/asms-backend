@@ -44,6 +44,7 @@ namespace ASMS.Services
             services.AddScoped<IImageUrlService, ImageUrlService>();
             services.AddScoped<IShelfTypeService, ShelfTypeService>();
             services.AddScoped<IPayOSService, PayOSService>();
+           
             services.Configure<PayOSSettings>(
             configuration.GetSection("PayOSSettings"));
 
