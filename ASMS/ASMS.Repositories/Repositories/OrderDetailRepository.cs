@@ -39,7 +39,10 @@ namespace ASMS.Repositories.Repositories
         public async Task<List<OrderDetail>> GetByOrderCodeAsync(string orderCode)
         {
             return await _context.OrderDetails
-                .Include (x => x.OrderCodeNavigation)
+                .Include(od => od.OrderDetailProductTypes)
+                .Include(od => od.OrderDetailServices)
+                .Include(od => od.ContainerCodeNavigation)
+                //.Include (x => x.OrderCodeNavigation)
                 .Where(x => x.OrderCode == orderCode)
                 .ToListAsync();
         }

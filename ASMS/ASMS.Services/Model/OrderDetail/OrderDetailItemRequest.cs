@@ -23,6 +23,11 @@ namespace ASMS.Services.Model.OrderDetail
         public int? ContainerType { get; set; }
 
         public int? ContainerQuantity { get; set; }
+        public int? StorageTypeId { get; set; }
+
+        public int? ShelfTypeId { get; set; }
+
+        public int? ShelfQuantity { get; set; }
 
         public List<int>? ProductTypeIds { get; set; }
 

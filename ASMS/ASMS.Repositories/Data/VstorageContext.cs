@@ -43,7 +43,6 @@ public partial class VstorageContext : DbContext
     public virtual DbSet<PaymentHistory> PaymentHistories { get; set; }
 
     public virtual DbSet<ProductType> ProductTypes { get; set; }
-
     public virtual DbSet<Service> Services { get; set; }
 
     public virtual DbSet<Shelf> Shelves { get; set; }
@@ -351,7 +350,7 @@ public partial class VstorageContext : DbContext
             entity.Property(e => e.Status)
                 .HasMaxLength(20)
                 .IsUnicode(false);
-            entity.Property(e => e.StorageTypeId).HasColumnName("StorageTypeID");
+            entity.Property(e => e.Style).HasMaxLength(50);
             entity.Property(e => e.TotalPrice).HasColumnType("decimal(18, 0)");
             entity.Property(e => e.UnpaidAmount).HasColumnType("decimal(18, 0)");
 
@@ -390,6 +389,7 @@ public partial class VstorageContext : DbContext
             entity.Property(e => e.StorageCode)
                 .HasMaxLength(50)
                 .IsUnicode(false);
+            entity.Property(e => e.StorageTypeId).HasColumnName("StorageTypeID");
             entity.Property(e => e.SubTotal).HasColumnType("decimal(18, 0)");
 
             entity.HasOne(d => d.ContainerCodeNavigation).WithMany(p => p.OrderDetails)

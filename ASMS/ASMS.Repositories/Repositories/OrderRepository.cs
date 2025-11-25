@@ -15,7 +15,7 @@ namespace ASMS.Repositories.Repositories
     public class OrderRepository : GenericRepository<Order>, IOrderRepository
     {
         public OrderRepository(VstorageContext context, ILogger logger) : base(context, logger) { }
-        public async Task<List<Order>> GetWithFilterAsync(int pageNumber, int pageSize, string? customerCode, DateOnly? orderDate, DateOnly? depositDate, DateOnly? returnDate)
+        public async Task<List<Order>> GetWithFilterAsync(int pageNumber, int pageSize, string? customerCode, DateOnly? orderDate, DateOnly? depositDate, DateOnly? returnDate, string style)
         {
             try
             {
@@ -35,6 +35,9 @@ namespace ASMS.Repositories.Repositories
                 if (returnDate.HasValue)
                     query = query.Where(o => o.ReturnDate == returnDate.Value);
 
+                if (!string.IsNullOrWhiteSpace(style))
+                    query = query.Where(o => o.Style == style);
+
                 return await query
                     .OrderByDescending(o => o.OrderDate)
                     .Skip((pageNumber - 1) * pageSize)
@@ -48,7 +51,7 @@ namespace ASMS.Repositories.Repositories
             }
         }
 
-        public async Task<int> GetTotalCountWithFilterAsync(string? customerCode, DateOnly? orderDate, DateOnly? depositDate, DateOnly? returnDate)
+        public async Task<int> GetTotalCountWithFilterAsync(string? customerCode, DateOnly? orderDate, DateOnly? depositDate, DateOnly? returnDate, string style)
         {
             try
             {
@@ -65,6 +68,9 @@ namespace ASMS.Repositories.Repositories
 
                 if (returnDate.HasValue)
                     query = query.Where(o => o.ReturnDate == returnDate.Value);
+
+                if (!string.IsNullOrWhiteSpace(style))
+                    query = query.Where(o => o.Style == style);
 
                 return await query.CountAsync();
             }

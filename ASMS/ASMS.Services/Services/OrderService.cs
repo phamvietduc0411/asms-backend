@@ -30,10 +30,10 @@ namespace ASMS.Services.Services
             _clpService = clpService;
         }
 
-        public async Task<PaginatedOrderResponse> GetWithFilterAsync(int pageNumber, int pageSize, string? customerCode, DateOnly? orderDate, DateOnly? depositDate, DateOnly? returnDate)
+        public async Task<PaginatedOrderResponse> GetWithFilterAsync(int pageNumber, int pageSize, string? customerCode, DateOnly? orderDate, DateOnly? depositDate, DateOnly? returnDate, string style)
         {
-            var orders = await _unitOfWork.Orders.GetWithFilterAsync(pageNumber, pageSize, customerCode, orderDate, depositDate, returnDate);
-            var totalCount = await _unitOfWork.Orders.GetTotalCountWithFilterAsync(customerCode, orderDate, depositDate, returnDate);
+            var orders = await _unitOfWork.Orders.GetWithFilterAsync(pageNumber, pageSize, customerCode, orderDate, depositDate, returnDate, style);
+            var totalCount = await _unitOfWork.Orders.GetTotalCountWithFilterAsync(customerCode, orderDate, depositDate, returnDate, style);
 
             return new PaginatedOrderResponse
             {
@@ -230,15 +230,16 @@ namespace ASMS.Services.Services
                 PaymentStatus = request.PaymentStatus ?? "Unpaid",
                 TotalPrice = totalPrice,
                 UnpaidAmount = totalPrice,
-                StorageTypeId = request.StorageTypeId,
-                ShelfTypeId = request.ShelfTypeId,
-                ShelfQuantity = request.ShelfQuantity,
+                //StorageTypeId = request.StorageTypeId,
+                //ShelfTypeId = request.ShelfTypeId,
+                //ShelfQuantity = request.ShelfQuantity,
                 CustomerName = request.CustomerName,
                 PhoneContact = request.PhoneContact,
                 Email = request.Email,
                 Note = request.Note,
                 Image = request.Image,
                 Address = request.Address,
+                Style = request.Style
             };
 
             await _unitOfWork.Orders.AddAsync(order);
@@ -290,6 +291,9 @@ namespace ASMS.Services.Services
                     Quantity = detailRequest.Quantity,
                     SubTotal = subTotal,
                     //Address = detailRequest.Address,
+                    StorageTypeId = detailRequest.StorageTypeId,
+                    ShelfTypeId = detailRequest.ShelfTypeId,
+                    ShelfQuantity = detailRequest.ShelfQuantity,
                     Image = detailRequest.Image,
                     ContainerType = detailRequest.ContainerType,
                     ContainerQuantity = detailRequest.ContainerQuantity
@@ -336,10 +340,13 @@ namespace ASMS.Services.Services
                     Quantity = detailRequest.Quantity,
                     SubTotal = subTotal,
                     //Address = detailRequest.Address,
+                    StorageTypeId = detailRequest.StorageTypeId,
+                    ShelfTypeId = detailRequest.ShelfTypeId,
+                    ShelfQuantity = detailRequest.ShelfQuantity,
                     Image = detailRequest.Image,
                     ContainerType = detailRequest.ContainerType,
                     ContainerQuantity = detailRequest.ContainerQuantity,
-                    Status = string.IsNullOrEmpty(detailRequest.ContainerCode) ? "Pending" : "Assigned"
+                    //Status = string.IsNullOrEmpty(detailRequest.ContainerCode) ? "Pending" : "Assigned"
                 });
             }
 
@@ -387,14 +394,14 @@ namespace ASMS.Services.Services
             };
         }
         // Lấy order details
-        public async Task<List<CreateOrderDetailResponse>> GetOrderDetailsAsync(string orderCode)
+        public async Task<List<OrderDetailItemResponse>> GetOrderDetailsAsync(string orderCode)
         {
             var orderDetails = await _unitOfWork.OrderDetails.GetByOrderCodeAsync(orderCode);
 
-            return orderDetails.Select(od => new CreateOrderDetailResponse
+            return orderDetails.Select(od => new OrderDetailItemResponse
             {
                 OrderDetailId = od.OrderDetailId,
-                OrderCode = od.OrderCode,
+                //OrderCode = od.OrderCode,
                 StorageCode = od.StorageCode,
                 ContainerCode = od.ContainerCode,
                 FloorCode = od.ContainerCodeNavigation?.FloorCode,
@@ -405,7 +412,17 @@ namespace ASMS.Services.Services
                 SubTotal = od.SubTotal,
                 //Address = od.Address,
                 Image = od.Image,
-                Status = "Assigned"
+                ContainerType = od.ContainerType,
+                ContainerQuantity = od.ContainerQuantity,  
+                StorageTypeId = od.StorageTypeId,
+                ShelfTypeId = od.ShelfTypeId,
+                ShelfQuantity = od.ShelfQuantity,
+                ProductTypeIds = od.OrderDetailProductTypes
+        .Select(odpt => odpt.ProductTypeId)
+        .ToList(),
+                ServiceIds = od.OrderDetailServices
+        .Select(ods => ods.ServiceId) 
+        .ToList()
             }).ToList();
         }
         // Generate order code theo format: YYYYMMDD-XXXX
