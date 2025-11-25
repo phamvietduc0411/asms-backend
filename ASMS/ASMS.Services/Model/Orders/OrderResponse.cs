@@ -17,5 +17,6 @@ namespace ASMS.Services.Model.Orders
         public string? PaymentStatus { get; set; }
         public decimal? TotalPrice { get; set; }
         public decimal? UnpaidAmount { get; set; }
+        public string? Style { get; set; }
     }
 }

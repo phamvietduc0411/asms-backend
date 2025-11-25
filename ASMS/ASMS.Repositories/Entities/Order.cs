@@ -23,12 +23,6 @@ public partial class Order
 
     public decimal? UnpaidAmount { get; set; }
 
-    public int? StorageTypeId { get; set; }
-
-    public int? ShelfTypeId { get; set; }
-
-    public int? ShelfQuantity { get; set; }
-
     public string? CustomerName { get; set; }
 
     public string? PhoneContact { get; set; }
@@ -40,6 +34,8 @@ public partial class Order
     public string? Address { get; set; }
 
     public string? Image { get; set; }
+
+    public string? Style { get; set; }
 
     public virtual Customer? CustomerCodeNavigation { get; set; }
 

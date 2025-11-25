@@ -16,10 +16,19 @@ namespace ASMS.Services.Model.OrderDetail
         public decimal? Price { get; set; }
         public string? Quantity { get; set; }
         public decimal? SubTotal { get; set; }
-        public string? Address { get; set; }
+        //public string? Address { get; set; }
         public string? Image { get; set; }
         public int? ContainerType { get; set; }
         public int? ContainerQuantity { get; set; }
-        public string? Status { get; set; }
+        //public string? Status { get; set; }
+        public int? StorageTypeId { get; set; }
+
+        public int? ShelfTypeId { get; set; }
+
+        public int? ShelfQuantity { get; set; }
+
+        public List<int>? ProductTypeIds { get; set; }
+
+        public List<int>? ServiceIds { get; set; }
     }
 }

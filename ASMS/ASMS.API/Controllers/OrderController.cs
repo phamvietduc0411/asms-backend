@@ -29,12 +29,13 @@ namespace ASMS.API.Controllers
             [FromQuery] string? customerCode = null,
             [FromQuery] DateOnly? orderDate = null,
             [FromQuery] DateOnly? depositDate = null,
-            [FromQuery] DateOnly? returnDate = null)
+            [FromQuery] DateOnly? returnDate = null,
+            [FromQuery] string? style = null)
         {
             if (pageNumber < 1 || pageSize < 1)
                 return BadRequest("Page number and page size must be greater than 0.");
 
-            var result = await _orderService.GetWithFilterAsync(pageNumber, pageSize, customerCode, orderDate, depositDate, returnDate);
+            var result = await _orderService.GetWithFilterAsync(pageNumber, pageSize, customerCode, orderDate, depositDate, returnDate, style);
             return Ok(result);
         }
         #endregion

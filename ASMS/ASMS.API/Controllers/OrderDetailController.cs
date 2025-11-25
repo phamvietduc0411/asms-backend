@@ -36,12 +36,12 @@ namespace ASMS.API.Controllers
             return Ok(result);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CreateOrderDetailRequest request)
-        {
-            var result = await _service.CreateAsync(request);
-            return Ok(result);
-        }
+        //[HttpPost]
+        //public async Task<IActionResult> Create([FromBody] CreateOrderDetailRequest request)
+        //{
+        //    var result = await _service.CreateAsync(request);
+        //    return Ok(result);
+        //}
 
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateOrderDetailRequest request)
