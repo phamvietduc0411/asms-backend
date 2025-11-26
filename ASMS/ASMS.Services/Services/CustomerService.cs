@@ -1,4 +1,5 @@
-﻿using ASMS.Repositories.Entities;
+﻿using ASMS.Repositories.Common;
+using ASMS.Repositories.Entities;
 using ASMS.Repositories.Infrastructures;
 using ASMS.Services.Interfaces;
 using ASMS.Services.Model.Customer;
@@ -37,6 +38,45 @@ namespace ASMS.Services.Services
             await _unitOfWork.Customer.UpdateAsync(updateInfo);
             await _unitOfWork.CompleteAsync();
             return updateInfo;
+        }
+        public async Task<PaginatedList<GetCustomerResponse>> GetAllAsync(int pageNumber, int pageSize)
+        {
+            var result = await _unitOfWork.Customer.GetAllAsync(pageNumber, pageSize);
+
+            var mappedItems = _mapper.Map<List<GetCustomerResponse>>(result.Items);
+
+            return new PaginatedList<GetCustomerResponse>(
+                mappedItems,
+                result.CurrentPage,
+                result.PageSize,
+                result.TotalRecords)
+            {
+                TotalPages = result.TotalPages
+            };
+        }
+
+        public async Task<string> GetLastRecord()
+        {
+            var latRecord = await _unitOfWork.Customer.GetLastRecord();
+
+            int nextNumber = 1;
+
+            if (latRecord != null && !string.IsNullOrWhiteSpace(latRecord.CustomerCode))
+            {
+                string code = latRecord.CustomerCode.Trim();
+
+                if (code.StartsWith("CTM", StringComparison.OrdinalIgnoreCase))
+                {
+                    string numberPart = code.Substring(3);
+                    if (int.TryParse(numberPart, out int currentNumber))
+                    {
+                        nextNumber = currentNumber + 1;
+                    }
+                }
+            }
+            string newCode = $"CTM{nextNumber:D3}";
+
+            return newCode;
         }
     }
 }

@@ -13,7 +13,15 @@ public partial class ProductType
 
     public bool? IsActive { get; set; }
 
-    public virtual ICollection<ContainerType> ContainerTypes { get; set; } = new List<ContainerType>();
+    public bool? IsFragile { get; set; }
+
+    public bool? CanStack { get; set; }
+
+    public string? Description { get; set; }
+
+    public virtual ICollection<Container> Containers { get; set; } = new List<Container>();
+
+    public virtual ICollection<OrderDetailProductType> OrderDetailProductTypes { get; set; } = new List<OrderDetailProductType>();
 
     public virtual ICollection<Storage> Storages { get; set; } = new List<Storage>();
 }

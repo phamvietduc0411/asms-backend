@@ -15,5 +15,6 @@ namespace ASMS.Services.Model.Shelves
         public decimal? Length { get; set; }
         public decimal? Width { get; set; }
         public decimal? Height { get; set; }
+        public string? ImageUrl { get; set; }
     }
 }

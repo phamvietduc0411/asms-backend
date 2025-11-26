@@ -16,5 +16,11 @@ namespace ASMS.Services.Model.Floor
         public decimal? Length { get; set; }
         public decimal? Width { get; set; }
         public decimal? Height { get; set; }
+        public decimal? MaxWeight { get; set; }
+        public decimal? CurrentWeight { get; set; }
+        public int? MaxContainers { get; set; }
+        public int? CurrentContainerCount { get; set; }
+        public decimal? UtilizationRate { get; set; }
+        public string? ImageUrl { get; set; }
     }
 }

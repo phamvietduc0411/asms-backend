@@ -15,11 +15,45 @@ namespace ASMS.API.Controllers
             _containerService = containerService;
         }
 
+        /// <summary>
+        /// Retrieves all containers with optional filters (Floor, Shelf, Storage) and pagination
+        /// </summary>
+        /// <param name="floorCode">Optional filter by floor code</param>
+        /// <param name="shelfCode">Optional filter by shelf code</param>
+        /// <param name="storageCode">Optional filter by storage code</param>
+        /// <param name="pageNumber">Page number (default: 1)</param>
+        /// <param name="pageSize">Page size (default: 10, max: 100)</param>
+        /// <returns>List of containers with Type from ContainerType</returns>
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetContainers(
+            [FromQuery] string? floorCode,
+            [FromQuery] string? shelfCode,
+            [FromQuery] string? storageCode,
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10)
         {
-            var result = await _containerService.GetAllAsync();
-            return Ok(result);
+            try
+            {
+
+                var result = await _containerService.GetWithFilterAsync(floorCode, shelfCode, storageCode, pageNumber, pageSize);
+
+                return Ok(new
+                {
+                    success = true,
+                    data = result.Items,
+                    pagination = new
+                    {
+                        currentPage = result.CurrentPage,
+                        pageSize = result.PageSize,
+                        totalRecords = result.TotalRecords,
+                        totalPages = result.TotalPages
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
         }
 
         [HttpGet("{code}")]
@@ -54,6 +88,153 @@ namespace ASMS.API.Controllers
             if (!deleted)
                 return NotFound();
             return NoContent();
+        }
+
+        // PUT: api/containers/positions
+        [HttpPut("positions")]
+        public async Task<IActionResult> UpdatePositions([FromBody] UpdateContainerPositionRequest request)
+        {
+            try
+            {
+                var result = await _containerService.UpdateContainerPositionAsync(request);
+
+                if (!result)
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = "Một hoặc nhiều containers không tìm thấy hoặc cập nhật thất bại"
+                    });
+                }
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Container positions updated successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = ex.Message
+                });
+            }
+        }
+        /// <summary>
+        /// Xếp container vào vị trí đã chọn
+        /// </summary>
+        /// <remarks>
+        /// Sample request:
+        /// 
+        ///     POST /api/container/place
+        ///     {
+        ///         "containerCode": "CONT-A-001",
+        ///         "floorCode": "FL-1-SHELF-1",
+        ///         "layer": 0,
+        ///         "serialNumber": 5,
+        ///         "productTypeId": 1,
+        ///         "requiresRearrangement": false,
+        ///         "rearrangeContainerCode": null
+        ///     }
+        ///     
+        /// Sample request with rearrangement:
+        /// 
+        ///     POST /api/container/place
+        ///     {
+        ///         "containerCode": "CONT-B-002",
+        ///         "floorCode": "FL-2-SHELF-1",
+        ///         "layer": 0,
+        ///         "serialNumber": 8,
+        ///         "productTypeId": 2,
+        ///         "requiresRearrangement": true,
+        ///         "rearrangeContainerCode": "CONT-FRAGILE-A"
+        ///     }
+        /// 
+        /// </remarks>
+        /// <param name="request">Thông tin container và vị trí</param>
+        /// <returns>Kết quả xếp container</returns>
+        [HttpPost("place")]
+        public async Task<ActionResult<PlaceContainerResponse>> PlaceContainer(
+            [FromBody] PlaceContainerRequest request)
+        {
+            try
+            {
+                var response = await _containerService.PlaceContainerAsync(request);
+
+                if (!response.Success)
+                {
+                    return BadRequest(response);
+                }
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new PlaceContainerResponse
+                {
+                    Success = false,
+                    Message = "Internal server error"
+                });
+            }
+        }
+
+        /// <summary>
+        /// Lấy container ra khỏi kho (khi khách hàng lấy hàng)
+        /// </summary>
+        /// <remarks>
+        /// Sample request:
+        /// 
+        ///     POST /api/container/remove
+        ///     {
+        ///         "containerCode": "CONT-A-001"
+        ///     }
+        /// 
+        /// </remarks>
+        /// <param name="containerCode">Mã container cần lấy ra</param>
+        /// <returns>Kết quả lấy container</returns>
+        [HttpPost("remove")]
+        public async Task<ActionResult<RemoveContainerResponse>> RemoveContainer(
+            [FromBody] string containerCode, string orderCode, string performedBy)
+        {
+            try
+            {
+
+                if (string.IsNullOrEmpty(containerCode))
+                {
+                    return BadRequest(new RemoveContainerResponse
+                    {
+                        Success = false,
+                        Message = "Container code is required"
+                    });
+                }
+
+                var response = await _containerService.RemoveContainerAsync(containerCode, orderCode, performedBy);
+
+                if (!response.Success)
+                {
+
+
+                    if (!string.IsNullOrEmpty(response.BlockingContainerCode))
+                    {
+                        return Conflict(response);
+                    }
+
+                    return BadRequest(response);
+                }
+
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new RemoveContainerResponse
+                {
+                    Success = false,
+                    Message = "Internal server error"
+                });
+            }
         }
     }
 }

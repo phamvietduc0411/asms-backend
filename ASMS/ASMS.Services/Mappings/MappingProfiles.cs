@@ -5,17 +5,28 @@ using ASMS.Services.Model.Container;
 using ASMS.Services.Model.ContainerLocationLog;
 using ASMS.Services.Model.ContainerType;
 using ASMS.Services.Model.Customer;
+using ASMS.Services.Model.Employee;
 using ASMS.Services.Model.Floor;
 using ASMS.Services.Model.FloorBlocks;
 using ASMS.Services.Model.OrderDetail;
+using ASMS.Services.Model.Orders;
 using ASMS.Services.Model.ProductType;
 using ASMS.Services.Model.Services;
 using ASMS.Services.Model.Shelves;
 using ASMS.Services.Model.StorageBlocks;
+using ASMS.Services.Model.Storages;
+using ASMS.Services.Model.StorageTypes;
 using ASMS.Services.Model.TrackingHistories;
 using ASMS.Services.Model.WorkflowSteps;
 using ASMS.Services.Model.WorkflowTemplates;
 using AutoMapper;
+using ASMS.Services.Model.FloorBlocks;
+using ASMS.Services.Model.ContainerType;
+using ASMS.Services.Model.Shelves;
+using ASMS.Services.Model.ContainerLocationLog;
+using ASMS.Services.Model.PaymentHistory;
+using ASMS.Services.Model.EmployeeRole;
+using ASMS.Services.Model.ShelfType;
 
 namespace ASMS.Services.Mappings
 {
@@ -28,9 +39,7 @@ namespace ASMS.Services.Mappings
             CreateMap<UpdateRoleRequest, EmployeeRole>();
             #endregion
             #region WorkflowTemplate
-            CreateMap<WorkflowTemplate, WorkflowTemplateResponse>()
-                .ForMember(dest => dest.StorageTypeName,
-                    opt => opt.MapFrom(src => src.StorageType != null ? src.StorageType.Name : null));
+            CreateMap<WorkflowTemplate, WorkflowTemplateResponse>();
             CreateMap<CreateWorkflowTemplateRequest, WorkflowTemplate>();
             CreateMap<UpdateWorkflowTemplateRequest, WorkflowTemplate>()
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
@@ -52,12 +61,10 @@ namespace ASMS.Services.Mappings
             #region Service
             CreateMap<ASMS.Repositories.Entities.Service, ServiceResponse>();
 
-            CreateMap<CreateServiceRequest, ASMS.Repositories.Entities.Service>()
-                .ForMember(dest => dest.OrderDetails, opt => opt.Ignore());
+            CreateMap<CreateServiceRequest, ASMS.Repositories.Entities.Service>();
 
             CreateMap<UpdateServiceRequest, ASMS.Repositories.Entities.Service>()
                 .ForMember(dest => dest.ServiceId, opt => opt.Ignore())
-                .ForMember(dest => dest.OrderDetails, opt => opt.Ignore())
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
             #endregion
             #region Tracking History
@@ -71,28 +78,22 @@ namespace ASMS.Services.Mappings
                 .ForMember(d => d.TrackingHistoryId, o => o.Ignore())
                 .ForMember(d => d.OrderCodeNavigation, o => o.Ignore()) 
                 .ForAllMembers(o => o.Condition((src, dest, srcMember) => srcMember != null));
-            #endregion
-            #region Storage Block
-            CreateMap<StorageBlock, StorageBlockResponse>();
-
-            CreateMap<CreateStorageBlockRequest, StorageBlock>()
-                .ForMember(d => d.IsActive, o => o.Ignore())
-                .ForMember(d => d.StorageCodeNavigation, o => o.Ignore());
-
-            CreateMap<UpdateStorageBlockRequest, StorageBlock>()
-                .ForMember(d => d.StorageBlockCode, o => o.Ignore())
-                .ForMember(d => d.StorageCodeNavigation, o => o.Ignore())
-                .ForAllMembers(o => o.Condition((src, dest, srcMember) => srcMember != null));
+            CreateMap<UpdateTrackingStatusRequest, TrackingHistory>()
+            .ForMember(dest => dest.TrackingHistoryId, opt => opt.Ignore()) 
+            .ForMember(dest => dest.CreateAt, opt => opt.MapFrom(src => DateOnly.FromDateTime(DateTime.Now)))
+            .ForMember(dest => dest.OrderCodeNavigation, opt => opt.Ignore()); 
             #endregion
             #region Building
             CreateMap<CreateBuildingRequest, Building>()
                 .ForMember(b => b.BuildingCode, bl => bl.MapFrom(src => src.BuildingCode));
             CreateMap<UpdateBuildingRequest, Building>()
                 .ForMember(b => b.BuildingCode, bl => bl.MapFrom(src => src.BuildingCode));
+            CreateMap<Building, GetBuildingResponse>();
             #endregion
             #region ProductType
             CreateMap<CreateTypeRequest, ProductType>();
             CreateMap<UpdateTypeRequest, ProductType>();
+            CreateMap<ProductType, GetProductTypeResponse>();
             #endregion
             #region Floor
             CreateMap<CreateFloorRequest, Floor>();
@@ -103,17 +104,7 @@ namespace ASMS.Services.Mappings
             #region Container Type
             CreateMap<CreateContainerTypeRequest, ContainerType>();
             CreateMap<UpdateContainerTypeRequest, ContainerType>();
-            #endregion
-            #region FloorBlock
-            CreateMap<FloorBlock, FloorBlockResponse>();
-            CreateMap<CreateFloorBlockRequest, FloorBlock>()
-                .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => true))
-                .ForMember(dest => dest.FloorCodeNavigation, opt => opt.Ignore());
-
-            CreateMap<UpdateFloorBlockRequest, FloorBlock>()
-                .ForMember(dest => dest.FloorBlockCode, opt => opt.Ignore())
-                .ForMember(dest => dest.FloorCodeNavigation, opt => opt.Ignore())
-                .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
+            CreateMap<ContainerType, GetContainerTypeResponse>();
             #endregion
             #region Shelf
             CreateMap<Shelf, ShelfResponse>();
@@ -145,7 +136,7 @@ namespace ASMS.Services.Mappings
             #endregion
             #region Container
             CreateMap<Container, ContainerResponse>()
-                .ForMember(dest => dest.FloorStatus, opt => opt.MapFrom(src => src.FloorCodeNavigation != null ? src.FloorCodeNavigation.Status : null));
+                .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.ContainerType != null ? src.ContainerType.Type : null));
 
             CreateMap<CreateContainerRequest, Container>()
                 .ForMember(dest => dest.FloorCodeNavigation, opt => opt.Ignore())
@@ -161,7 +152,53 @@ namespace ASMS.Services.Mappings
             #endregion
             #region Customer
             CreateMap<CreateCustomerRequest, Customer>();    
-            CreateMap<UpdateCustomerRequest, Customer>();    
+            CreateMap<UpdateCustomerRequest, Customer>();
+            CreateMap<Customer, GetCustomerResponse>();
+            #endregion
+            #region Employee
+            CreateMap<CreateEmployeeRequest, Employee>();    
+            CreateMap<UpdateEmployeeRequest, Employee>();
+            CreateMap<Employee, GetEmployeeResponse>()
+                .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.EmployeeRole != null ? src.EmployeeRole.Name : null));
+            CreateMap<EmployeeRole, GetEmployeeRoleResponse>();
+            #endregion
+            #region Storage
+            CreateMap<Storage, StorageResponse>()
+                .ForMember(d => d.BuildingCode, o => o.MapFrom(s => s.BuildingId))
+                .ForMember(d => d.StorageTypeName, o => o.MapFrom(s => s.StorageType!.Name))
+                .ForMember(d => d.ProductTypeName, o => o.MapFrom(s => s.ProductType!.Name));
+
+            CreateMap<CreateStorageRequest, Storage>();
+            CreateMap<UpdateStorageRequest, Storage>()
+                .ForMember(d => d.StorageCode, o => o.Ignore());
+            #endregion
+            #region Order
+            CreateMap<Order, OrderResponse>();
+            CreateMap<CreateOrderRequest, Order>();
+            CreateMap<UpdateOrderRequest, Order>()
+                .ForMember(d => d.OrderCode, o => o.Ignore());
+            CreateMap<UpdateOrderProcessRequest, TrackingHistory>();
+
+            #endregion
+            #region StorageType
+            CreateMap<StorageType, StorageTypeResponse>();
+            CreateMap<CreateStorageTypeRequest, StorageType>();
+            CreateMap<UpdateStorageTypeRequest, StorageType>()
+                .ForMember(d => d.StorageTypeId, o => o.Ignore());
+            #endregion
+            #region PaymentHistory
+            CreateMap<CreatePaymentHistoryRequest, PaymentHistory>();
+
+            CreateMap<UpdatePaymentHistoryRequest, PaymentHistory>()
+                .ForMember(dest => dest.PaymentHistoryCode, opt => opt.Ignore())
+                .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
+
+            CreateMap<PaymentHistory, PaymentHistoryResponse>();
+            #endregion
+            #region Shelftype
+            CreateMap<ShelfType, GetShelfTypeResponse>();
+            CreateMap<CreateShelfTypeRequest, ShelfType>();
+            CreateMap<UpdateShelfTypeRequest, ShelfType>();
             #endregion
         }
 

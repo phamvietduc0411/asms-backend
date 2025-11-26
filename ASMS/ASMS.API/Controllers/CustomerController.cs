@@ -1,5 +1,7 @@
 ﻿using ASMS.Services.Interfaces;
 using ASMS.Services.Model.Customer;
+using ASMS.Services.Utilities;
+using Azure.Core;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ASMS.API.Controllers
@@ -18,7 +20,7 @@ namespace ASMS.API.Controllers
             _logger = logger;
         }
 
-        #region Employee CRUD
+        #region Customer CRUD
         [HttpGet("{id}")]
         public async Task<IActionResult> GetByIdAsync(int id)
         {
@@ -34,6 +36,7 @@ namespace ASMS.API.Controllers
         {
             try
             {
+                request.Password = PasswordHasher.HashPassword(request.Password);
                 var result = await _customerService.AddCustomerAsync(request);
                 return Ok(result);
             }
@@ -63,7 +66,7 @@ namespace ASMS.API.Controllers
             existingCustomer.IsActive = newInfo.IsActive;
             existingCustomer.Address = newInfo.Address;
             existingCustomer.Email = newInfo.Email;
-            existingCustomer.Password = newInfo.Password;
+            existingCustomer.Password = PasswordHasher.HashPassword(newInfo.Password);
 
             var newCustomerInfo = await _customerService.UpdateCustomerAsync(existingCustomer);
 
@@ -92,5 +95,40 @@ namespace ASMS.API.Controllers
             return Ok(new { message = "Marked as deleted." });
         }
         #endregion
+
+        /// <summary>
+        /// Retrieves all customers with pagination
+        /// </summary>
+        /// <param name="pageNumber">Page number (default: 1)</param>
+        /// <param name="pageSize">Page size (default: 10, max: 100)</param>
+        /// <returns>List of customers</returns>
+        [HttpGet]
+        public async Task<IActionResult> GetAllCustomers(
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            try
+            {
+
+                var result = await _customerService.GetAllAsync(pageNumber, pageSize);
+
+                return Ok(new
+                {
+                    success = true,
+                    data = result.Items,
+                    pagination = new
+                    {
+                        currentPage = result.CurrentPage,
+                        pageSize = result.PageSize,
+                        totalRecords = result.TotalRecords,
+                        totalPages = result.TotalPages
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
     }
 }

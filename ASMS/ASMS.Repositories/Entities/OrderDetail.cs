@@ -13,23 +13,31 @@ public partial class OrderDetail
 
     public string? ContainerCode { get; set; }
 
-    public int? ServiceId { get; set; }
-
     public decimal? Price { get; set; }
 
     public string? Quantity { get; set; }
 
     public decimal? SubTotal { get; set; }
 
-    public string? Address { get; set; }
-
     public string? Image { get; set; }
+
+    public int? ContainerType { get; set; }
+
+    public int? ContainerQuantity { get; set; }
+
+    public int? StorageTypeId { get; set; }
+
+    public int? ShelfTypeId { get; set; }
+
+    public int? ShelfQuantity { get; set; }
 
     public virtual Container? ContainerCodeNavigation { get; set; }
 
     public virtual Order? OrderCodeNavigation { get; set; }
 
-    public virtual Service? Service { get; set; }
+    public virtual ICollection<OrderDetailProductType> OrderDetailProductTypes { get; set; } = new List<OrderDetailProductType>();
+
+    public virtual ICollection<OrderDetailService> OrderDetailServices { get; set; } = new List<OrderDetailService>();
 
     public virtual Storage? StorageCodeNavigation { get; set; }
 }

@@ -9,7 +9,19 @@ public partial class StorageType
 
     public string? Name { get; set; }
 
-    public virtual ICollection<Storage> Storages { get; set; } = new List<Storage>();
+    public decimal? Length { get; set; }
 
-    public virtual ICollection<WorkflowTemplate> WorkflowTemplates { get; set; } = new List<WorkflowTemplate>();
+    public decimal? Width { get; set; }
+
+    public decimal? Height { get; set; }
+
+    public decimal? TotalVolume { get; set; }
+
+    public decimal? Area { get; set; }
+
+    public decimal? Price { get; set; }
+
+    public string? ImageUrl { get; set; }
+
+    public virtual ICollection<Storage> Storages { get; set; } = new List<Storage>();
 }

@@ -8,7 +8,7 @@ namespace ASMS.Services.Model.OrderDetail
 {
     public class UpdateOrderDetailRequest
     {
-        public int OrderDetailId { get; set; }
+        //public int OrderDetailId { get; set; }
         public string? OrderCode { get; set; }
         public string? StorageCode { get; set; }
         public string? ContainerCode { get; set; }
@@ -18,5 +18,8 @@ namespace ASMS.Services.Model.OrderDetail
         public decimal? SubTotal { get; set; }
         public string? Address { get; set; }
         public string? Image { get; set; }
+
+        public int? ContainerType { get; set; }
+        public int? ContainerQuantity { get; set; }
     }
 }

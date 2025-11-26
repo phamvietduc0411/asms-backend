@@ -24,13 +24,8 @@ namespace ASMS.Repositories.Repositories
             try
             {
                 var query = _dbSet
-                    .Include(w => w.StorageType)
                     .AsQueryable();
 
-                if (storageTypeId.HasValue)
-                {
-                    query = query.Where(w => w.StorageTypeId == storageTypeId.Value);
-                }
 
                 if (!string.IsNullOrWhiteSpace(statusContains))
                 {
@@ -56,11 +51,6 @@ namespace ASMS.Repositories.Repositories
             {
                 var query = _dbSet.AsQueryable();
 
-                if (storageTypeId.HasValue)
-                {
-                    query = query.Where(w => w.StorageTypeId == storageTypeId.Value);
-                }
-
                 if (!string.IsNullOrWhiteSpace(statusContains))
                 {
                     query = query.Where(w => w.Status != null && w.Status.Contains(statusContains));
@@ -80,7 +70,6 @@ namespace ASMS.Repositories.Repositories
             try
             {
                 return await _dbSet
-                    .Include(w => w.StorageType)
                     .Include(w => w.WorkflowSteps)
                     .FirstOrDefaultAsync(w => w.WorkflowTemplateId == id);
             }

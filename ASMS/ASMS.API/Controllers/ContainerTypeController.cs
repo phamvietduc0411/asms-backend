@@ -50,12 +50,12 @@ namespace ASMS.API.Controllers
             if (existingContainerType == null)
                 return NotFound(new { message = $"Container Type with id {id} not found." });
 
-            existingContainerType.Volume = newType.Volume;
-            existingContainerType.ProductTypeId = newType.ProductTypeId;
-            existingContainerType.Name = newType.Name;
-            existingContainerType.Status = newType.Status;
-            existingContainerType.IsActive = newType.IsActive;
-            existingContainerType.Status = newType.Status;
+            existingContainerType.Type = newType.Type;
+            existingContainerType.Length = newType.Length;
+            existingContainerType.Width = newType.Width;
+            existingContainerType.Height = newType.Height;
+            existingContainerType.ImageUrl = newType.ImageUrl;
+            existingContainerType.Price = newType.Price;
 
             var updateContainerType = await _containerTypeService.UpdateContainerTypeAsync(existingContainerType);
 
@@ -69,21 +69,37 @@ namespace ASMS.API.Controllers
             });
         }
 
-        [HttpDelete("{id}/delete")]
-        public async Task<IActionResult> SoftDeleteAsync(int id)
-        {
-            var existingContainerType = await _containerTypeService.GetByIdAsync(id);
-            if (existingContainerType == null)
-                return NotFound(new { message = "Not found" });
-            existingContainerType.IsActive = false;
-            var deleteContainerType = await _containerTypeService.UpdateContainerTypeAsync(existingContainerType);
+        //[HttpDelete("{id}/delete")]
+        //public async Task<IActionResult> SoftDeleteAsync(int id)
+        //{
+        //    var existingContainerType = await _containerTypeService.GetByIdAsync(id);
+        //    if (existingContainerType == null)
+        //        return NotFound(new { message = "Not found" });
+        //    existingContainerType.IsActive = false;
+        //    var deleteContainerType = await _containerTypeService.UpdateContainerTypeAsync(existingContainerType);
 
-            if (deleteContainerType == null)
-                return StatusCode(500, new { message = "Failed to delete building." });
+        //    if (deleteContainerType == null)
+        //        return StatusCode(500, new { message = "Failed to delete building." });
 
-            return Ok(new { message = "Marked as deleted." });
-        }
+        //    return Ok(new { message = "Marked as deleted." });
+        //}
         #endregion
+        [HttpGet]
+        public async Task<IActionResult> GetContainerTypes()
+        {
+            try
+            {
+                var result = await _containerTypeService.GetAllAsync();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    ErrorMessage = ex.Message,
+                });
+            }
+        }
     }
 }
 

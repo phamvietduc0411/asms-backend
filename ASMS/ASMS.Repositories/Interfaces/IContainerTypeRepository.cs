@@ -10,5 +10,7 @@ namespace ASMS.Repositories.Interfaces
 {
     public interface IContainerTypeRepository : IGenericRepository<ContainerType>
     {
+        Task<ContainerType?> GetByIdAsync(int containerTypeId);
+        Task<List<ContainerType>> GetAllAsync();
     }
 }

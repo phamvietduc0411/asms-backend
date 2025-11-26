@@ -24,7 +24,6 @@ namespace ASMS.Repositories.Repositories
                 .Include(x => x.OrderCodeNavigation)
                 .Include(x => x.StorageCodeNavigation)
                 .Include(x => x.ContainerCodeNavigation)
-                .Include(x => x.Service)
                 .ToListAsync();
         }
 
@@ -34,15 +33,26 @@ namespace ASMS.Repositories.Repositories
                 .Include(x => x.OrderCodeNavigation)
                 .Include(x => x.StorageCodeNavigation)
                 .Include(x => x.ContainerCodeNavigation)
-                .Include(x => x.Service)
                 .FirstOrDefaultAsync(x => x.OrderDetailId == id);
         }
 
         public async Task<List<OrderDetail>> GetByOrderCodeAsync(string orderCode)
         {
             return await _context.OrderDetails
+                .Include(od => od.OrderDetailProductTypes)
+                .Include(od => od.OrderDetailServices)
+                .Include(od => od.ContainerCodeNavigation)
+                //.Include (x => x.OrderCodeNavigation)
                 .Where(x => x.OrderCode == orderCode)
                 .ToListAsync();
+        }
+
+        public async Task<int> GetMaxOrderDetailIdAsync()
+        {
+            if (!await _dbSet.AnyAsync())
+                return 0;
+
+            return await _dbSet.MaxAsync(od => od.OrderDetailId);
         }
     }
 }

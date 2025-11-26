@@ -1,4 +1,5 @@
-﻿using ASMS.Repositories.Data;
+﻿using ASMS.Repositories.Common;
+using ASMS.Repositories.Data;
 using ASMS.Repositories.Entities;
 using ASMS.Repositories.Infrastructures;
 using ASMS.Repositories.Interfaces;
@@ -16,14 +17,25 @@ namespace ASMS.Repositories.Repositories
     {
         public FloorRepository(VstorageContext context, ILogger logger) : base(context, logger) { }
 
-        public async Task<IEnumerable<Floor>> GetAllAsync()
+        public async Task<PaginatedList<Floor>> GetWithFilterAsync(string? shelfCode, int pageNumber, int pageSize)
         {
-            return await _dbSet.AsNoTracking().ToListAsync();
+            var query = _context.Floors.AsQueryable();
+
+            if (!string.IsNullOrEmpty(shelfCode))
+            {
+                query = query.Where(f => f.ShelfCode == shelfCode);
+            }
+
+            query = query.OrderBy(f => f.FloorCode);
+
+            return await PaginatedList<Floor>.CreateAsync(query, pageNumber, pageSize);
         }
 
         public async Task<Floor?> GetByCodeAsync(string floorCode)
         {
-            return await _dbSet.FirstOrDefaultAsync(f => f.FloorCode == floorCode);
+            return await _dbSet
+                .Include(f => f.ShelfCodeNavigation)
+                .FirstOrDefaultAsync(f => f.FloorCode == floorCode);
         }
 
         public async Task DeleteAsync(Floor entity)
@@ -31,5 +43,32 @@ namespace ASMS.Repositories.Repositories
             _dbSet.Remove(entity);
             await Task.CompletedTask;
         }
+        public async Task<List<Floor>> GetByShelfCodeAsync(string shelfCode)
+        {
+            return await _dbSet
+                .Where(f => f.ShelfCode == shelfCode && f.IsActive == true)
+                .OrderBy(f => f.FloorNumber)
+                .ToListAsync(); 
+        }
+        public async Task<List<Floor>> GetByFloorNumbersAsync(List<int> floorNumbers)
+        {
+            return await _context.Floors
+                .Include(f => f.ShelfCodeNavigation)                    
+                    .ThenInclude(s => s.StorageCodeNavigation)         
+                        .ThenInclude(st => st.Building)                 
+                .Where(f => floorNumbers.Contains(f.FloorNumber.Value))
+                .ToListAsync();
+        }
+        public async Task<List<Floor>> GetFloorsByBuildingAndNumberAsync(int buildingId, List<int> floorNumbers)
+        {
+            return await _context.Floors
+                .Include(f => f.ShelfCodeNavigation)
+                    .ThenInclude(s => s.StorageCodeNavigation)
+                .Where(f => f.ShelfCodeNavigation.StorageCodeNavigation.BuildingId == buildingId
+                        && floorNumbers.Contains(f.FloorNumber.Value))
+                .OrderBy(f => f.FloorNumber)
+                .ToListAsync();
+        }
+
     }
 }

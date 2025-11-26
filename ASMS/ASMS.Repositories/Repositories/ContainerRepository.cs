@@ -1,4 +1,5 @@
-﻿using ASMS.Repositories.Data;
+﻿using ASMS.Repositories.Common;
+using ASMS.Repositories.Data;
 using ASMS.Repositories.Entities;
 using ASMS.Repositories.Infrastructures;
 using ASMS.Repositories.Interfaces;
@@ -18,21 +19,48 @@ namespace ASMS.Repositories.Repositories
         {
         }
 
-        public async Task<IEnumerable<Container>> GetAllAsync()
+        public async Task<PaginatedList<Container>> GetWithFilterAsync(string? floorCode, string? shelfCode, string? storageCode, int pageNumber, int pageSize)
         {
-            return await _dbSet
+            var query = _context.Containers
+                .Include(c => c.ContainerType)
                 .Include(c => c.FloorCodeNavigation)
-                .AsNoTracking()
-                .ToListAsync();
+                    .ThenInclude(f => f.ShelfCodeNavigation)
+                        .ThenInclude(s => s.StorageCodeNavigation)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(floorCode))
+            {
+                query = query.Where(c => c.FloorCode == floorCode);
+            }
+
+            if (!string.IsNullOrEmpty(shelfCode))
+            {
+                query = query.Where(c => c.FloorCodeNavigation != null && c.FloorCodeNavigation.ShelfCode == shelfCode);
+            }
+
+            if (!string.IsNullOrEmpty(storageCode))
+            {
+                query = query.Where(c => c.FloorCodeNavigation != null
+                    && c.FloorCodeNavigation.ShelfCodeNavigation != null
+                    && c.FloorCodeNavigation.ShelfCodeNavigation.StorageCode == storageCode);
+            }
+
+            query = query.OrderBy(c => c.ContainerCode);
+
+            return await PaginatedList<Container>.CreateAsync(query, pageNumber, pageSize);
         }
 
-        public async Task<Container?> GetByCodeAsync(string code)
+        public async Task<Container?> GetByCodeAsync(string containerCode)
         {
             return await _dbSet
-                .Include(c => c.FloorCodeNavigation)
-                .FirstOrDefaultAsync(c => c.ContainerCode == code);
+                .Include(c => c.ContainerType)
+                .FirstOrDefaultAsync(c => c.ContainerCode == containerCode);
         }
-
+        public async Task<Container?> GetByCodeForUpdateAsync(string containerCode)
+        {
+            return await _dbSet
+                .FirstOrDefaultAsync(c => c.ContainerCode == containerCode);
+        }
         public async Task DeleteAsync(string code)
         {
             var entity = await _dbSet.FirstOrDefaultAsync(c => c.ContainerCode == code);
@@ -41,5 +69,59 @@ namespace ASMS.Repositories.Repositories
                 _dbSet.Remove(entity);
             }
         }
+        //public async Task<IEnumerable<Container>> GetByFloorCodeAsync(string floorCode)
+        //{
+        //    return await _dbSet
+        //        .AsNoTracking()
+        //        .Where(c => c.FloorCode == floorCode)
+        //        .Include(c => c.ProductType)
+        //        .ToListAsync();
+        //}
+
+        public async Task<List<Container>> GetAvailableByTypeAsync(int containerTypeId)
+        {
+            return await _dbSet
+                .Where(c => c.ContainerTypeId == containerTypeId
+                    && c.Status == "Available"
+                    && c.FloorCode == null
+                    && c.IsActive == true)
+                .ToListAsync();
+        }
+
+        public async Task<List<Container>> GetByFloorCodeAsync(string floorCode)
+        {
+            return await _dbSet
+                .Where(c => c.FloorCode == floorCode && c.IsActive == true)
+                .OrderBy(c => c.PositionX)
+                .ToListAsync();
+        }
+
+        public new async Task UpdateAsync(Container container)
+        {
+            _dbSet.Update(container);
+            await Task.CompletedTask;
+        }
+        public async Task UpdateStackingInfoAsync(string containerCode, int layer, int serialNumber, string containerAboveCode)
+        {
+            var container = await _context.Containers.FirstOrDefaultAsync(c => c.ContainerCode == containerCode);
+            if(container != null)
+            {
+                container.Layer = layer;
+                container.SerialNumber = serialNumber;
+                container.ContainerAboveCode = containerAboveCode;
+                await _context.SaveChangesAsync();
+            }
+        }
+        public async Task MoveContainerToLayer1Async(string containerCode)
+        {
+            var container = await _context.Containers
+                .FirstOrDefaultAsync(c => c.ContainerCode == containerCode);
+            if (container != null)
+            {
+                container.Layer = 1;
+                await _context.SaveChangesAsync();
+            }
+        }
+
     }
 }

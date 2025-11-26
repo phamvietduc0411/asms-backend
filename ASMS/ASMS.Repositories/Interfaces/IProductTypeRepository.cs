@@ -1,4 +1,5 @@
-﻿using ASMS.Repositories.Entities;
+﻿using ASMS.Repositories.Common;
+using ASMS.Repositories.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,5 +13,7 @@ namespace ASMS.Repositories.Interfaces
         Task<ProductType?> GetEntityByIdAsync(int id);
         Task<ProductType> AddAsync(ProductType role);
         Task<ProductType> UpdateAsync(ProductType role);
+        Task<PaginatedList<ProductType>> GetWithFilterAsync(bool? isActive, int pageNumber, int pageSize);
+        Task<List<ProductType>> GetByIdsAsync(List<int> ids);
     }
 }

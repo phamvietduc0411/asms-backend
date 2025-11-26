@@ -6,6 +6,7 @@ namespace ASMS.Repositories.Entities;
 public partial class Building
 {
     public int BuildingId { get; set; }
+
     public string BuildingCode { get; set; } = null!;
 
     public string? Name { get; set; }
@@ -14,11 +15,11 @@ public partial class Building
 
     public string? Address { get; set; }
 
-    public int? FloorQuantity { get; set; }
-
     public string? Status { get; set; }
 
     public bool? IsActive { get; set; }
+
+    public string? ImageUrl { get; set; }
 
     public virtual ICollection<Employee> Employees { get; set; } = new List<Employee>();
 

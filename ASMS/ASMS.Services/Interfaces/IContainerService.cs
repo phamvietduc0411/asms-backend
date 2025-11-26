@@ -1,4 +1,5 @@
-﻿using ASMS.Services.Model.Container;
+﻿using ASMS.Repositories.Common;
+using ASMS.Services.Model.Container;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,10 +10,13 @@ namespace ASMS.Services.Interfaces
 {
     public interface IContainerService
     {
-        Task<IEnumerable<ContainerResponse>> GetAllAsync();
+        Task<PaginatedList<ContainerResponse>> GetWithFilterAsync(string? floorCode, string? shelfCode, string? storageCode, int pageNumber, int pageSize);
         Task<ContainerResponse?> GetByCodeAsync(string code);
         Task<ContainerResponse> CreateAsync(CreateContainerRequest request);
         Task<ContainerResponse?> UpdateAsync(string code, UpdateContainerRequest request);
         Task<bool> DeleteAsync(string code);
+        Task<bool> UpdateContainerPositionAsync(UpdateContainerPositionRequest request);
+        Task<PlaceContainerResponse> PlaceContainerAsync(PlaceContainerRequest request);
+        Task<RemoveContainerResponse> RemoveContainerAsync(string containerCode, string orderCode, string performedBy);
     }
 }
