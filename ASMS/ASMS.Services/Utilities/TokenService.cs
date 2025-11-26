@@ -80,7 +80,6 @@ namespace ASMS.Services.Utilities
                     throw new Exception("User must be Employee when isEmployee = true");
 
                 entity.EmployeeId = emp.Id;
-                entity.Employee = emp;
             }
             else
             {
@@ -89,7 +88,6 @@ namespace ASMS.Services.Utilities
                     throw new Exception("User must be Customer when isEmployee = false");
 
                 entity.CustomerId = cus.Id;
-                entity.Customer = cus;
             }
 
             await _unitOfWork.RefreshToken.AddAsync(entity);
