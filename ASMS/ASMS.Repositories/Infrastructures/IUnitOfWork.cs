@@ -32,6 +32,7 @@ namespace ASMS.Repositories.Infrastructures
         IShelfTypeRepository ShelvesTypes { get; }
         IOrderDetailProductTypeRepository OrderDetailProductTypes { get; }
         IOrderDetailServiceRepository OrderDetailServices { get; }
+        IPaymentResultRepository PaymentResults { get; }
         Task CompleteAsync();
     }
 }

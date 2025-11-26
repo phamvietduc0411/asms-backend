@@ -36,7 +36,7 @@ namespace ASMS.Services.Services
             if (order.UnpaidAmount == null || order.UnpaidAmount <= 0)
                 throw new Exception("Order is already paid or has no unpaid amount.");
 
-            
+
             long paymentCode = long.Parse($"{DateTime.UtcNow:yyMMddHHmmss}");
 
             ItemData item = new ItemData(
@@ -72,7 +72,8 @@ namespace ASMS.Services.Services
         {
             WebhookData data = _payOS.verifyPaymentWebhookData(webhookData);
 
-            string orderCode = data.orderCode.ToString();
+            string paymentCode = data.orderCode.ToString();
+            string orderCode = data.description.Replace("Payment ", ""); // Extract orderCode từ description
 
             var order = await _unitOfWork.Orders.GetByCodeAsync(orderCode);
 
@@ -81,14 +82,35 @@ namespace ASMS.Services.Services
 
             bool isSuccess = data.code == "00";
 
-           
+            var baseUrl = _config["Frontend:BaseUrl"];
+            string redirectUrl = isSuccess
+                ? $"{baseUrl}/payment-success?orderCode={orderCode}&paymentCode={paymentCode}"
+                : $"{baseUrl}/payment-failed?orderCode={orderCode}&paymentCode={paymentCode}";
+
+            // Lưu PaymentResult
+            var paymentResult = new PaymentResult
+            {
+                PaymentCode = paymentCode,
+                OrderCode = orderCode,
+                Status = isSuccess ? "Success" : "Failed",
+                Message = isSuccess
+                    ? "Payment successful! Your order has been confirmed."
+                    : "Payment failed. Please try again.",
+                Url = redirectUrl,
+                Amount = data.amount,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await _unitOfWork.PaymentResults.AddAsync(paymentResult);
+
+            // Cập nhật Order
             order.PaymentStatus = isSuccess ? "Paid" : "Failed";
 
             if (isSuccess)
             {
                 order.UnpaidAmount = 0;
 
-               
+                // Lưu Payment History
                 var payment = new PaymentHistory
                 {
                     PaymentHistoryCode = Guid.NewGuid().ToString(),
@@ -118,6 +140,24 @@ namespace ASMS.Services.Services
             await _unitOfWork.CompleteAsync();
         }
 
+        public async Task<PaymentResultDto?> GetPaymentResult(string paymentCode)
+        {
+            var result = await _unitOfWork.PaymentResults.GetByPaymentCodeAsync(paymentCode);
+
+            if (result == null)
+                return null;
+
+            return new PaymentResultDto
+            {
+                PaymentCode = result.PaymentCode,
+                OrderCode = result.OrderCode,
+                Status = result.Status,
+                Message = result.Message,
+                Url = result.Url,
+                Amount = result.Amount,
+                CreatedAt = result.CreatedAt
+            };
+        }
         public async Task<string> ConfirmWebhook(WebhookURL body)
         {
             try

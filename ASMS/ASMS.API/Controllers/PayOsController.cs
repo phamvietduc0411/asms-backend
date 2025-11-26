@@ -40,6 +40,20 @@ namespace ASMS.API.Controllers
             await _payOSService.HandlePaymentWebhook(webhookData);
             return Ok();
         }
+
+
+        [HttpGet("result/{paymentCode}")]
+        public async Task<IActionResult> GetPaymentResult(string paymentCode)
+        {
+            var result = await _payOSService.GetPaymentResult(paymentCode);
+
+            if (result == null)
+            {
+                return NotFound(new { message = "Payment result not found" });
+            }
+
+            return Ok(result);
+        }
     }
 
 }
