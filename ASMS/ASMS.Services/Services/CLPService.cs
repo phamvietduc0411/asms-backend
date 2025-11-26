@@ -10,6 +10,7 @@ using ASMS.Services.Interfaces;
 using ASMS.Services.Model.CLP;
 using Azure.Core;
 using Microsoft.Extensions.Logging;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace ASMS.Services.Services
 {
@@ -25,6 +26,8 @@ namespace ASMS.Services.Services
         // Chiều cao mỗi tầng
         private const decimal FLOOR_HEIGHT_123 = 1.2m;  // Tầng 1, 2, 3
         private const decimal FLOOR_HEIGHT_4 = 1.6m;    // Tầng 4
+        private const int MAX_CONTAINERS_PER_FLOOR_ABC = 12; 
+        private const int MAX_CONTAINERS_PER_FLOOR_D = 2;
 
         // Tên các building
         private const string BUILDING_NORMAL = "WareHouse";
@@ -255,151 +258,213 @@ namespace ASMS.Services.Services
         /// Tìm vị trí cho Type D (tầng 4)
         /// </summary>
         private async Task<List<PlacementCandidate>> FindPositionsForTypeD(
-            List<Container> availableContainers,
-            FindContainerRequest request,
-            ContainerType containerType,
-            bool isFragile,
-            Building building)
+    List<Container> availableContainers,
+    FindContainerRequest request,
+    ContainerType containerType,
+    bool isFragile,
+    Building building)
         {
             var candidates = new List<PlacementCandidate>();
 
             // Lấy tất cả tầng 4 trong building này
-            var floors = await GetFloorsInBuildingAsync(
+            var allFloors = await GetFloorsInBuildingAsync(
                 building.BuildingId,
                 new List<int> { 4 });
 
-            // Duyệt qua từng tầng 4 (ưu tiên xếp đầy shelf trước)
-            foreach (var floor in floors)
+            var floorsByShelf = allFloors
+                .GroupBy(f => f.ShelfCode)
+                .OrderBy(g => g.Key)
+                .ToList();
+
+            int shelfIndex = 0;
+
+            foreach (var shelfGroup in floorsByShelf)
             {
                 if (availableContainers.Count == 0) break;
 
-                // Lấy các container đã xếp trên tầng này
-                var occupiedContainers = await _unitOfWork.Containers
-                    .GetByFloorCodeAsync(floor.FloorCode);
+                var floorsInShelf = shelfGroup.OrderBy(f => f.FloorNumber).ToList();
+                int floorIndex = 0;
 
-                // Lấy SerialNumber lớn nhất trên tầng này
-                var maxSerial = occupiedContainers.Any()
-                    ? occupiedContainers.Max(c => c.SerialNumber ?? 0)
-                    : 0;
-
-                // Tính số vị trí trống
-                var availableSpots = CalculateAvailableSpotsTypeD(
-                    occupiedContainers,
-                    containerType,
-                    isFragile);
-
-                // Phân bổ container vào các vị trí
-                foreach (var spot in availableSpots)
+                foreach (var floor in floorsInShelf)
                 {
                     if (availableContainers.Count == 0) break;
 
-                    var container = availableContainers.First();
-                    availableContainers.RemoveAt(0);
+                    var occupiedContainers = await _unitOfWork.Containers
+                        .GetByFloorCodeAsync(floor.FloorCode);
 
-                    var score = CalculateScore(floor, spot.Layer, request, containerType, isFragile);
-
-                    // Thưởng điểm cho vị trí tái sắp xếp
-                    if (spot.IsRearrangement)
+                    if (occupiedContainers.Count >= MAX_CONTAINERS_PER_FLOOR_D)
                     {
-                        score += 5;
-                        _logger.LogInformation("Type D Rearrangement: Container {New} will replace fragile {Old}",
-                            container.ContainerCode, spot.RearrangeContainerCode);
+                        _logger.LogDebug("Floor {Floor} (Type D) is full ({Count}/{Max})",
+                            floor.FloorCode, occupiedContainers.Count, MAX_CONTAINERS_PER_FLOOR_D);
+                        floorIndex++;
+                        continue;
                     }
 
-                    candidates.Add(new PlacementCandidate
+
+                    int nextSerial = occupiedContainers.Any()
+                        ? occupiedContainers.Max(c => c.SerialNumber ?? 0) + 1
+                        : 1;
+
+                    var availableSpots = CalculateAvailableSpotsTypeD(
+                        occupiedContainers,
+                        containerType,
+                        isFragile);
+
+                    _logger.LogInformation("Floor {Floor} (Type D): {Occupied}/{Max} containers, {Spots} spots, Next serial: {Serial}",
+                        floor.FloorCode, occupiedContainers.Count, MAX_CONTAINERS_PER_FLOOR_D,
+                        availableSpots.Count, nextSerial);
+
+                    int remainingCapacity = MAX_CONTAINERS_PER_FLOOR_D - occupiedContainers.Count;
+                    var limitedSpots = availableSpots.Take(remainingCapacity).ToList();
+
+                    foreach (var spot in limitedSpots)
                     {
-                        Container = container,
-                        Floor = floor,
-                        Layer = spot.Layer,
-                        SerialNumber = maxSerial + candidates.Count + 1,
-                        ContainerAboveCode = spot.ContainerAboveCode,
-                        Score = score,
-                        RequiresRearrangement = spot.IsRearrangement,
-                        RearrangeContainerCode = spot.RearrangeContainerCode
-                    });
+                        if (availableContainers.Count == 0) break;
+
+                        var container = availableContainers.First();
+                        availableContainers.RemoveAt(0);
+
+                        var score = CalculateScore(floor, spot.Layer, request, containerType, isFragile, shelfIndex, floorIndex);
+
+                        if (spot.IsRearrangement)
+                        {
+                            score += 5;
+                            _logger.LogInformation("Type D Rearrangement: Container {New} will replace fragile {Old}",
+                                container.ContainerCode, spot.RearrangeContainerCode);
+                        }
+
+                        candidates.Add(new PlacementCandidate
+                        {
+                            Container = container,
+                            Floor = floor,
+                            Layer = spot.Layer,
+                            SerialNumber = nextSerial, 
+                            ContainerAboveCode = spot.ContainerAboveCode,
+                            Score = score,
+                            RequiresRearrangement = spot.IsRearrangement,
+                            RearrangeContainerCode = spot.RearrangeContainerCode
+                        });
+
+                    }
+                    floorIndex++;
                 }
-
-                if (availableContainers.Count == 0) break;
+                shelfIndex++;
             }
-
             return candidates;
         }
 
-        
+
         /// <summary>
         /// Tìm vị trí cho Type A, B, C (tầng 1-3)
         /// Các loại này CÓ THỂ XEN KẼ
         /// </summary>
         private async Task<List<PlacementCandidate>> FindPositionsForTypeABC(
-            List<Container> availableContainers,
-            FindContainerRequest request,
-            ContainerType containerType,
-            bool isFragile,
-            Building building)
+    List<Container> availableContainers,
+    FindContainerRequest request,
+    ContainerType containerType,
+    bool isFragile,
+    Building building)
         {
             var candidates = new List<PlacementCandidate>();
 
             // Lấy tầng 1-3 trong building này
-            var floors = await GetFloorsInBuildingAsync(
+            var allFloors = await GetFloorsInBuildingAsync(
                 building.BuildingId,
                 new List<int> { 1, 2, 3 });
 
-            // Duyệt qua từng tầng (ưu tiên xếp đầy shelf trước)
-            foreach (var floor in floors)
+ 
+            var floorsByShelf = allFloors
+                .GroupBy(f => f.ShelfCode)
+                .OrderBy(g => g.Key) // Xếp theo thứ tự shelf
+                .ToList();
+
+            int shelfIndex = 0;
+            // Duyệt qua từng SHELF
+            foreach (var shelfGroup in floorsByShelf)
             {
                 if (availableContainers.Count == 0) break;
 
-                // Lấy TẤT CẢ container đã xếp trên tầng này (xen kẽ A, B, C)
-                var occupiedContainers = await _unitOfWork.Containers
-                    .GetByFloorCodeAsync(floor.FloorCode);
-
-                // Lấy SerialNumber lớn nhất
-                var maxSerial = occupiedContainers.Any()
-                    ? occupiedContainers.Max(c => c.SerialNumber ?? 0)
-                    : 0;
-
-                // Tính diện tích đã sử dụng
-                var usedArea = CalculateUsedAreaOnFloor(occupiedContainers);
-
-                // Tính số vị trí trống
-                var availableSpots = CalculateAvailableSpotsTypeABC(
-                    occupiedContainers,
-                    containerType,
-                    isFragile,
-                    usedArea);
-
-                // Phân bổ container vào các vị trí
-                foreach (var spot in availableSpots)
+                // Lấy các tầng của shelf này (đã sắp xếp 1, 2, 3)
+                var floorsInShelf = shelfGroup.OrderBy(f => f.FloorNumber).ToList();
+                int floorIndex = 0;
+                foreach (var floor in floorsInShelf)
                 {
                     if (availableContainers.Count == 0) break;
 
-                    var container = availableContainers.First();
-                    availableContainers.RemoveAt(0);
-
-                    var score = CalculateScore(floor, spot.Layer, request, containerType, isFragile);
-
-                    // Thưởng điểm cho vị trí tái sắp xếp
-                    if (spot.IsRearrangement)
+                    // Lấy TẤT CẢ container đã xếp trên tầng này
+                    var occupiedContainers = await _unitOfWork.Containers
+                        .GetByFloorCodeAsync(floor.FloorCode);
+                    
+                    // ✅ KIỂM TRA TẦNG ĐÃ ĐẦY CHƯA
+                    if (occupiedContainers.Count >= MAX_CONTAINERS_PER_FLOOR_ABC)
                     {
-                        score += 5;
-                        _logger.LogInformation("Type ABC Rearrangement: Container {New} will replace fragile {Old}",
-                            container.ContainerCode, spot.RearrangeContainerCode);
+                        _logger.LogDebug("Floor {Floor} is full ({Count}/{Max}), skip to next floor",
+                            floor.FloorCode, occupiedContainers.Count, MAX_CONTAINERS_PER_FLOOR_ABC);
+                        floorIndex++;
+                        continue; // Bỏ qua tầng đầy
                     }
 
-                    candidates.Add(new PlacementCandidate
-                    {
-                        Container = container,
-                        Floor = floor,
-                        Layer = spot.Layer,
-                        SerialNumber = maxSerial + candidates.Count + 1,
-                        ContainerAboveCode = spot.ContainerAboveCode,
-                        Score = score,
-                        RequiresRearrangement = spot.IsRearrangement,
-                        RearrangeContainerCode = spot.RearrangeContainerCode
-                    });
-                }
+                    int nextSerial = occupiedContainers.Any()
+                        ? occupiedContainers.Max(c => c.SerialNumber ?? 0) + 1
+                        : 1;
 
-                if (availableContainers.Count == 0) break;
+                    // Tính diện tích đã sử dụng
+                    var usedArea = CalculateUsedAreaOnFloor(occupiedContainers);
+
+                    // Tính số vị trí trống
+                    var availableSpots = CalculateAvailableSpotsTypeABC(
+                        occupiedContainers,
+                        containerType,
+                        isFragile,
+                        usedArea);
+
+                    _logger.LogInformation("Floor {Floor}: {Occupied}/{Max} containers, {Spots} available spots, Next serial: {Serial}",
+                        floor.FloorCode, occupiedContainers.Count, MAX_CONTAINERS_PER_FLOOR_ABC,
+                        availableSpots.Count, nextSerial);
+
+                    int remainingCapacity = MAX_CONTAINERS_PER_FLOOR_ABC - occupiedContainers.Count;
+                    var limitedSpots = availableSpots.Take(remainingCapacity).ToList();
+
+                    // Phân bổ container vào các vị trí
+                    foreach (var spot in limitedSpots)
+                    {
+                        if (availableContainers.Count == 0) break;
+
+                        var container = availableContainers.First();
+                        availableContainers.RemoveAt(0);
+
+                        var score = CalculateScore(floor, spot.Layer, request, containerType, isFragile, shelfIndex, floorIndex);
+
+                        if (spot.IsRearrangement)
+                        {
+                            score += 5;
+                            _logger.LogInformation("Type ABC Rearrangement: Container {New} will replace fragile {Old}",
+                                container.ContainerCode, spot.RearrangeContainerCode);
+                        }
+
+                        candidates.Add(new PlacementCandidate
+                        {
+                            Container = container,
+                            Floor = floor,
+                            Layer = spot.Layer,
+                            SerialNumber = nextSerial, 
+                            ContainerAboveCode = spot.ContainerAboveCode,
+                            Score = score,
+                            RequiresRearrangement = spot.IsRearrangement,
+                            RearrangeContainerCode = spot.RearrangeContainerCode
+                        });
+
+                    }
+
+                    if (occupiedContainers.Count + limitedSpots.Count < MAX_CONTAINERS_PER_FLOOR_ABC)
+                    {
+                        _logger.LogDebug("Floor {Floor} not full yet, continue filling this floor",
+                            floor.FloorCode);
+
+                    }
+                    floorIndex++;
+                }
+                shelfIndex++;
             }
 
             return candidates;
@@ -453,24 +518,30 @@ namespace ASMS.Services.Services
         /// HỖ TRỢ TÁI SẮP XẾP ĐỘNG
         /// </summary>
         private List<SpotInfo> CalculateAvailableSpotsTypeABC(
-            List<Container> occupiedContainers,
-            ContainerType containerType,
-            bool isFragile,
-            FloorUsageInfo usedArea)
+    List<Container> occupiedContainers,
+    ContainerType containerType,
+    bool isFragile,
+    FloorUsageInfo usedArea)
         {
             var spots = new List<SpotInfo>();
 
-            // Diện tích tổng của kệ
             var totalShelfArea = SHELF_LENGTH * SHELF_DEPTH; // 1.819 m²
             var containerArea = containerType.Length.GetValueOrDefault() *
                               containerType.Width.GetValueOrDefault();
 
-            // === LAYER 0 - Vị trí trống bình thường ===
+            // === LAYER 0 ===
             var availableAreaLayer0 = totalShelfArea - usedArea.Layer0UsedArea;
             var maxContainersLayer0 = (int)(availableAreaLayer0 / containerArea);
 
-            _logger.LogDebug("Layer 0: Available area = {Area:F3} m², Can fit {Count} containers",
-                availableAreaLayer0, maxContainersLayer0);
+
+            var currentLayer0Count = occupiedContainers.Count(c => c.Layer == 0);
+            var maxLayer0Capacity = 6;
+
+            maxContainersLayer0 = Math.Min(maxContainersLayer0, maxLayer0Capacity - currentLayer0Count);
+            maxContainersLayer0 = Math.Max(0, maxContainersLayer0);
+
+            _logger.LogDebug("Layer 0: Available area = {Area:F3} m², Can fit {Count} containers (limit: {Limit})",
+                availableAreaLayer0, maxContainersLayer0, maxLayer0Capacity);
 
             for (int i = 0; i < maxContainersLayer0; i++)
             {
@@ -478,10 +549,8 @@ namespace ASMS.Services.Services
             }
 
             // === TÁI SẮP XẾP ĐỘNG ===
-            // Chỉ khi: Container mới KHÔNG dễ vỡ + Layer 0 đầy + Có container dễ vỡ ở Layer 0
             if (!isFragile && maxContainersLayer0 == 0 && usedArea.Layer0FragileContainers.Any())
             {
-                // Tính diện tích có thể xếp chồng ở Layer 1
                 var nonFragileLayer0Containers = occupiedContainers
                     .Where(c => c.Layer == 0 && c.ProductType?.IsFragile != true)
                     .ToList();
@@ -491,15 +560,11 @@ namespace ASMS.Services.Services
 
                 var availableLayer1Area = stackableArea - usedArea.Layer1UsedArea;
 
-                // Duyệt qua các container dễ vỡ ở Layer 0
                 foreach (var fragileContainer in usedArea.Layer0FragileContainers)
                 {
                     var fragileArea = (fragileContainer.ContainerType?.Length ?? 0) *
                                     (fragileContainer.ContainerType?.Width ?? 0);
 
-                    // Điều kiện tái sắp xếp:
-                    // 1. Container mới >= container dễ vỡ (làm đế)
-                    // 2. Layer 1 còn đủ chỗ
                     if (containerArea >= fragileArea && availableLayer1Area >= fragileArea)
                     {
                         spots.Add(new SpotInfo
@@ -507,26 +572,24 @@ namespace ASMS.Services.Services
                             Layer = 0,
                             IsRearrangement = true,
                             RearrangeContainerCode = fragileContainer.ContainerCode,
-                            ContainerAboveCode = null // Container mới sẽ làm đế
+                            ContainerAboveCode = null
                         });
 
                         availableLayer1Area -= fragileArea;
 
-                        _logger.LogInformation("Rearrangement available: Push {Fragile} to Layer 1, place new container at Layer 0",
+                        _logger.LogInformation("Rearrangement available: Push {Fragile} to Layer 1",
                             fragileContainer.ContainerCode);
                     }
                 }
             }
 
-            // === LAYER 1 - Xếp chồng bình thường ===
-            // Hàng dễ vỡ KHÔNG được có container phía trên
+            // === LAYER 1 ===
             if (!isFragile)
             {
-                // Tính diện tích có thể xếp chồng
                 var nonFragileLayer0Containers = occupiedContainers
                     .Where(c => c.Layer == 0
                            && c.ProductType?.IsFragile != true
-                           && string.IsNullOrEmpty(c.ContainerAboveCode)) // Chưa có container phía trên
+                           && string.IsNullOrEmpty(c.ContainerAboveCode))
                     .ToList();
 
                 var stackableArea = nonFragileLayer0Containers.Sum(c =>
@@ -535,16 +598,21 @@ namespace ASMS.Services.Services
                 var availableStackableArea = stackableArea - usedArea.Layer1UsedArea;
                 var maxContainersLayer1 = (int)(availableStackableArea / containerArea);
 
-                _logger.LogDebug("Layer 1: Stackable area = {Area:F3} m², Can fit {Count} containers",
-                    availableStackableArea, maxContainersLayer1);
 
+                var currentLayer1Count = occupiedContainers.Count(c => c.Layer == 1);
+                var maxLayer1Capacity = 7;
+                maxContainersLayer1 = Math.Min(maxContainersLayer1, maxLayer1Capacity - currentLayer1Count);
+                maxContainersLayer1 = Math.Max(0, maxContainersLayer1);
+
+                _logger.LogDebug("Layer 1: Stackable area = {Area:F3} m², Can fit {Count} containers (limit: {Limit})",
+                    availableStackableArea, maxContainersLayer1, maxLayer1Capacity);
 
                 for (int i = 0; i < maxContainersLayer1; i++)
                 {
                     spots.Add(new SpotInfo
                     {
                         Layer = 1,
-                        ContainerAboveCode = null 
+                        ContainerAboveCode = null
                     });
                 }
             }
@@ -643,18 +711,32 @@ namespace ASMS.Services.Services
             int layer,
             FindContainerRequest request,
             ContainerType containerType,
-            bool isFragile)
+            bool isFragile,
+            int shelfPriority = 0,
+            int floorPriority = 0)
         {
             double score = 0;
 
-            // === 1. Ưu tiên tầng ===
+            // === 0. ƯU TIÊN SHELF ===
+            score += (1000 - shelfPriority * 300);  
+
+            // === 0.5. ƯU TIÊN FLOOR TRONG SHELF ===
+            score += (200 - floorPriority * 50);    
+
+            // === 1. Ưu tiên tầng theo trọng lượng ===
             if (request.PackageWeight > 20 || request.StorageDays > 30)
             {
-                score += floor.FloorNumber == 1 ? 30 : floor.FloorNumber == 2 ? 20 : 10;
+                // Hàng nặng → ưu tiên tầng thấp
+                score += floor.FloorNumber == 1 ? 30 :
+                         floor.FloorNumber == 2 ? 25 :
+                         floor.FloorNumber == 3 ? 20 : 15;
             }
             else
             {
-                score += floor.FloorNumber == 3 ? 30 : floor.FloorNumber == 2 ? 20 : 10;
+                // Hàng nhẹ → ưu tiên tầng cao
+                score += floor.FloorNumber == 3 ? 30 :
+                         floor.FloorNumber == 2 ? 25 :
+                         floor.FloorNumber == 1 ? 20 : 15;
             }
 
             // === 2. Ưu tiên Layer 0 ===
@@ -665,7 +747,6 @@ namespace ASMS.Services.Services
             var containerVolume = containerType.Length.GetValueOrDefault() *
                                  containerType.Width.GetValueOrDefault() *
                                  containerType.Height.GetValueOrDefault();
-
             var volumeUtilization = (double)(packageVolume / containerVolume);
             score += volumeUtilization * 20;
 
