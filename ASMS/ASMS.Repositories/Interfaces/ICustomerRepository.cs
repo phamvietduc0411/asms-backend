@@ -13,5 +13,6 @@ namespace ASMS.Repositories.Interfaces
     {
         Task<Customer> GetCustomerByEmailAsync(string email);
         Task<PaginatedList<Customer>> GetAllAsync(int pageNumber, int pageSize);
+        Task<Customer> GetLastRecord();
     }
 }

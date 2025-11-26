@@ -20,5 +20,17 @@ namespace ASMS.Repositories.Repositories
             return await PaginatedList<Customer>.CreateAsync(query, pageNumber, pageSize);
         }
 
+        public async Task<Customer> GetLastRecord()
+        {
+            if (_context == null || _context.Customers == null)
+                throw new InvalidOperationException("Database context or Building DbSet is not initialized.");
+
+            var lastCustomer = await _context.Customers
+                                                        .Where(c => c.CustomerCode != null && c.CustomerCode.StartsWith("CTM"))
+                                                        .OrderByDescending(c => c.CustomerCode)
+                                                        .FirstOrDefaultAsync();
+            return lastCustomer;
+        }
+
     }
 }

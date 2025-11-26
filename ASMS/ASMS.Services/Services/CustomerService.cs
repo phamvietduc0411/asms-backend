@@ -54,5 +54,29 @@ namespace ASMS.Services.Services
                 TotalPages = result.TotalPages
             };
         }
+
+        public async Task<string> GetLastRecord()
+        {
+            var latRecord = await _unitOfWork.Customer.GetLastRecord();
+
+            int nextNumber = 1;
+
+            if (latRecord != null && !string.IsNullOrWhiteSpace(latRecord.CustomerCode))
+            {
+                string code = latRecord.CustomerCode.Trim();
+
+                if (code.StartsWith("CTM", StringComparison.OrdinalIgnoreCase))
+                {
+                    string numberPart = code.Substring(3);
+                    if (int.TryParse(numberPart, out int currentNumber))
+                    {
+                        nextNumber = currentNumber + 1;
+                    }
+                }
+            }
+            string newCode = $"CTM{nextNumber:D3}";
+
+            return newCode;
+        }
     }
 }

@@ -1,17 +1,20 @@
-﻿using System;
+﻿using ASMS.Repositories.Entities;
+using ASMS.Repositories.Infrastructures;
+using ASMS.Services.Interfaces;
+using ASMS.Services.Model.CLP;
+using ASMS.Services.Model.Customer;
+using ASMS.Services.Model.OrderDetail;
+using ASMS.Services.Model.Orders;
+using ASMS.Services.Model.TrackingHistories;
+using ASMS.Services.Utilities;
+using AutoMapper;
+using Azure.Core;
+using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ASMS.Repositories.Entities;
-using ASMS.Repositories.Infrastructures;
-using ASMS.Services.Interfaces;
-using ASMS.Services.Model.CLP;
-using ASMS.Services.Model.OrderDetail;
-using ASMS.Services.Model.Orders;
-using ASMS.Services.Model.TrackingHistories;
-using AutoMapper;
-using Microsoft.Extensions.Logging;
 
 namespace ASMS.Services.Services
 {
@@ -21,13 +24,15 @@ namespace ASMS.Services.Services
         private readonly IMapper _mapper;
         private readonly ILogger<OrderService> _logger;
         private readonly ICLPService _clpService;
+        private readonly ICustomerService _cusService;
 
-        public OrderService(IUnitOfWork unitOfWork, IMapper mapper, ILogger<OrderService> logger, ICLPService clpService)
+        public OrderService(IUnitOfWork unitOfWork, IMapper mapper, ILogger<OrderService> logger, ICLPService clpService, ICustomerService cusService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _logger = logger;
             _clpService = clpService;
+            _cusService = cusService;
         }
 
         public async Task<PaginatedOrderResponse> GetWithFilterAsync(int pageNumber, int pageSize, string? customerCode, DateOnly? orderDate, DateOnly? depositDate, DateOnly? returnDate, string style)
@@ -200,6 +205,9 @@ namespace ASMS.Services.Services
         public async Task<CreateOrderWithDetailsResponse> CreateOrderWithDetailsAsync(CreateOrderWithDetailsRequest request)
         {
             _logger.LogInformation("Creating new order with details for customer {Code}", request.CustomerCode);
+
+            //Create new customer 
+            request.CustomerCode = await CreateCustomer(request);
 
             // Generate order code
             var orderDate = DateOnly.FromDateTime(DateTime.Now);
@@ -389,10 +397,11 @@ namespace ASMS.Services.Services
                 Email = request.Email,
                 Note = request.Note,
                 Image = request.Image,
-                Address = request.Address,  
+                Address = request.Address,
                 OrderDetails = orderDetailResponses
             };
         }
+
         // Lấy order details
         public async Task<List<OrderDetailItemResponse>> GetOrderDetailsAsync(string orderCode)
         {
@@ -413,7 +422,7 @@ namespace ASMS.Services.Services
                 //Address = od.Address,
                 Image = od.Image,
                 ContainerType = od.ContainerType,
-                ContainerQuantity = od.ContainerQuantity,  
+                ContainerQuantity = od.ContainerQuantity,
                 StorageTypeId = od.StorageTypeId,
                 ShelfTypeId = od.ShelfTypeId,
                 ShelfQuantity = od.ShelfQuantity,
@@ -421,7 +430,7 @@ namespace ASMS.Services.Services
         .Select(odpt => odpt.ProductTypeId)
         .ToList(),
                 ServiceIds = od.OrderDetailServices
-        .Select(ods => ods.ServiceId) 
+        .Select(ods => ods.ServiceId)
         .ToList()
             }).ToList();
         }
@@ -457,24 +466,24 @@ namespace ASMS.Services.Services
 
         public async Task<TrackingHistoryResponse> UpdateOrderProcessAsync(UpdateOrderProcessRequest request)
         {
-            
+
             var order = await _unitOfWork.Orders.GetByCodeAsync(request.OrderCode);
             if (order == null)
                 throw new Exception($"Order {request.OrderCode} not found");
 
             string oldStatus = order.Status ?? "";
 
-            
+
             if (request.ActionByRole == "Delivery" && request.NewStatus == "ProgressTask")
             {
                 request.NewStatus = "Ready";
             }
 
-            
+
             order.Status = request.NewStatus;
             await _unitOfWork.Orders.UpdateAsync(order);
 
-            
+
             var tracking = new TrackingHistory
             {
                 OrderCode = request.OrderCode,
@@ -490,11 +499,35 @@ namespace ASMS.Services.Services
 
             await _unitOfWork.TrackingHistories.AddAsync(tracking);
 
-            
+
             await _unitOfWork.CompleteAsync();
 
-            
+
             return _mapper.Map<TrackingHistoryResponse>(tracking);
+        }
+
+        private async Task<String> CreateCustomer(CreateOrderWithDetailsRequest request)
+        {
+            if (string.IsNullOrEmpty(request.CustomerCode))
+            {
+                var newCustomerCode = _cusService.GetLastRecord();
+                request.CustomerCode = newCustomerCode.ToString();
+            }
+
+            var newCode = request.CustomerCode;
+            var newCus = new CreateCustomerRequest()
+            {
+                CustomerCode = request.CustomerCode,
+                Phone = request.PhoneContact,
+                Name = request.CustomerName,
+                IsActive = true,
+                Address = request.Address,
+                Email = request.Email,
+                Password = PasswordHasher.HashPassword("123456789")
+            };
+
+            await _cusService.AddCustomerAsync(newCus);
+            return newCode;
         }
     }
 }

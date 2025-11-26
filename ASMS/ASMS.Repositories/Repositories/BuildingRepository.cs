@@ -21,9 +21,9 @@ namespace ASMS.Repositories.Repositories
                 throw new InvalidOperationException("Database context or Building DbSet is not initialized.");
 
             var lastBuilding = await _context.Buildings
-    .Where(b => b.BuildingCode != null && b.BuildingCode.StartsWith("BLD"))
-    .OrderByDescending(b => b.BuildingCode)
-    .FirstOrDefaultAsync();
+                                    .Where(b => b.BuildingCode != null && b.BuildingCode.StartsWith("BLD"))
+                                    .OrderByDescending(b => b.BuildingCode)
+                                    .FirstOrDefaultAsync();
 
             return lastBuilding;
         }
