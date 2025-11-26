@@ -8,9 +8,9 @@ namespace ASMS.Services.Interfaces
         Task<Customer> FindCustomerAsync(string email);
         Task<Employee> FindEmployeeAsync(string email);
         bool Verify(string password, string hashedPassword);
-        string GenerateEmployeeToken(int employeeId, string email, string role);
-        string GenerateCustomerToken(int customerId, string email);
-        Task<string> GenerateRefreshTokenAsync(int userId, bool isEmployee);
+        string GenerateEmployeeToken(Employee employee);
+        string GenerateCustomerToken(Customer customer);
+        Task<string> GenerateRefreshTokenAsync<T>(T user, bool isEmployee);
         Task<AuthResponse> RefreshTokenAsync(string token);
         Task<bool> LogoutAsync(string refreshToken);
 

@@ -47,8 +47,8 @@ namespace ASMS.API.Controllers
                         return new AuthResponse { Success = false, ErrorMessage = "Invalid username or password" };
 
                     // Create Access Token& Refresh Token
-                    var accessToken = _authService.GenerateEmployeeToken(employee.Id, employee.Username!, employee.EmployeeRole!.ToString());
-                    var refreshToken = await _authService.GenerateRefreshTokenAsync(employee.Id, isEmployee: true);
+                    var accessToken = _authService.GenerateEmployeeToken(employee);
+                    var refreshToken = await _authService.GenerateRefreshTokenAsync(employee, isEmployee: true);
 
                     return new AuthResponse
                     {
@@ -70,8 +70,8 @@ namespace ASMS.API.Controllers
                         return new AuthResponse { Success = false, ErrorMessage = "Invalid username or password" };
 
                     // Create Access Token& Refresh Token
-                    var accessToken = _authService.GenerateCustomerToken(customer.Id, customer.Email);
-                    var refreshToken = await _authService.GenerateRefreshTokenAsync(customer.Id, isEmployee: false);
+                    var accessToken = _authService.GenerateCustomerToken(customer);
+                    var refreshToken = await _authService.GenerateRefreshTokenAsync(customer, isEmployee: false);
 
                     return new AuthResponse
                     {

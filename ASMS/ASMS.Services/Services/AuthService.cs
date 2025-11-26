@@ -37,14 +37,14 @@ namespace ASMS.Services.Services
             return employee;
         }
 
-        public string GenerateCustomerToken(int customerId, string email)
-                    => _tokenService.GenerateCustomerAccessToken(customerId, email);
+        public string GenerateCustomerToken(Customer customer)
+                    => _tokenService.GenerateCustomerAccessToken(customer);
 
-        public string GenerateEmployeeToken(int employeeId, string email, string role)
-                    => _tokenService.GenerateEmployeeAccessToken(employeeId, email, role);
+        public string GenerateEmployeeToken(Employee employee)
+                    => _tokenService.GenerateEmployeeAccessToken(employee);
 
-        public async Task<string> GenerateRefreshTokenAsync(int userId, bool isEmployee)
-                    => await _tokenService.GenerateRefreshTokenAsync(userId, isEmployee);
+        public async Task<string> GenerateRefreshTokenAsync <T>(T user, bool isEmployee)
+                    => await _tokenService.GenerateRefreshTokenAsync(user, isEmployee);
 
 
         public async Task<AuthResponse> RefreshTokenAsync(string token)

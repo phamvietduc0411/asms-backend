@@ -21,15 +21,9 @@ namespace ASMS.Services.Utilities
         }
 
         #region Employee Token
-        public string GenerateEmployeeAccessToken(int employeeId, string email, string employeeRole)
+        public string GenerateEmployeeAccessToken(Employee employee)
         {
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Email, email),
-                new Claim(ClaimTypes.Role, employeeRole),
-                new Claim("Id", employeeId.ToString()),
-                new Claim("Role", employeeRole)
-            };
+            var claims = GetEmployeeClaims(employee);
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:SecretKey"]!));
 
@@ -48,13 +42,9 @@ namespace ASMS.Services.Utilities
         #endregion
 
         #region Customer Token
-        public string GenerateCustomerAccessToken(int customerId, string email)
+        public string GenerateCustomerAccessToken(Customer customer)
         {
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Email, email),
-                new Claim("Id", customerId.ToString())
-            };
+            var claims = GetCustomerClaims(customer);
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:SecretKey"]!));
 
@@ -72,7 +62,7 @@ namespace ASMS.Services.Utilities
         }
         #endregion
 
-        public async Task<string> GenerateRefreshTokenAsync(int userId, bool isEmployee)
+        public async Task<string> GenerateRefreshTokenAsync<T>(T user, bool isEmployee)
         {
             // crete new random token
             var refreshToken = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
@@ -84,9 +74,23 @@ namespace ASMS.Services.Utilities
             };
 
             if (isEmployee)
-                entity.EmployeeId = userId;
+            {
+                var emp = user as Employee;
+                if (emp == null)
+                    throw new Exception("User must be Employee when isEmployee = true");
+
+                entity.EmployeeId = emp.Id;
+                entity.Employee = emp;
+            }
             else
-                entity.CustomerId = userId;
+            {
+                var cus = user as Customer;
+                if (cus == null)
+                    throw new Exception("User must be Customer when isEmployee = false");
+
+                entity.CustomerId = cus.Id;
+                entity.Customer = cus;
+            }
 
             await _unitOfWork.RefreshToken.AddAsync(entity);
             await _unitOfWork.CompleteAsync();
@@ -138,9 +142,7 @@ namespace ASMS.Services.Utilities
                     return result;
                 }
 
-                newAccessToken = GenerateEmployeeAccessToken(
-                    emp.Id, emp.Username, emp.EmployeeRole.ToString()
-                );
+                newAccessToken = GenerateEmployeeAccessToken(emp);
 
                 newRefreshToken = await GenerateRefreshTokenAsync(emp.Id, true);
             }
@@ -148,19 +150,17 @@ namespace ASMS.Services.Utilities
             // customer
             if (tokenEntity.CustomerId != null)
             {
-                var cus = await _unitOfWork.Customer.GetEntityByIdAsync(tokenEntity.CustomerId.Value);
-                if (cus == null)
+                var customer = await _unitOfWork.Customer.GetEntityByIdAsync(tokenEntity.CustomerId.Value);
+                if (customer == null)
                 {
                     result.Success = false;
                     result.ErrorMessage = "Can not find customer.";
                     return result;
                 }
 
-                newAccessToken = GenerateCustomerAccessToken(
-                    cus.Id, cus.Email
-                );
+                newAccessToken = GenerateCustomerAccessToken(customer);
 
-                newRefreshToken = await GenerateRefreshTokenAsync(cus.Id, false);
+                newRefreshToken = await GenerateRefreshTokenAsync(customer, false);
             }
 
             // Revoke old token 
@@ -175,7 +175,33 @@ namespace ASMS.Services.Utilities
             return result;
         }
 
-
-
+        public static List<Claim> GetEmployeeClaims(Employee emp)
+        {
+            return new List<Claim>
+            {
+                new ("Id", emp.Id.ToString()),
+                new ("EmployeeCode", emp.EmployeeCode),
+                new ("EmployeeRoleId", emp.EmployeeRoleId?.ToString() ?? ""),
+                new ("Name", emp.Name ?? ""),
+                new ("Phone", emp.Phone ?? ""),
+                new ("Address", emp.Address ?? ""),
+                new ("Username", emp.Username ?? ""),
+                new ("Status", emp.Status ?? ""),
+                new ("IsActive", emp.IsActive.ToString()),
+            };
+        }
+        public static List<Claim> GetCustomerClaims(Customer cus)
+        {
+            return new List<Claim>
+            {
+                new ("Id", cus.Id.ToString()),
+                new ("CustomerCode", cus.CustomerCode),
+                new ("Name", cus.Name),
+                new ("Phone", cus.Phone ?? ""),
+                new ("Address", cus.Address ?? ""),
+                new ("Email", cus.Email),
+                new ("IsActive", cus.IsActive.ToString())
+            };
+        }
     }
 }
