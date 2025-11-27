@@ -510,7 +510,7 @@ namespace ASMS.Services.Services
         {
             if (string.IsNullOrEmpty(request.CustomerCode))
             {
-                var newCustomerCode = _cusService.GetLastRecord();
+                var newCustomerCode = await _cusService.GetLastRecord();
                 request.CustomerCode = newCustomerCode.ToString();
             }
 
@@ -526,7 +526,7 @@ namespace ASMS.Services.Services
                 Password = PasswordHasher.HashPassword("123456789")
             };
 
-            await _cusService.AddCustomerAsync(newCus);
+                await _cusService.AddCustomerAsync(newCus);      
             return newCode;
         }
     }
