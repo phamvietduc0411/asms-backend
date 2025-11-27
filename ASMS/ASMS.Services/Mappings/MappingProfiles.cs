@@ -133,6 +133,10 @@ namespace ASMS.Services.Mappings
                 .ForMember(dest => dest.OrderDetailId, opt => opt.Ignore())
                 .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
             CreateMap<OrderDetail, OrderDetailResponse>();
+            CreateMap<OrderDetail, OrderDetailItemResponse>()
+                .ForMember(dest => dest.ContainerType, opt => opt.MapFrom(src => src.ContainerCodeNavigation != null ? src.ContainerCodeNavigation.ContainerTypeId : null))
+                .ForMember(dest => dest.FloorCode, opt => opt.MapFrom(src => src.ContainerCodeNavigation != null ? src.ContainerCodeNavigation.FloorCode : null))
+                .ForMember(dest => dest.FloorNumber, opt => opt.MapFrom(src => src.ContainerCodeNavigation != null && src.ContainerCodeNavigation.FloorCodeNavigation != null ? src.ContainerCodeNavigation.FloorCodeNavigation.FloorNumber : null));
             #endregion
             #region Container
             CreateMap<Container, ContainerResponse>()

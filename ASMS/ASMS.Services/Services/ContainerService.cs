@@ -217,7 +217,7 @@ namespace ASMS.Services.Services
                 {
                     orderDetail.StorageCode = storageCode;
                     orderDetail.ContainerCode = request.ContainerCode;
-
+                    orderDetail.IsPlaced = true;
                     await _unitOfWork.OrderDetails.UpdateAsync(orderDetail);
 
                 }
@@ -449,6 +449,38 @@ namespace ASMS.Services.Services
                     Success = false,
                     Message = $"Error removing container: {ex.Message}"
                 };
+            }
+        }
+
+        public async Task<bool> UpdateContainerPositionSerialNumberAsync(string containerCode, int? serialNumber, int? layer)
+        {
+            try
+            {
+                var container = await _unitOfWork.Containers.GetByCodeAsync(containerCode);
+
+                if (container == null)
+                {
+                    return false;
+                }
+
+                if (serialNumber.HasValue)
+                {
+                    container.SerialNumber = serialNumber.Value;
+                }
+                if (layer.HasValue)
+                {
+                    container.Layer = layer.Value;
+                }
+
+                await _unitOfWork.Containers.UpdateAsync(container);
+                await _unitOfWork.CompleteAsync();
+
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                throw;
             }
         }
         private async Task<int> GenerateContainerLocationLogIdAsync()
