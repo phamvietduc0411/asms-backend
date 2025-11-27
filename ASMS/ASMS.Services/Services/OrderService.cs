@@ -304,7 +304,8 @@ namespace ASMS.Services.Services
                     ShelfQuantity = detailRequest.ShelfQuantity,
                     Image = detailRequest.Image,
                     ContainerType = detailRequest.ContainerType,
-                    ContainerQuantity = detailRequest.ContainerQuantity
+                    ContainerQuantity = detailRequest.ContainerQuantity,
+                    IsPlaced = detailRequest.IsPlaced,  
                 };
 
                 orderDetailsToAdd.Add(orderDetail);
@@ -354,6 +355,7 @@ namespace ASMS.Services.Services
                     Image = detailRequest.Image,
                     ContainerType = detailRequest.ContainerType,
                     ContainerQuantity = detailRequest.ContainerQuantity,
+                    IsPlaced = detailRequest.IsPlaced,
                     //Status = string.IsNullOrEmpty(detailRequest.ContainerCode) ? "Pending" : "Assigned"
                 });
             }
