@@ -1,4 +1,5 @@
-﻿using ASMS.Services.Model.OrderDetail;
+﻿using ASMS.Repositories.Common;
+using ASMS.Services.Model.OrderDetail;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,7 @@ namespace ASMS.Services.Interfaces
 {
     public interface IOrderDetailService
     {
-        Task<IEnumerable<OrderDetailResponse>> GetAllAsync();
+        Task<PaginatedList<OrderDetailItemResponse>> GetWithFilterAsync(bool? isPlaced, string? orderCode, int pageNumber, int pageSize);
         Task<OrderDetailResponse?> GetByIdAsync(int id);
         Task<IEnumerable<OrderDetailResponse>> GetByOrderCodeAsync(string orderCode);
         Task<OrderDetailResponse> CreateAsync(CreateOrderDetailRequest request);

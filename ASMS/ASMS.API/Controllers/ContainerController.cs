@@ -236,5 +236,30 @@ namespace ASMS.API.Controllers
                 });
             }
         }
+        /// <summary>
+        /// Update container position (Serial Number and/or Layer).
+        /// </summary>
+        /// <param name="containerCode">Container code to update</param>
+        /// <param name="serialNumber">Serial Number (optional)</param>
+        /// <param name="layer">Layer (optional)</param>
+        [HttpPatch("{containerCode}/position")]
+        public async Task<IActionResult> UpdateContainerPosition(
+            string containerCode,
+            [FromQuery] int? serialNumber = null,
+            [FromQuery] int? layer = null)
+        {
+            if (string.IsNullOrWhiteSpace(containerCode))
+                return BadRequest("Mã container không được để trống");
+
+            if (!serialNumber.HasValue && !layer.HasValue)
+                return BadRequest("Phải cung cấp ít nhất một trong hai: serialNumber hoặc layer");
+
+            var result = await _containerService.UpdateContainerPositionSerialNumberAsync(containerCode, serialNumber, layer);
+
+            if (!result)
+                return NotFound($"Không tìm thấy container với mã: {containerCode}");
+
+            return Ok(new { message = "Cập nhật vị trí container thành công" });
+        }
     }
 }

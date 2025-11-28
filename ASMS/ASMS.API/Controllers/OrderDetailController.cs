@@ -15,11 +15,43 @@ namespace ASMS.API.Controllers
             _service = service;
         }
 
+        /// <summary>
+        /// Retrieves all order details with optional filters and pagination
+        /// </summary>
+        /// <param name="isPlaced">Optional filter by placed status (true/false/null)</param>
+        /// <param name="orderCode">Optional filter by order code</param>
+        /// <param name="pageNumber">Page number (default: 1)</param>
+        /// <param name="pageSize">Page size (default: 10, max: 100)</param>
+        /// <returns>List of order details</returns>
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetOrderDetails(
+            [FromQuery] bool? isPlaced,
+            [FromQuery] string? orderCode,
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10)
         {
-            var result = await _service.GetAllAsync();
-            return Ok(result);
+            try
+            {
+
+                var result = await _service.GetWithFilterAsync(isPlaced, orderCode, pageNumber, pageSize);
+
+                return Ok(new
+                {
+                    success = true,
+                    data = result.Items,
+                    pagination = new
+                    {
+                        currentPage = result.CurrentPage,
+                        pageSize = result.PageSize,
+                        totalRecords = result.TotalRecords,
+                        totalPages = result.TotalPages
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
         }
 
         [HttpGet("{id}")]
