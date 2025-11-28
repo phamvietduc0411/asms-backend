@@ -1,4 +1,5 @@
-﻿using ASMS.Repositories.Data;
+﻿using ASMS.Repositories.Common;
+using ASMS.Repositories.Data;
 using ASMS.Repositories.Entities;
 using ASMS.Repositories.Infrastructures;
 using ASMS.Repositories.Interfaces;
@@ -18,13 +19,27 @@ namespace ASMS.Repositories.Repositories
         {
         }
 
-        public async Task<IEnumerable<OrderDetail>> GetAllAsync()
+        public async Task<PaginatedList<OrderDetail>> GetWithFilterAsync(bool? isPlaced, string? orderCode, int pageNumber, int pageSize)
         {
-            return await _context.OrderDetails
+            var query = _context.OrderDetails
                 .Include(x => x.OrderCodeNavigation)
                 .Include(x => x.StorageCodeNavigation)
                 .Include(x => x.ContainerCodeNavigation)
-                .ToListAsync();
+                .AsQueryable();
+
+            if (isPlaced.HasValue)
+            {
+                query = query.Where(od => od.IsPlaced == isPlaced.Value);
+            }
+
+            if (!string.IsNullOrEmpty(orderCode))
+            {
+                query = query.Where(od => od.OrderCode == orderCode);
+            }
+
+            query = query.OrderBy(od => od.OrderDetailId);
+
+            return await PaginatedList<OrderDetail>.CreateAsync(query, pageNumber, pageSize);
         }
 
         public async Task<OrderDetail?> GetByIdAsync(int id)

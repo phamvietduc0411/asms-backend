@@ -18,5 +18,6 @@ namespace ASMS.Services.Interfaces
         Task<bool> UpdateContainerPositionAsync(UpdateContainerPositionRequest request);
         Task<PlaceContainerResponse> PlaceContainerAsync(PlaceContainerRequest request);
         Task<RemoveContainerResponse> RemoveContainerAsync(string containerCode, string orderCode, string performedBy);
+        Task<bool> UpdateContainerPositionSerialNumberAsync(string containerCode, int? serialNumber, int? layer);
     }
 }

@@ -98,30 +98,30 @@ namespace ASMS.API.Controllers
         }
         #endregion
 
-        // POST: api/order/detail
-        [HttpPost("detail")]
-        public async Task<IActionResult> CreateOrderDetail([FromBody] CreateOrderDetailRequest request)
-        {
-            try
-            {
-                var result = await _orderService.CreateOrderDetailAsync(request);
-                return Ok(new
-                {
-                    success = true,
-                    message = "Order detail created and container assigned successfully",
-                    data = result
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error creating order detail for order {OrderCode}", request.OrderCode);
-                return BadRequest(new
-                {
-                    success = false,
-                    message = ex.Message
-                });
-            }
-        }
+        //// POST: api/order/detail
+        //[HttpPost("detail")]
+        //public async Task<IActionResult> CreateOrderDetail([FromBody] CreateOrderDetailRequest request)
+        //{
+        //    try
+        //    {
+        //        var result = await _orderService.CreateOrderDetailAsync(request);
+        //        return Ok(new
+        //        {
+        //            success = true,
+        //            message = "Order detail created and container assigned successfully",
+        //            data = result
+        //        });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "Error creating order detail for order {OrderCode}", request.OrderCode);
+        //        return BadRequest(new
+        //        {
+        //            success = false,
+        //            message = ex.Message
+        //        });
+        //    }
+        //}
 
         // GET: api/order/{orderCode}/details
         [HttpGet("{orderCode}/details")]

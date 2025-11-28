@@ -1,4 +1,5 @@
-﻿using ASMS.Repositories.Entities;
+﻿using ASMS.Repositories.Common;
+using ASMS.Repositories.Entities;
 using ASMS.Repositories.Infrastructures;
 using ASMS.Services.Interfaces;
 using ASMS.Services.Model.OrderDetail;
@@ -22,10 +23,20 @@ namespace ASMS.Services.Services
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<OrderDetailResponse>> GetAllAsync()
+        public async Task<PaginatedList<OrderDetailItemResponse>> GetWithFilterAsync(bool? isPlaced, string? orderCode, int pageNumber, int pageSize)
         {
-            var orderDetails = await _unitOfWork.OrderDetails.GetAllAsync();
-            return _mapper.Map<IEnumerable<OrderDetailResponse>>(orderDetails);
+            var result = await _unitOfWork.OrderDetails.GetWithFilterAsync(isPlaced, orderCode, pageNumber, pageSize);
+
+            var mappedItems = _mapper.Map<List<OrderDetailItemResponse>>(result.Items);
+
+            return new PaginatedList<OrderDetailItemResponse>(
+                mappedItems,
+                result.CurrentPage,
+                result.PageSize,
+                result.TotalRecords)
+            {
+                TotalPages = result.TotalPages
+            };
         }
 
         public async Task<OrderDetailResponse?> GetByIdAsync(int id)

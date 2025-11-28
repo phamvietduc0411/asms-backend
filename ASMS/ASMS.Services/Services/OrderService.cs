@@ -304,7 +304,8 @@ namespace ASMS.Services.Services
                     ShelfQuantity = detailRequest.ShelfQuantity,
                     Image = detailRequest.Image,
                     ContainerType = detailRequest.ContainerType,
-                    ContainerQuantity = detailRequest.ContainerQuantity
+                    ContainerQuantity = detailRequest.ContainerQuantity,
+                    IsPlaced = detailRequest.IsPlaced,  
                 };
 
                 orderDetailsToAdd.Add(orderDetail);
@@ -354,6 +355,7 @@ namespace ASMS.Services.Services
                     Image = detailRequest.Image,
                     ContainerType = detailRequest.ContainerType,
                     ContainerQuantity = detailRequest.ContainerQuantity,
+                    IsPlaced = detailRequest.IsPlaced,
                     //Status = string.IsNullOrEmpty(detailRequest.ContainerCode) ? "Pending" : "Assigned"
                 });
             }
@@ -510,7 +512,7 @@ namespace ASMS.Services.Services
         {
             if (string.IsNullOrEmpty(request.CustomerCode))
             {
-                var newCustomerCode = _cusService.GetLastRecord();
+                var newCustomerCode = await _cusService.GetLastRecord();
                 request.CustomerCode = newCustomerCode.ToString();
             }
 
@@ -526,7 +528,7 @@ namespace ASMS.Services.Services
                 Password = PasswordHasher.HashPassword("123456789")
             };
 
-            await _cusService.AddCustomerAsync(newCus);
+                await _cusService.AddCustomerAsync(newCus);      
             return newCode;
         }
     }

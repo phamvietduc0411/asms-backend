@@ -31,6 +31,8 @@ public partial class OrderDetail
 
     public int? ShelfQuantity { get; set; }
 
+    public bool? IsPlaced { get; set; }
+
     public virtual Container? ContainerCodeNavigation { get; set; }
 
     public virtual Order? OrderCodeNavigation { get; set; }

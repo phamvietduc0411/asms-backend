@@ -42,6 +42,7 @@ public partial class VstorageContext : DbContext
 
     public virtual DbSet<PaymentHistory> PaymentHistories { get; set; }
 
+
     public virtual DbSet<ProductType> ProductTypes { get; set; }
     public virtual DbSet<Service> Services { get; set; }
 
@@ -208,7 +209,7 @@ public partial class VstorageContext : DbContext
         {
             entity.ToTable("Customer");
 
-            
+
 
             entity.Property(e => e.Address).HasMaxLength(500);
             entity.Property(e => e.CustomerCode)
@@ -382,6 +383,7 @@ public partial class VstorageContext : DbContext
             entity.Property(e => e.Image)
                 .HasMaxLength(500)
                 .IsUnicode(false);
+            entity.Property(e => e.IsPlaced).HasColumnName("isPlaced");
             entity.Property(e => e.OrderCode)
                 .HasMaxLength(50)
                 .IsUnicode(false);
