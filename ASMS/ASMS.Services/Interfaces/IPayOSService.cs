@@ -13,6 +13,7 @@ namespace ASMS.Services.Interfaces
     {
         Task<object> CreatePaymentLink(string orderCode);
         Task HandlePaymentWebhook(WebhookType webhookData);
+
         Task<PaymentResultDto?> GetPaymentResult(string paymentCode);
         Task<string> ConfirmWebhook(WebhookURL body);
     }
