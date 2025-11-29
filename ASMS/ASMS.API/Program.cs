@@ -2,6 +2,7 @@
 using ASMS.Repositories.Entities;
 using ASMS.Services;
 using ASMS.Services.Mappings;
+using ASMS.Services.Model.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,9 +24,10 @@ namespace ASMS.API
             builder.Services.ConfigureServicesLayers(builder.Configuration);
 
             builder.Services.ConfigureRepositoryServices();
-            
 
-
+            //Sending Mail
+            builder.Services.Configure<ProjectMailConfig>(
+            builder.Configuration.GetSection("ProjectMail"));
 
             //Auto Mapper
             var mapperKey = builder.Configuration["KeyAutoMapper:Key"];
@@ -83,8 +85,8 @@ namespace ASMS.API
 
             builder.Services.AddDbContext<VstorageContext>(options =>
             {
-                //options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
-               options.UseSqlServer(builder.Configuration.GetConnectionString("DeployConnection"));
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+                //options.UseSqlServer(builder.Configuration.GetConnectionString("DeployConnection"));
                 options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
             });
 

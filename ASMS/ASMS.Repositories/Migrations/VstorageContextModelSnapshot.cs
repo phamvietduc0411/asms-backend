@@ -570,6 +570,10 @@ namespace ASMS.Repositories.Migrations
                         .IsUnicode(false)
                         .HasColumnType("varchar(500)");
 
+                    b.Property<bool?>("IsPlaced")
+                        .HasColumnType("bit")
+                        .HasColumnName("isPlaced");
+
                     b.Property<string>("OrderCode")
                         .HasMaxLength(50)
                         .IsUnicode(false)

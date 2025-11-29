@@ -1,7 +1,5 @@
 ﻿using ASMS.Services.Interfaces;
-using ASMS.Services.Model.OrderDetail;
 using ASMS.Services.Model.Orders;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ASMS.API.Controllers

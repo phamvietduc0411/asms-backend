@@ -1,6 +1,7 @@
 ﻿using ASMS.Repositories.Entities;
 using ASMS.Repositories.Infrastructures;
 using ASMS.Services.Interfaces;
+using ASMS.Services.Model.Authentication;
 using ASMS.Services.Model.CLP;
 using ASMS.Services.Model.Customer;
 using ASMS.Services.Model.OrderDetail;
@@ -10,6 +11,8 @@ using ASMS.Services.Utilities;
 using AutoMapper;
 using Azure.Core;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Org.BouncyCastle.Asn1.Ocsp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,14 +28,18 @@ namespace ASMS.Services.Services
         private readonly ILogger<OrderService> _logger;
         private readonly ICLPService _clpService;
         private readonly ICustomerService _cusService;
+        private readonly IPasswordService _password;
+        private readonly ProjectMailConfig _mailConfig;
 
-        public OrderService(IUnitOfWork unitOfWork, IMapper mapper, ILogger<OrderService> logger, ICLPService clpService, ICustomerService cusService)
+        public OrderService(IUnitOfWork unitOfWork, IMapper mapper, ILogger<OrderService> logger, ICLPService clpService, ICustomerService cusService, IPasswordService password, IOptions<ProjectMailConfig> mailConfig)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _logger = logger;
             _clpService = clpService;
             _cusService = cusService;
+            _password = password;
+            _mailConfig = mailConfig.Value;
         }
 
         public async Task<PaginatedOrderResponse> GetWithFilterAsync(int pageNumber, int pageSize, string? customerCode, DateOnly? orderDate, DateOnly? depositDate, DateOnly? returnDate, string style)
@@ -212,6 +219,7 @@ namespace ASMS.Services.Services
             // Generate order code
             var orderDate = DateOnly.FromDateTime(DateTime.Now);
             var orderCode = await GenerateOrderCodeAsync(orderDate);
+            var isCreateSuccess = CreatePasswordAndSendEmail(request.Email);
 
             // Calculate total price and unpaid amount
             decimal totalPrice = 0;
@@ -305,7 +313,7 @@ namespace ASMS.Services.Services
                     Image = detailRequest.Image,
                     ContainerType = detailRequest.ContainerType,
                     ContainerQuantity = detailRequest.ContainerQuantity,
-                    IsPlaced = detailRequest.IsPlaced,  
+                    IsPlaced = detailRequest.IsPlaced,
                 };
 
                 orderDetailsToAdd.Add(orderDetail);
@@ -528,8 +536,24 @@ namespace ASMS.Services.Services
                 Password = PasswordHasher.HashPassword("123456789")
             };
 
-                await _cusService.AddCustomerAsync(newCus);      
+            await _cusService.AddCustomerAsync(newCus);
             return newCode;
+        }
+
+        private async Task<bool> CreatePasswordAndSendEmail(string email)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(email)) return false;
+                string newPass = _password.GenerateRandomPassword(8);
+                string emailContent = EmailTemplates.NewAccount(email, newPass, _mailConfig.Email);
+                await _password.SendEmailAsync(email, newPass,emailContent);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return true;
+            }
         }
     }
 }
