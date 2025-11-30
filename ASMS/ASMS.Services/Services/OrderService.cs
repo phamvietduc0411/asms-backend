@@ -586,17 +586,15 @@ namespace ASMS.Services.Services
             var assign = new TrackingHistory()
             {
                OrderCode = oderCode,
-               //OrderDetailCode = oderDetailCode,
                OldStatus = "Order created successfully",
                NewStatus = "Waiting for pick up",
-               ActionType = "Delivery",
+               ActionType = "Pending",
                CreateAt = DateOnly.FromDateTime(DateTime.Now),
                CurrentAssign = deliveryEmp.Name,
                NextAssign = "Warehouse Staff"
             };
 
             await _trackingHistoryService.CreateAsync(assign);
-
         }
     }
 }
