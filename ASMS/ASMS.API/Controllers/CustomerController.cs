@@ -36,6 +36,11 @@ namespace ASMS.API.Controllers
         {
             try
             {
+                if (string.IsNullOrEmpty(request.CustomerCode))
+                {
+                    var newCustomerCode = await _customerService.GetLastRecord();
+                    request.CustomerCode = newCustomerCode.ToString();
+                }
                 request.Password = PasswordHasher.HashPassword(request.Password);
                 var result = await _customerService.AddCustomerAsync(request);
                 return Ok(result);

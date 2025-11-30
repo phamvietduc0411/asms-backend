@@ -30,8 +30,10 @@ namespace ASMS.Services.Services
         private readonly ICustomerService _cusService;
         private readonly IPasswordService _password;
         private readonly ProjectMailConfig _mailConfig;
+        private readonly IEmployeeService _employeeService;
+        private readonly ITrackingHistoryService _trackingHistoryService;
 
-        public OrderService(IUnitOfWork unitOfWork, IMapper mapper, ILogger<OrderService> logger, ICLPService clpService, ICustomerService cusService, IPasswordService password, IOptions<ProjectMailConfig> mailConfig)
+        public OrderService(IUnitOfWork unitOfWork, IMapper mapper, ILogger<OrderService> logger, ICLPService clpService, ICustomerService cusService, IPasswordService password, IOptions<ProjectMailConfig> mailConfig, IEmployeeService employeeService, ITrackingHistoryService trackingHistoryService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -40,6 +42,8 @@ namespace ASMS.Services.Services
             _cusService = cusService;
             _password = password;
             _mailConfig = mailConfig.Value;
+            _employeeService = employeeService;
+            _trackingHistoryService = trackingHistoryService;
         }
 
         public async Task<PaginatedOrderResponse> GetWithFilterAsync(int pageNumber, int pageSize, string? customerCode, DateOnly? orderDate, DateOnly? depositDate, DateOnly? returnDate, string style)
@@ -213,13 +217,10 @@ namespace ASMS.Services.Services
         {
             _logger.LogInformation("Creating new order with details for customer {Code}", request.CustomerCode);
 
-            //Create new customer 
-            request.CustomerCode = await CreateCustomer(request);
 
             // Generate order code
             var orderDate = DateOnly.FromDateTime(DateTime.Now);
             var orderCode = await GenerateOrderCodeAsync(orderDate);
-            var isCreateSuccess = CreatePasswordAndSendEmail(request.Email);
 
             // Calculate total price and unpaid amount
             decimal totalPrice = 0;
@@ -384,6 +385,12 @@ namespace ASMS.Services.Services
             {
                 await _unitOfWork.OrderDetailServices.AddAsync(service);
             }
+            // Assgin oder for delivery
+            await AssignDeliveryForOrder(orderCode);
+
+            //Create new customer 
+            request.CustomerCode = await CreateCustomer(request);
+            var isCreateSuccess = CreatePasswordAndSendEmail(request.Email);
 
             await _unitOfWork.CompleteAsync();
 
@@ -570,6 +577,25 @@ namespace ASMS.Services.Services
                 return null;
 
             return false;
+
+        private async void AssignDeliveryForOrder(string oderCode)
+        {
+            var deliveryEmp = await _employeeService.GetDevliveryEmployeeForOder();
+            if (deliveryEmp == null) return;
+            var assign = new TrackingHistory()
+            {
+               OrderCode = oderCode,
+               //OrderDetailCode = oderDetailCode,
+               OldStatus = "Order created successfully",
+               NewStatus = "Waiting for pick up",
+               ActionType = "Delivery",
+               CreateAt = DateOnly.FromDateTime(DateTime.Now),
+               CurrentAssign = deliveryEmp.Name,
+               NextAssign = "Warehouse Staff"
+            };
+
+            await _trackingHistoryService.CreateAsync(assign);
+
         }
     }
 }

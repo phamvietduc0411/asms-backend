@@ -107,13 +107,14 @@ namespace ASMS.API.Controllers
         [HttpGet]
         public async Task<IActionResult> GetEmployees(
             [FromQuery] string? roleName,
+            [FromQuery] string? status,
             [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 10)
         {
             try
             {
 
-                var result = await _employeeService.GetWithFilterAsync(roleName, pageNumber, pageSize);
+                var result = await _employeeService.GetWithFilterAsync(roleName,status, pageNumber, pageSize);
 
                 return Ok(new
                 {
@@ -133,6 +134,5 @@ namespace ASMS.API.Controllers
                 return StatusCode(500, new { success = false, message = ex.Message });
             }
         }
-
     }
 }

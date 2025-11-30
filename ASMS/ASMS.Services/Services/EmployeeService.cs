@@ -45,9 +45,9 @@ namespace ASMS.Services.Services
             await _unitOfWork.CompleteAsync();
             return updateInfo;
         }
-        public async Task<PaginatedList<GetEmployeeResponse>> GetWithFilterAsync(string? roleName, int pageNumber, int pageSize)
+        public async Task<PaginatedList<GetEmployeeResponse>> GetWithFilterAsync(string? roleName,string? status ,int pageNumber, int pageSize)
         {
-            var result = await _unitOfWork.Employee.GetWithFilterAsync(roleName, pageNumber, pageSize);
+            var result = await _unitOfWork.Employee.GetWithFilterAsync(roleName,status ,pageNumber, pageSize);
 
             var mappedItems = _mapper.Map<List<GetEmployeeResponse>>(result.Items);
 
@@ -59,6 +59,12 @@ namespace ASMS.Services.Services
             {
                 TotalPages = result.TotalPages
             };
+        }
+
+        public async Task<Employee?> GetDevliveryEmployeeForOder()
+        {
+            var employee = await _unitOfWork.Employee.GetAvailableDeliveryForOrder();
+            return employee;
         }
     }
 }
