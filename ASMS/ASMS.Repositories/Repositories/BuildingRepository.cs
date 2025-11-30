@@ -42,5 +42,9 @@ namespace ASMS.Repositories.Repositories
         {
             return await _context.Buildings.FirstOrDefaultAsync(b => b.Name == name && b.IsActive == true);
         }
+        public async Task<IEnumerable<Building>> GetAllAsync()
+        {
+            return await _dbSet.AsNoTracking().ToListAsync();
+        }
     }
 }

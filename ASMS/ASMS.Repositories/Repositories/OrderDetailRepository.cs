@@ -55,7 +55,9 @@ namespace ASMS.Repositories.Repositories
         {
             return await _context.OrderDetails
                 .Include(od => od.OrderDetailProductTypes)
+                    .ThenInclude(odpt => odpt.ProductType)
                 .Include(od => od.OrderDetailServices)
+                    .ThenInclude(ods => ods.Service)
                 .Include(od => od.ContainerCodeNavigation)
                 //.Include (x => x.OrderCodeNavigation)
                 .Where(x => x.OrderCode == orderCode)

@@ -16,5 +16,8 @@ namespace ASMS.Repositories.Interfaces
         Task<Order?> GetWithDetailsAsync(string orderCode);
 
         Task<int> CountOrdersByDateAsync(DateOnly date);
+        Task<IEnumerable<Order>> GetOverdueOrdersAsync(DateOnly currentDate);
+        Task<IEnumerable<Order>> GetByStatusAsync(string status);
+        Task<IEnumerable<Order>> GetAllAsync();
     }
 }

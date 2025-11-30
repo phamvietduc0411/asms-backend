@@ -15,5 +15,7 @@ namespace ASMS.Repositories.Interfaces
         Task<Building?> GetByCodeAsync(string buildingCode);
         Task<PaginatedList<Building>> GetAllAsync(int pageNumber, int pageSize);
         Task<Building> GetByNameAsync(string name);
+
+        Task<IEnumerable<Building>> GetAllAsync();
     }
 }

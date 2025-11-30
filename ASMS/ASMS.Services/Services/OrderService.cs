@@ -270,6 +270,7 @@ namespace ASMS.Services.Services
             var productTypesToAdd = new List<OrderDetailProductType>();
             var servicesToAdd = new List<ASMS.Repositories.Entities.OrderDetailService>();
 
+            bool? isPlacedValue = DetermineIsPlacedByStyle(request.Style);
             for (int i = 0; i < request.OrderDetails.Count; i++)
             {
                 var detailRequest = request.OrderDetails[i];
@@ -313,7 +314,7 @@ namespace ASMS.Services.Services
                     Image = detailRequest.Image,
                     ContainerType = detailRequest.ContainerType,
                     ContainerQuantity = detailRequest.ContainerQuantity,
-                    IsPlaced = detailRequest.IsPlaced,
+                    IsPlaced = isPlacedValue,
                 };
 
                 orderDetailsToAdd.Add(orderDetail);
@@ -363,7 +364,7 @@ namespace ASMS.Services.Services
                     Image = detailRequest.Image,
                     ContainerType = detailRequest.ContainerType,
                     ContainerQuantity = detailRequest.ContainerQuantity,
-                    IsPlaced = detailRequest.IsPlaced,
+                    IsPlaced = isPlacedValue,
                     //Status = string.IsNullOrEmpty(detailRequest.ContainerCode) ? "Pending" : "Assigned"
                 });
             }
@@ -436,12 +437,15 @@ namespace ASMS.Services.Services
                 StorageTypeId = od.StorageTypeId,
                 ShelfTypeId = od.ShelfTypeId,
                 ShelfQuantity = od.ShelfQuantity,
-                ProductTypeIds = od.OrderDetailProductTypes
-        .Select(odpt => odpt.ProductTypeId)
-        .ToList(),
-                ServiceIds = od.OrderDetailServices
-        .Select(ods => ods.ServiceId)
-        .ToList()
+                ProductTypeNames = od.OrderDetailProductTypes
+            .Select(odpt => odpt.ProductType?.Name)
+            .Where(name => name != null)
+            .ToList(),
+
+                ServiceNames = od.OrderDetailServices
+            .Select(ods => ods.Service?.Name)
+            .Where(name => name != null)
+            .ToList()
             }).ToList();
         }
         // Generate order code theo format: YYYYMMDD-XXXX
@@ -554,6 +558,18 @@ namespace ASMS.Services.Services
             {
                 return true;
             }
+        }
+        private bool? DetermineIsPlacedByStyle(string style)
+        {
+            if (string.IsNullOrEmpty(style))
+                return false; 
+
+            var normalizedStyle = style.Trim().ToLower();
+
+            if (normalizedStyle == "full" || normalizedStyle == "self")
+                return null;
+
+            return false;
         }
     }
 }
