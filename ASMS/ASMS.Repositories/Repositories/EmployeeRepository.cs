@@ -24,6 +24,7 @@ namespace ASMS.Repositories.Repositories
         {
             return await _dbSet
                 .Include(e => e.EmployeeRole)
+                .AsNoTracking()
                 .FirstOrDefaultAsync(e => e.EmployeeCode == employeeCode);
         }
 
@@ -52,6 +53,32 @@ namespace ASMS.Repositories.Repositories
             return await _dbSet
                 .Include(e => e.EmployeeRole)
                 .FirstOrDefaultAsync(e => e.Id == id);
+        }
+        public async Task<IEnumerable<Employee>> GetByRoleAsync(string roleName)
+        {
+            return await _dbSet
+                .Include(e => e.EmployeeRole)
+                .Where(e => e.EmployeeRole != null && e.EmployeeRole.Name == roleName)
+                .ToListAsync();
+        }
+
+        public async Task<Employee?> GetAvailableEmployeeByRoleAsync(string roleName)
+        {
+            return await _dbSet
+                .Include(e => e.EmployeeRole)
+                .Where(e => e.EmployeeRole != null
+                    && e.EmployeeRole.Name == roleName
+                    && e.Status == "Active"
+                    && e.IsActive == true)
+                .OrderBy(e => e.OrderActionCount ?? 0)
+                .FirstOrDefaultAsync();
+        }
+        public async Task<IEnumerable<Employee>> GetAllAsync()
+        {
+            return await _dbSet
+                .Include(e => e.EmployeeRole)
+                .AsNoTracking()
+                .ToListAsync();
         }
 
         public async Task<Employee?> GetAvailableDeliveryForOrder()

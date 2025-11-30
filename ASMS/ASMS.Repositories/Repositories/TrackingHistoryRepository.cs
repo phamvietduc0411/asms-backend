@@ -84,5 +84,28 @@ namespace ASMS.Repositories.Repositories
                 throw;
             }
         }
+        public async Task<IEnumerable<TrackingHistory>> GetAllAsync()
+        {
+            return await _dbSet.AsNoTracking().ToListAsync();
+        }
+
+        public async Task<IEnumerable<TrackingHistory>> GetByOrderCodeAsync(string orderCode)
+        {
+            return await _dbSet
+                .AsNoTracking()
+                .Where(th => th.OrderCode == orderCode)
+                .OrderBy(th => th.CreateAt)
+                .ToListAsync();
+        }
+
+        public async Task<TrackingHistory?> GetLatestByOrderCodeAsync(string orderCode)
+        {
+            return await _dbSet
+                .AsNoTracking()
+                .Where(th => th.OrderCode == orderCode)
+                .OrderByDescending(th => th.CreateAt)
+                .ThenByDescending(th => th.TrackingHistoryId)
+                .FirstOrDefaultAsync();
+        }
     }
 }

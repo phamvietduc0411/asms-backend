@@ -15,5 +15,9 @@ namespace ASMS.Repositories.Interfaces
         Task<Employee?> GetByCodeAsync(string employeeCode);
         Task<Employee?> GetAvailableDeliveryForOrder();
 
+        Task<IEnumerable<Employee>> GetByRoleAsync(string roleName);
+        Task<Employee?> GetAvailableEmployeeByRoleAsync(string roleName);
+        Task<IEnumerable<Employee>> GetAllAsync();
+
     }
 }

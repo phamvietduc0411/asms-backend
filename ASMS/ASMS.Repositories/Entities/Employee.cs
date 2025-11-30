@@ -27,6 +27,8 @@ public partial class Employee
 
     public int Id { get; set; }
 
+    public int? OrderActionCount { get; set; }
+
     public virtual Building? Building { get; set; }
 
     public virtual EmployeeRole? EmployeeRole { get; set; }

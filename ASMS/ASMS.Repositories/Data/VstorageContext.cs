@@ -252,6 +252,7 @@ public partial class VstorageContext : DbContext
             entity.Property(e => e.Name)
                 .HasMaxLength(50)
                 .IsUnicode(false);
+            entity.Property(e => e.OrderActionCount).HasDefaultValue(0);
             entity.Property(e => e.Password)
                 .HasMaxLength(255)
                 .IsUnicode(false);
@@ -338,6 +339,9 @@ public partial class VstorageContext : DbContext
                 .HasMaxLength(50)
                 .IsUnicode(false);
             entity.Property(e => e.Address).HasMaxLength(1000);
+            entity.Property(e => e.BuildingCode)
+                .HasMaxLength(50)
+                .IsUnicode(false);
             entity.Property(e => e.CustomerCode)
                 .HasMaxLength(50)
                 .IsUnicode(false);

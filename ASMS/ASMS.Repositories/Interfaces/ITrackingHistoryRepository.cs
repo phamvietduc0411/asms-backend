@@ -13,5 +13,9 @@ namespace ASMS.Repositories.Interfaces
         Task<List<TrackingHistory>> GetWithFilterAsync(int pageNumber, int pageSize, string? orderCode);
         Task<int> GetTotalCountWithFilterAsync(string? orderCode);
         Task<bool> DeleteAsync(int id);
+
+        Task<IEnumerable<TrackingHistory>> GetByOrderCodeAsync(string orderCode);
+        Task<TrackingHistory?> GetLatestByOrderCodeAsync(string orderCode);
+        Task<IEnumerable<TrackingHistory>> GetAllAsync();
     }
 }
