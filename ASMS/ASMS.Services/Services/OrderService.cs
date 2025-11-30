@@ -569,7 +569,7 @@ namespace ASMS.Services.Services
         private bool? DetermineIsPlacedByStyle(string style)
         {
             if (string.IsNullOrEmpty(style))
-                return false; 
+                return false;
 
             var normalizedStyle = style.Trim().ToLower();
 
@@ -577,8 +577,9 @@ namespace ASMS.Services.Services
                 return null;
 
             return false;
+        }
 
-        private async void AssignDeliveryForOrder(string oderCode)
+        private async Task AssignDeliveryForOrder(string oderCode)
         {
             var deliveryEmp = await _employeeService.GetDevliveryEmployeeForOder();
             if (deliveryEmp == null) return;
