@@ -18,27 +18,28 @@ namespace ASMS.Services.Services
 
         // Định nghĩa quy trình trạng thái cho từng Style (tất cả lowercase)
         private readonly Dictionary<string, List<string>> _workflowsByStyle = new()
+{
+    {
+        "full", new List<string>  
         {
-            {
-                "default", new List<string>
-                {
-                    "new", "pending", "wait pick up", "verify", "checkout",
-                    "pick up", "processing", "stored", "retrieved"
-                }
-            },
-            {
-                "full", new List<string>
-                {
-                    "new", "pending", "verify", "checkout", "renting", "retrieved"
-                }
-            },
-            {
-                "self", new List<string>
-                {
-                    "new", "pending", "checkout", "pick up", "renting", "retrieved"
-                }
-            }
-        };
+            "new", "pending", "wait pick up", "verify", "checkout",
+            "pick up", "processing", "stored", "retrieved"
+        }
+    },
+    {
+        "self_with_delivery", new List<string> 
+        {
+            "new", "pending", "wait pick up", "verify", "checkout",
+            "pick up", "renting", "retrieved"
+        }
+    },
+    {
+        "self_no_delivery", new List<string>  
+        {
+            "new", "pending", "checkout", "renting", "retrieved"
+        }
+    }
+};
 
         public OrderStatusService(IUnitOfWork unitOfWork, ILogger<OrderStatusService> logger)
         {
@@ -110,7 +111,7 @@ namespace ASMS.Services.Services
                 }
 
                 // Lấy workflow phù hợp
-                var workflow = GetWorkflowForOrder(order);
+                var workflow = await GetWorkflowForOrderAsync(order);
                 var currentIndex = workflow.IndexOf(order.Status?.ToLower() ?? "new");
 
                 if (currentIndex == -1)
@@ -413,18 +414,33 @@ namespace ASMS.Services.Services
         #region Private Helper Methods
 
         /// <summary>
-        /// Lấy workflow phù hợp cho Order dựa vào Style
+        /// Lấy workflow phù hợp cho Order dựa vào Style và có Delivery hay không
         /// </summary>
-        private List<string> GetWorkflowForOrder(Order order)
+        private async Task<List<string>> GetWorkflowForOrderAsync(Order order)
         {
-            var style = order.Style?.ToLower() ?? "default";
+            var style = order.Style?.ToLower();
 
-            if (_workflowsByStyle.ContainsKey(style))
+            if (style == "full")
             {
-                return _workflowsByStyle[style];
+                return _workflowsByStyle["full"];
+            }
+            else if (style == "self")
+            {
+
+                bool hasDelivery = await HasDeliveryServiceAsync(order);
+
+                if (hasDelivery)
+                {
+                    return _workflowsByStyle["self_with_delivery"];
+                }
+                else
+                {
+                    return _workflowsByStyle["self_no_delivery"];
+                }
             }
 
-            return _workflowsByStyle["default"];
+
+            return _workflowsByStyle["full"];
         }
 
         /// <summary>
@@ -473,7 +489,7 @@ namespace ASMS.Services.Services
             }
 
             // Xác định NextAssign cho trạng thái tiếp theo
-            var workflow = GetWorkflowForOrder(order);
+            var workflow = await GetWorkflowForOrderAsync(order);
             var currentIndex = workflow.IndexOf(newStatusLower ?? "new");
             string? nextAssignEmployee = null;
 
@@ -627,6 +643,30 @@ namespace ASMS.Services.Services
                 .OrderByDescending(th => th.CreateAt)
                 .ThenByDescending(th => th.TrackingHistoryId)
                 .FirstOrDefault();
+        }
+
+        /// <summary>
+        /// Kiểm tra xem Order có service Delivery không
+        /// </summary>
+        private async Task<bool> HasDeliveryServiceAsync(Order order)
+        {
+            var orderDetails = await _unitOfWork.OrderDetails.GetByOrderCodeAsync(order.OrderCode);
+
+            foreach (var orderDetail in orderDetails)
+            {
+                var orderDetailServices = await _unitOfWork.OrderDetailServices.GetByOrderDetailIdAsync(orderDetail.OrderDetailId);
+
+                foreach (var ods in orderDetailServices)
+                {
+                    var service = await _unitOfWork.Services.GetByIdAsync(ods.ServiceId);
+                    if (service?.Name?.ToLower() == "delivery")
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         #endregion

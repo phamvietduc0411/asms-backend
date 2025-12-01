@@ -104,5 +104,11 @@ namespace ASMS.Repositories.Repositories
                 throw;
             }
         }
+        public async Task<Service?> GetByIdAsync(int id)
+        {
+            return await _dbSet
+                .AsNoTracking()
+                .FirstOrDefaultAsync(s => s.ServiceId == id);
+        }
     }
 }

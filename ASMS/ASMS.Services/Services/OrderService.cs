@@ -2,22 +2,14 @@
 using ASMS.Repositories.Infrastructures;
 using ASMS.Services.Interfaces;
 using ASMS.Services.Model.Authentication;
-using ASMS.Services.Model.CLP;
 using ASMS.Services.Model.Customer;
 using ASMS.Services.Model.OrderDetail;
 using ASMS.Services.Model.Orders;
 using ASMS.Services.Model.TrackingHistories;
 using ASMS.Services.Utilities;
 using AutoMapper;
-using Azure.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Org.BouncyCastle.Asn1.Ocsp;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ASMS.Services.Services
 {
@@ -235,6 +227,10 @@ namespace ASMS.Services.Services
                 }
             }
 
+            //Create new customer 
+            request.CustomerCode = await CreateCustomer(request);
+            var isCreateSuccess = CreatePasswordAndSendEmail(request.Email);
+
             // Create Order entity
             var order = new Order
             {
@@ -389,8 +385,8 @@ namespace ASMS.Services.Services
             await AssignDeliveryForOrder(orderCode);
 
             //Create new customer 
-            request.CustomerCode = await CreateCustomer(request);
-            var isCreateSuccess = CreatePasswordAndSendEmail(request.Email);
+            //request.CustomerCode = await CreateCustomer(request);
+            //var isCreateSuccess = CreatePasswordAndSendEmail(request.Email, request);
 
             await _unitOfWork.CompleteAsync();
 
@@ -444,6 +440,7 @@ namespace ASMS.Services.Services
                 StorageTypeId = od.StorageTypeId,
                 ShelfTypeId = od.ShelfTypeId,
                 ShelfQuantity = od.ShelfQuantity,
+                IsPlaced = od.IsPlaced, 
                 ProductTypeNames = od.OrderDetailProductTypes
             .Select(odpt => odpt.ProductType?.Name)
             .Where(name => name != null)
@@ -556,9 +553,10 @@ namespace ASMS.Services.Services
             try
             {
                 if (string.IsNullOrEmpty(email)) return false;
-                string newPass = _password.GenerateRandomPassword(8);
+                //string newPass = _password.GenerateRandomPassword(8);
+                string newPass = "123456789";
                 string emailContent = EmailTemplates.NewAccount(email, newPass, _mailConfig.Email);
-                await _password.SendEmailAsync(email, newPass,emailContent);
+                await _password.SendEmailAsync(email, newPass, emailContent);
                 return true;
             }
             catch (Exception ex)
@@ -573,7 +571,7 @@ namespace ASMS.Services.Services
 
             var normalizedStyle = style.Trim().ToLower();
 
-            if (normalizedStyle == "full" || normalizedStyle == "self")
+            if (normalizedStyle == "self")
                 return null;
 
             return false;
@@ -585,13 +583,13 @@ namespace ASMS.Services.Services
             if (deliveryEmp == null) return;
             var assign = new TrackingHistory()
             {
-               OrderCode = oderCode,
-               OldStatus = "Order created successfully",
-               NewStatus = "Waiting for pick up",
-               ActionType = "Pending",
-               CreateAt = DateOnly.FromDateTime(DateTime.Now),
-               CurrentAssign = deliveryEmp.Name,
-               NextAssign = "Warehouse Staff"
+                OrderCode = oderCode,
+                OldStatus = "Order created successfully",
+                NewStatus = "Waiting for pick up",
+                ActionType = "Pending",
+                CreateAt = DateOnly.FromDateTime(DateTime.Now),
+                CurrentAssign = deliveryEmp.Name,
+                NextAssign = "Warehouse Staff"
             };
 
             await _trackingHistoryService.CreateAsync(assign);

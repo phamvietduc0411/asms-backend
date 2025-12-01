@@ -11,7 +11,7 @@ namespace ASMS.Repositories.Interfaces
 {
     public interface IOrderDetailRepository : IGenericRepository<OrderDetail>
     {
-        Task<PaginatedList<OrderDetail>> GetWithFilterAsync(bool? isPlaced, string? orderCode, int pageNumber, int pageSize);
+        Task<PaginatedList<OrderDetail>> GetWithFilterAsync(bool? isPlaced, string? orderCode, string? storageCode, int pageNumber, int pageSize);
         Task<OrderDetail?> GetByIdAsync(int id);
         Task<List<OrderDetail>> GetByOrderCodeAsync(string orderCode);
         Task<int> GetMaxOrderDetailIdAsync();

@@ -11,5 +11,6 @@ namespace ASMS.Services.Interfaces
         Task<Customer> UpdateCustomerAsync(Customer updateInfo);
         Task<PaginatedList<GetCustomerResponse>> GetAllAsync(int pageNumber, int pageSize);
         Task<string> GetLastRecord();
+        Task<Customer> GetByCodeAsync(string customerCode);
     }
 }

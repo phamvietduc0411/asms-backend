@@ -78,5 +78,14 @@ namespace ASMS.Services.Services
 
             return newCode;
         }
+        public async Task<Customer> GetByCodeAsync(string customerCode)
+        {
+            var customer = await _unitOfWork.Customer.GetByCodeAsync(customerCode);
+
+            if (customer == null)
+                return null;
+
+            return customer;    
+        }
     }
 }

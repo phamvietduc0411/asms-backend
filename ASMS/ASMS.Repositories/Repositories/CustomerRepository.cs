@@ -31,6 +31,11 @@ namespace ASMS.Repositories.Repositories
                                                         .FirstOrDefaultAsync();
             return lastCustomer;
         }
+        public async Task<Customer> GetByCodeAsync(string customerCode)
+        {
+            return await _context.Customers
+                .FirstOrDefaultAsync(c => c.CustomerCode == customerCode);
+        }
 
     }
 }
