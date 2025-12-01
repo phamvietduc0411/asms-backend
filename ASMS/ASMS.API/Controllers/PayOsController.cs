@@ -54,6 +54,34 @@ namespace ASMS.API.Controllers
 
             return Ok(result);
         }
+
+        [HttpPost("mobile/create-link/{orderCode}")]
+        public async Task<IActionResult> CreatePaymentLinkMobile(string orderCode)
+        {
+            var result = await _payOSService.CreatePaymentLink(orderCode);
+
+            return Ok(new
+            {
+                platform = "mobile",
+                data = result
+            });
+        }
+
+        [HttpGet("mobile/result/{paymentCode}")]
+        public async Task<IActionResult> GetPaymentResultMobile(string paymentCode)
+        {
+            var result = await _payOSService.GetPaymentResult(paymentCode);
+
+            if (result == null)
+                return NotFound(new { message = "Payment result not found" });
+
+            return Ok(new
+            {
+                platform = "mobile",
+                data = result
+            });
+        }
+
     }
 
 }
