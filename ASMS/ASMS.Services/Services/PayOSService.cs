@@ -44,9 +44,10 @@ namespace ASMS.Services.Services
 
             ItemData item = new ItemData(name: "Payment for the order", quantity: 1, price: (int)order.UnpaidAmount.Value);
 
-            var baseUrl = _config["Frontend:BaseUrl"];
-            string successUrl = $"{baseUrl}/payment-success?orderCode={orderCode}";
-            string cancelUrl = $"{baseUrl}/payment-cancel?orderCode={orderCode}";
+            var backendBaseUrl = _config["Backend:BaseUrl"];
+            string successUrl = $"{_config["Backend:BaseUrl"]}/api/PayOs/result/{paymentCode}";
+            string cancelUrl = $"{_config["Backend:BaseUrl"]}/api/PayOs/result/{paymentCode}";
+
 
             PaymentData paymentData = new PaymentData(
                 orderCode: paymentCode,
