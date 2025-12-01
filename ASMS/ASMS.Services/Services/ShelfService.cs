@@ -16,6 +16,7 @@ namespace ASMS.Services.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private static readonly int shelfCapacity = 72;
 
         public ShelfService(IUnitOfWork unitOfWork, IMapper mapper)
         {
@@ -47,10 +48,14 @@ namespace ASMS.Services.Services
 
         public async Task<ShelfResponse> CreateAsync(CreateShelfRequest request)
         {
-            var entity = _mapper.Map<Shelf>(request);
-            await _unitOfWork.Shelves.AddAsync(entity);
-            await _unitOfWork.CompleteAsync();
-            return _mapper.Map<ShelfResponse>(entity);
+            var numberShelf = await GetNumberOfShelfWithStorageCode(request.StorageCode);
+            if (numberShelf < shelfCapacity) {
+                var entity = _mapper.Map<Shelf>(request);
+                await _unitOfWork.Shelves.AddAsync(entity);
+                await _unitOfWork.CompleteAsync();
+                return _mapper.Map<ShelfResponse>(entity);
+            }
+            return null;
         }
 
         public async Task<ShelfResponse?> UpdateAsync(string shelfCode, UpdateShelfRequest request)
@@ -73,6 +78,12 @@ namespace ASMS.Services.Services
             await _unitOfWork.Shelves.DeleteAsync(shelfCode);
             await _unitOfWork.CompleteAsync();
             return true;
+        }
+
+        private async Task<int> GetNumberOfShelfWithStorageCode(string storageCode)
+        {
+            var numberShelf = await _unitOfWork.Shelves.GetNumberOfShelfWithStorageCode(storageCode); 
+            return numberShelf;
         }
 
     }

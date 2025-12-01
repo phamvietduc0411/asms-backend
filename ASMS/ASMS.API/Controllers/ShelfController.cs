@@ -64,8 +64,12 @@ namespace ASMS.API.Controllers
         public async Task<IActionResult> Create([FromBody] CreateShelfRequest request)
         {
             var created = await _shelfService.CreateAsync(request);
+            if (created == null)
+                return BadRequest(new { message = "The number of shelves has reached the maximum Storage level." });
+
             return CreatedAtAction(nameof(GetByCode), new { shelfCode = created.ShelfCode }, created);
         }
+
 
         [HttpPut("{shelfCode}")]
         public async Task<IActionResult> Update(string shelfCode, [FromBody] UpdateShelfRequest request)

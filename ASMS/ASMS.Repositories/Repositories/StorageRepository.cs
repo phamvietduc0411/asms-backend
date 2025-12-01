@@ -110,6 +110,17 @@ namespace ASMS.Repositories.Repositories
             }
         }
 
-     
+        public async Task<int> GetNumberOfStorageWithBuildingCode(int buildingId, string storageType)
+        {
+            return await _dbSet
+                .AsNoTracking()
+                .Include(s => s.StorageType)
+                .Where(s => s.BuildingId == buildingId
+                         && s.StorageType.Name == storageType)
+                .CountAsync();
+        }
+
+
+
     }
 }

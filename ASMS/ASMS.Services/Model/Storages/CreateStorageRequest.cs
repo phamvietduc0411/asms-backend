@@ -13,8 +13,8 @@ namespace ASMS.Services.Model.Storages
         [StringLength(50)]
         public string StorageCode { get; set; }
 
-        public int? BuildingId { get; set; }
-        public int? StorageTypeId { get; set; }
+        public int BuildingId { get; set; }
+        public int StorageTypeId { get; set; }
         public int? ProductTypeId { get; set; }
         public decimal? Length { get; set; }
         public decimal? Width { get; set; }

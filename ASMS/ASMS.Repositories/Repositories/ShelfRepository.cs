@@ -63,5 +63,14 @@ namespace ASMS.Repositories.Repositories
                 .Where(s => s.StorageCode == storageCode)
                 .ToListAsync();
         }
+
+        public async Task<int> GetNumberOfShelfWithStorageCode(string storageCode)
+        {
+            return await _dbSet
+                .AsNoTracking()
+                .Where(s => s.StorageCode == storageCode)
+                .CountAsync();
+        }
+
     }
 }

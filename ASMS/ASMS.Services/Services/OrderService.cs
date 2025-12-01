@@ -556,7 +556,7 @@ namespace ASMS.Services.Services
                 //string newPass = _password.GenerateRandomPassword(8);
                 string newPass = "123456789";
                 string emailContent = EmailTemplates.NewAccount(email, newPass, _mailConfig.Email);
-                await _password.SendEmailAsync(email, newPass, emailContent);
+                await _password.SendEmailAsync(email, " Kích hoạt tài khoản: Thông tin đăng nhập của bạn", emailContent);
                 return true;
             }
             catch (Exception ex)

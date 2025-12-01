@@ -14,5 +14,6 @@ namespace ASMS.Repositories.Interfaces
         Task<int> GetTotalCountWithFilterAsync(string? buildingCode, string? storageTypeName, string? productTypeName);
         Task<Storage?> GetByCodeAsync(string storageCode);
         Task<bool> HasRelatedDataAsync(string storageCode);
+        Task<int> GetNumberOfStorageWithBuildingCode(int buildingId, string storageType);
     }
 }

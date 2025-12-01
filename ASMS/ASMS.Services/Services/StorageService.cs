@@ -15,6 +15,9 @@ namespace ASMS.Services.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private static readonly int storageSmallCapacity = 10;
+        private static readonly int storageMediumCapacity = 6;
+        private static readonly int storageLargeCapacity = 4;
 
         public StorageService(IUnitOfWork unitOfWork, IMapper mapper)
         {
@@ -48,6 +51,10 @@ namespace ASMS.Services.Services
             var existing = await _unitOfWork.Storages.GetByCodeAsync(request.StorageCode);
             if (existing != null)
                 throw new Exception($"Storage with code '{request.StorageCode}' already exists.");
+
+            var isValid = await CanAddStorageToBuilding(request.BuildingId, request.StorageTypeId);
+            if (!isValid)
+                throw new Exception($"The number of storage has reached the maximum.");
 
             var storage = _mapper.Map<Storage>(request);
             storage.IsActive = true;
@@ -83,17 +90,50 @@ namespace ASMS.Services.Services
                 if (hasRelatedData)
                     throw new Exception($"Cannot deactivate storage '{storageCode}' because it has related Shelves or Orders.");
 
-                existing.IsActive = false; 
+                existing.IsActive = false;
             }
             else
             {
-                existing.IsActive = true; 
+                existing.IsActive = true;
             }
 
             await _unitOfWork.Storages.UpdateAsync(existing);
             await _unitOfWork.CompleteAsync();
 
             return true;
+        }
+
+        private async Task<bool> CanAddStorageToBuilding(int buildingId, int storageTypeId)
+        {
+            if (buildingId <= 0 || storageTypeId <= 0) return false;
+            var type = await _unitOfWork.StorageTypes.GetEntityByIdAsync(storageTypeId);
+            if (type == null) return false;
+            var numberOfStorage = await _unitOfWork.Storages.GetNumberOfStorageWithBuildingCode(buildingId, type.Name);
+            int capacity = 0;
+
+            switch (type.Name)
+            {
+                case "Small":
+                    capacity = storageSmallCapacity;
+                    break;
+
+                case "Medium":
+                    capacity = storageMediumCapacity;
+                    break;
+
+                case "Large":
+                    capacity = storageLargeCapacity;
+                    break;
+
+                default:
+                    return false;
+            }
+
+            if (numberOfStorage < capacity)
+                return true;
+
+            return false;
+
         }
     }
 }
