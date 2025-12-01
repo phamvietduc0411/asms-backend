@@ -15,11 +15,13 @@ namespace ASMS.Services.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly ICustomerService _customerService;
 
-        public PaymentHistoryService(IUnitOfWork unitOfWork, IMapper mapper)
+        public PaymentHistoryService(IUnitOfWork unitOfWork, IMapper mapper, ICustomerService customerService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _customerService = customerService;
         }
 
         public async Task<IEnumerable<PaymentHistoryResponse>> GetAllAsync()
@@ -63,6 +65,19 @@ namespace ASMS.Services.Services
             await _unitOfWork.PaymentHistories.DeleteAsync(entity);
             await _unitOfWork.CompleteAsync();
             return true;
+        }
+
+        public async Task<List<PaymentHistoryResponse>> GetHistory(string customerCode, string? orderCode)
+        {
+            var customer = await _customerService.GetByCodeAsync(customerCode);
+            if (customer == null)
+                throw new InvalidOperationException($"Customer with code '{customerCode}' does not exist.");
+
+            var listHistory = await _unitOfWork.PaymentHistories.GetHistoryByCustomerCode(customerCode, orderCode);
+            if (listHistory == null || listHistory.Count == 0)
+                throw new InvalidOperationException($"Customer with code '{customerCode}' does not have any payment history.");
+
+            return _mapper.Map<List<PaymentHistoryResponse>>(listHistory);
         }
     }
 }

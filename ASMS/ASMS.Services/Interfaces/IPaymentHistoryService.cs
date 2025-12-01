@@ -14,5 +14,6 @@ namespace ASMS.Services.Interfaces
         Task<PaymentHistoryResponse> CreateAsync(CreatePaymentHistoryRequest request);
         Task<PaymentHistoryResponse?> UpdateAsync(string code, UpdatePaymentHistoryRequest request);
         Task<bool> DeleteAsync(string code);
+        Task<List<PaymentHistoryResponse>> GetHistory(string customerCode, string orderCode);
     }
 }

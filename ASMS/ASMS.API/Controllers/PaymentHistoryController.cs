@@ -1,6 +1,7 @@
 ﻿using ASMS.Services.Interfaces;
 using ASMS.Services.Model.PaymentHistory;
 using Microsoft.AspNetCore.Mvc;
+using static Org.BouncyCastle.Crypto.Engines.SM2Engine;
 
 namespace ASMS.API.Controllers
 {
@@ -52,5 +53,33 @@ namespace ASMS.API.Controllers
             if (!success) return NotFound();
             return NoContent();
         }
+
+        [HttpGet("by-customerCode")]
+        public async Task<IActionResult> GetPaymentHistoryByCustomerCode([FromQuery] string? customerCode, [FromQuery] string? orderCode)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(customerCode))
+                    return BadRequest(new { success = false, message = "CustomerCode is required." });
+
+                var history = await _service.GetHistory(customerCode, orderCode);
+
+                return Ok(new
+                {
+                    success = true,
+                    data = history
+                });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return NotFound(new { success = false, message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+
     }
 }

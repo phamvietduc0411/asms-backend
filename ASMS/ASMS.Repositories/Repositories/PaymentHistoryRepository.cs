@@ -33,5 +33,21 @@ namespace ASMS.Repositories.Repositories
             _dbSet.Remove(entity);
             await Task.CompletedTask;
         }
+
+        public async Task<List<PaymentHistory>> GetHistoryByCustomerCode(string customerCode, string? orderCode)
+        {
+            var query = _dbSet
+                .AsNoTracking()
+                .Include(ph => ph.OrderCodeNavigation) 
+                .Where(ph => ph.OrderCodeNavigation != null
+                             && ph.OrderCodeNavigation.CustomerCode == customerCode);
+
+            if (!string.IsNullOrWhiteSpace(orderCode))
+            {
+                query = query.Where(ph => ph.OrderCode == orderCode);
+            }
+
+            return await query.ToListAsync();
+        }
     }
 }
