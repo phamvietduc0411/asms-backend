@@ -26,5 +26,13 @@ namespace ASMS.Repositories.Repositories
                 .Where(s => ids.Contains(s.ServiceId))
                 .ToListAsync();
         }
+        public async Task<IEnumerable<OrderDetailService>> GetByOrderDetailIdAsync(int orderDetailId)
+        {
+            return await _dbSet
+                .Include(ods => ods.Service)
+                .Where(ods => ods.OrderDetailId == orderDetailId)
+                .AsNoTracking()
+                .ToListAsync();
+        }
     }
 }

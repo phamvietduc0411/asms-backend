@@ -11,5 +11,6 @@ namespace ASMS.Repositories.Interfaces
     public interface IOrderDetailServiceRepository : IGenericRepository<OrderDetailService>
     {
         Task<List<Service>> GetByIdsAsync(List<int> ids);
+        Task<IEnumerable<OrderDetailService>> GetByOrderDetailIdAsync(int orderDetailId);
     }
 }

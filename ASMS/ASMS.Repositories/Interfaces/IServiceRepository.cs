@@ -12,6 +12,7 @@ namespace ASMS.Repositories.Interfaces
     {
         Task<List<Service>> GetWithFilterAsync(int pageNumber, int pageSize, string? nameContains, decimal? minPrice, decimal? maxPrice);
         Task<int> GetTotalCountWithFilterAsync(string? nameContains, decimal? minPrice, decimal? maxPrice);
-        Task<bool> DeleteAsync(int id);    
+        Task<bool> DeleteAsync(int id);  
+        Task<Service?> GetByIdAsync(int id);
     }
 }
