@@ -107,5 +107,26 @@ namespace ASMS.Repositories.Repositories
                 .Where(o => o.OrderDate == date)
                 .CountAsync();
         }
+        public async Task<IEnumerable<Order>> GetOverdueOrdersAsync(DateOnly currentDate)
+        {
+            return await _dbSet
+                .Where(o => (o.Status == "Stored" || o.Status == "Renting")
+                    && o.ReturnDate.HasValue
+                    && o.ReturnDate.Value < currentDate)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Order>> GetByStatusAsync(string status)
+        {
+            return await _dbSet
+                .Where(o => o.Status == status)
+                .ToListAsync();
+        }
+        public async Task<IEnumerable<Order>> GetAllAsync()
+        {
+            return await _dbSet
+                .AsNoTracking()
+                .ToListAsync();
+        }
     }
 }

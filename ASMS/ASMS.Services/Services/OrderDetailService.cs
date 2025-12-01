@@ -23,9 +23,10 @@ namespace ASMS.Services.Services
             _mapper = mapper;
         }
 
-        public async Task<PaginatedList<OrderDetailItemResponse>> GetWithFilterAsync(bool? isPlaced, string? orderCode, int pageNumber, int pageSize)
+        public async Task<PaginatedList<OrderDetailItemResponse>> GetWithFilterAsync(bool? isPlaced, string? orderCode, string? storageCode, int pageNumber, int pageSize)
         {
-            var result = await _unitOfWork.OrderDetails.GetWithFilterAsync(isPlaced, orderCode, pageNumber, pageSize);
+            var result = await _unitOfWork.OrderDetails.GetWithFilterAsync(
+        isPlaced, orderCode, storageCode, pageNumber, pageSize);
 
             var mappedItems = _mapper.Map<List<OrderDetailItemResponse>>(result.Items);
 

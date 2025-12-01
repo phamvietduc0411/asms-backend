@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ASMS.Repositories.Migrations
 {
     [DbContext(typeof(VstorageContext))]
-    [Migration("20251125160134_PaymentResultTable")]
-    partial class PaymentResultTable
+    [Migration("20251129083119_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -572,6 +572,10 @@ namespace ASMS.Repositories.Migrations
                         .HasMaxLength(500)
                         .IsUnicode(false)
                         .HasColumnType("varchar(500)");
+
+                    b.Property<bool?>("IsPlaced")
+                        .HasColumnType("bit")
+                        .HasColumnName("isPlaced");
 
                     b.Property<string>("OrderCode")
                         .HasMaxLength(50)

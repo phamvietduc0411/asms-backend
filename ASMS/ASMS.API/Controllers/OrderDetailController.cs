@@ -27,13 +27,14 @@ namespace ASMS.API.Controllers
         public async Task<IActionResult> GetOrderDetails(
             [FromQuery] bool? isPlaced,
             [FromQuery] string? orderCode,
+            [FromQuery] string? storageCode,
             [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 10)
         {
             try
             {
 
-                var result = await _service.GetWithFilterAsync(isPlaced, orderCode, pageNumber, pageSize);
+                var result = await _service.GetWithFilterAsync(isPlaced, orderCode, storageCode, pageNumber, pageSize);
 
                 return Ok(new
                 {

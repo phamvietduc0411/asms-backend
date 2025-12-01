@@ -19,7 +19,7 @@ namespace ASMS.Repositories.Repositories
         {
         }
 
-        public async Task<PaginatedList<OrderDetail>> GetWithFilterAsync(bool? isPlaced, string? orderCode, int pageNumber, int pageSize)
+        public async Task<PaginatedList<OrderDetail>> GetWithFilterAsync(bool? isPlaced, string? orderCode, string? storageCode, int pageNumber, int pageSize)
         {
             var query = _context.OrderDetails
                 .Include(x => x.OrderCodeNavigation)
@@ -35,6 +35,10 @@ namespace ASMS.Repositories.Repositories
             if (!string.IsNullOrEmpty(orderCode))
             {
                 query = query.Where(od => od.OrderCode == orderCode);
+            }
+            if (!string.IsNullOrEmpty(storageCode))
+            {
+                query = query.Where(od => od.StorageCode == storageCode);
             }
 
             query = query.OrderBy(od => od.OrderDetailId);
@@ -55,7 +59,9 @@ namespace ASMS.Repositories.Repositories
         {
             return await _context.OrderDetails
                 .Include(od => od.OrderDetailProductTypes)
+                    .ThenInclude(odpt => odpt.ProductType)
                 .Include(od => od.OrderDetailServices)
+                    .ThenInclude(ods => ods.Service)
                 .Include(od => od.ContainerCodeNavigation)
                 //.Include (x => x.OrderCodeNavigation)
                 .Where(x => x.OrderCode == orderCode)

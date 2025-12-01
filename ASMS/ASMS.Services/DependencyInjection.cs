@@ -43,8 +43,10 @@ namespace ASMS.Services
             services.AddScoped<IPaymentHistoryService, PaymentHistoryService>();
             services.AddScoped<IImageUrlService, ImageUrlService>();
             services.AddScoped<IShelfTypeService, ShelfTypeService>();
+            services.AddScoped<IPasswordService, PasswordService>();
             services.AddScoped<IPayOSService, PayOSService>();
-           
+            services.AddScoped<IOrderStatusService, OrderStatusService>();
+            services.AddScoped<IDistanceService, DistanceService>();
             services.Configure<PayOSSettings>(
             configuration.GetSection("PayOSSettings"));
 

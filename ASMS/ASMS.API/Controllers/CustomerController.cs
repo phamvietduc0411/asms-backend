@@ -36,6 +36,11 @@ namespace ASMS.API.Controllers
         {
             try
             {
+                if (string.IsNullOrEmpty(request.CustomerCode))
+                {
+                    var newCustomerCode = await _customerService.GetLastRecord();
+                    request.CustomerCode = newCustomerCode.ToString();
+                }
                 request.Password = PasswordHasher.HashPassword(request.Password);
                 var result = await _customerService.AddCustomerAsync(request);
                 return Ok(result);
@@ -50,23 +55,23 @@ namespace ASMS.API.Controllers
             }
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateByIdAsync(int id, [FromBody] UpdateCustomerRequest newInfo)
+        [HttpPut]
+        public async Task<IActionResult> UpdateByIdAsync([FromBody] UpdateCustomerRequest newInfo)
         {
             if (newInfo == null)
                 return BadRequest(new { message = "Invalid data." });
 
-            var existingCustomer = await _customerService.GetByIdAsync(id);
+            var existingCustomer = await _customerService.GetByCodeAsync(newInfo.CustomerCode);
             if (existingCustomer == null)
-                return NotFound(new { message = $"Role with id {id} not found." });
+                return NotFound(new { message = $"Role with id {newInfo.CustomerCode} not found." });
 
             existingCustomer.CustomerCode = newInfo.CustomerCode;
             existingCustomer.Phone = newInfo.Phone;
             existingCustomer.Name = newInfo.Name;
-            existingCustomer.IsActive = newInfo.IsActive;
+            //existingCustomer.IsActive = newInfo.IsActive;
             existingCustomer.Address = newInfo.Address;
-            existingCustomer.Email = newInfo.Email;
-            existingCustomer.Password = PasswordHasher.HashPassword(newInfo.Password);
+            //existingCustomer.Email = newInfo.Email;
+            //existingCustomer.Password = PasswordHasher.HashPassword(newInfo.Password);
 
             var newCustomerInfo = await _customerService.UpdateCustomerAsync(existingCustomer);
 

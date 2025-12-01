@@ -55,14 +55,14 @@ namespace ASMS.Services.Services
 
         public async Task<TrackingHistoryResponse> UpdateStatusAsync(UpdateTrackingStatusRequest request)
         {
-            
+
             var order = await _unitOfWork.Orders.GetByCodeAsync(request.OrderCode);
             if (order == null)
             {
                 throw new Exception($"Order with code '{request.OrderCode}' not found.");
             }
 
-            
+
             var currentEmployee = await _unitOfWork.Employee.GetByCodeAsync(request.CurrentAssign);
             if (currentEmployee == null)
             {
@@ -78,7 +78,7 @@ namespace ASMS.Services.Services
                 }
             }
 
-            
+
             string newStatus = request.NewStatus;
 
             // Delivery Staff completing ProgressTask -> Ready
@@ -108,7 +108,7 @@ namespace ASMS.Services.Services
             order.Status = newStatus;
             await _unitOfWork.Orders.UpdateAsync(order);
 
-            
+
             await _unitOfWork.CompleteAsync();
 
             return _mapper.Map<TrackingHistoryResponse>(trackingHistory);
@@ -159,6 +159,15 @@ namespace ASMS.Services.Services
                 await _unitOfWork.CompleteAsync();
             }
             return result;
+        }
+
+        public async Task CreateAsync(TrackingHistory newTrackingHistory)
+        {
+            var result = await _unitOfWork.TrackingHistories.AddAsync(newTrackingHistory);
+            if (result != null)
+            {
+                await _unitOfWork.CompleteAsync();
+            }
         }
     }
 }

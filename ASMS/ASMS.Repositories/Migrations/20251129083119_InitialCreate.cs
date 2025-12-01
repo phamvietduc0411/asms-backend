@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ASMS.Repositories.Migrations
 {
     /// <inheritdoc />
-    public partial class PaymentResultTable : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -535,7 +535,8 @@ namespace ASMS.Repositories.Migrations
                     ContainerQuantity = table.Column<int>(type: "int", nullable: true),
                     StorageTypeID = table.Column<int>(type: "int", nullable: true),
                     ShelfTypeId = table.Column<int>(type: "int", nullable: true),
-                    ShelfQuantity = table.Column<int>(type: "int", nullable: true)
+                    ShelfQuantity = table.Column<int>(type: "int", nullable: true),
+                    isPlaced = table.Column<bool>(type: "bit", nullable: true)
                 },
                 constraints: table =>
                 {

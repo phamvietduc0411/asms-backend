@@ -1,7 +1,9 @@
 ﻿using ASMS.Services.Interfaces;
+using ASMS.Services.Model.Password;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
+using ForgotPasswordRequest = ASMS.Services.Model.Password.ForgotPasswordRequest;
 
 namespace ASMS.API.Controllers
 {
@@ -16,18 +18,36 @@ namespace ASMS.API.Controllers
             _passwordService = passwordService;
         }
 
-        [HttpPost("forgot")]
-        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
+        [HttpPost("change-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ChangePasswordRequest request)
         {
-            //await _passwordService.SendResetLinkAsync(request.Email);
-            return Ok(new { message = "Reset link sent to your email" });
+            try
+            {
+                var result = await _passwordService.ChangePasswordAsync(request);
+                return result
+                    ? Ok(new { message = "Reset password successfully" })
+                    : BadRequest(new { message = "Failed reset password" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
-        [HttpPost("reset")]
-        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
         {
-            //await _passwordService.ResetPasswordAsync(request.Token, request.NewPassword);
-            return Ok(new { message = "Password reset successfully" });
+            try
+            {
+                var result = await _passwordService.SendResetLinkAsync(request);
+                return result
+                    ? Ok(new { message = "Success!Please check your email to get new password" })
+                    : BadRequest(new { message = "Failed reset password" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
     }
 }

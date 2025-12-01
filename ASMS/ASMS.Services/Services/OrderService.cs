@@ -1,20 +1,15 @@
 ﻿using ASMS.Repositories.Entities;
 using ASMS.Repositories.Infrastructures;
 using ASMS.Services.Interfaces;
-using ASMS.Services.Model.CLP;
+using ASMS.Services.Model.Authentication;
 using ASMS.Services.Model.Customer;
 using ASMS.Services.Model.OrderDetail;
 using ASMS.Services.Model.Orders;
 using ASMS.Services.Model.TrackingHistories;
 using ASMS.Services.Utilities;
 using AutoMapper;
-using Azure.Core;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 
 namespace ASMS.Services.Services
 {
@@ -25,14 +20,22 @@ namespace ASMS.Services.Services
         private readonly ILogger<OrderService> _logger;
         private readonly ICLPService _clpService;
         private readonly ICustomerService _cusService;
+        private readonly IPasswordService _password;
+        private readonly ProjectMailConfig _mailConfig;
+        private readonly IEmployeeService _employeeService;
+        private readonly ITrackingHistoryService _trackingHistoryService;
 
-        public OrderService(IUnitOfWork unitOfWork, IMapper mapper, ILogger<OrderService> logger, ICLPService clpService, ICustomerService cusService)
+        public OrderService(IUnitOfWork unitOfWork, IMapper mapper, ILogger<OrderService> logger, ICLPService clpService, ICustomerService cusService, IPasswordService password, IOptions<ProjectMailConfig> mailConfig, IEmployeeService employeeService, ITrackingHistoryService trackingHistoryService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _logger = logger;
             _clpService = clpService;
             _cusService = cusService;
+            _password = password;
+            _mailConfig = mailConfig.Value;
+            _employeeService = employeeService;
+            _trackingHistoryService = trackingHistoryService;
         }
 
         public async Task<PaginatedOrderResponse> GetWithFilterAsync(int pageNumber, int pageSize, string? customerCode, DateOnly? orderDate, DateOnly? depositDate, DateOnly? returnDate, string style)
@@ -206,8 +209,6 @@ namespace ASMS.Services.Services
         {
             _logger.LogInformation("Creating new order with details for customer {Code}", request.CustomerCode);
 
-            //Create new customer 
-            request.CustomerCode = await CreateCustomer(request);
 
             // Generate order code
             var orderDate = DateOnly.FromDateTime(DateTime.Now);
@@ -225,6 +226,10 @@ namespace ASMS.Services.Services
                     }
                 }
             }
+
+            //Create new customer 
+            request.CustomerCode = await CreateCustomer(request);
+            var isCreateSuccess = CreatePasswordAndSendEmail(request.Email);
 
             // Create Order entity
             var order = new Order
@@ -262,6 +267,7 @@ namespace ASMS.Services.Services
             var productTypesToAdd = new List<OrderDetailProductType>();
             var servicesToAdd = new List<ASMS.Repositories.Entities.OrderDetailService>();
 
+            bool? isPlacedValue = DetermineIsPlacedByStyle(request.Style);
             for (int i = 0; i < request.OrderDetails.Count; i++)
             {
                 var detailRequest = request.OrderDetails[i];
@@ -305,7 +311,7 @@ namespace ASMS.Services.Services
                     Image = detailRequest.Image,
                     ContainerType = detailRequest.ContainerType,
                     ContainerQuantity = detailRequest.ContainerQuantity,
-                    IsPlaced = detailRequest.IsPlaced,  
+                    IsPlaced = isPlacedValue,
                 };
 
                 orderDetailsToAdd.Add(orderDetail);
@@ -355,7 +361,7 @@ namespace ASMS.Services.Services
                     Image = detailRequest.Image,
                     ContainerType = detailRequest.ContainerType,
                     ContainerQuantity = detailRequest.ContainerQuantity,
-                    IsPlaced = detailRequest.IsPlaced,
+                    IsPlaced = isPlacedValue,
                     //Status = string.IsNullOrEmpty(detailRequest.ContainerCode) ? "Pending" : "Assigned"
                 });
             }
@@ -375,6 +381,12 @@ namespace ASMS.Services.Services
             {
                 await _unitOfWork.OrderDetailServices.AddAsync(service);
             }
+            // Assgin oder for delivery
+            await AssignDeliveryForOrder(orderCode);
+
+            //Create new customer 
+            //request.CustomerCode = await CreateCustomer(request);
+            //var isCreateSuccess = CreatePasswordAndSendEmail(request.Email, request);
 
             await _unitOfWork.CompleteAsync();
 
@@ -428,12 +440,16 @@ namespace ASMS.Services.Services
                 StorageTypeId = od.StorageTypeId,
                 ShelfTypeId = od.ShelfTypeId,
                 ShelfQuantity = od.ShelfQuantity,
-                ProductTypeIds = od.OrderDetailProductTypes
-        .Select(odpt => odpt.ProductTypeId)
-        .ToList(),
-                ServiceIds = od.OrderDetailServices
-        .Select(ods => ods.ServiceId)
-        .ToList()
+                IsPlaced = od.IsPlaced, 
+                ProductTypeNames = od.OrderDetailProductTypes
+            .Select(odpt => odpt.ProductType?.Name)
+            .Where(name => name != null)
+            .ToList(),
+
+                ServiceNames = od.OrderDetailServices
+            .Select(ods => ods.Service?.Name)
+            .Where(name => name != null)
+            .ToList()
             }).ToList();
         }
         // Generate order code theo format: YYYYMMDD-XXXX
@@ -528,8 +544,55 @@ namespace ASMS.Services.Services
                 Password = PasswordHasher.HashPassword("123456789")
             };
 
-                await _cusService.AddCustomerAsync(newCus);      
+            await _cusService.AddCustomerAsync(newCus);
             return newCode;
+        }
+
+        private async Task<bool> CreatePasswordAndSendEmail(string email)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(email)) return false;
+                //string newPass = _password.GenerateRandomPassword(8);
+                string newPass = "123456789";
+                string emailContent = EmailTemplates.NewAccount(email, newPass, _mailConfig.Email);
+                await _password.SendEmailAsync(email, newPass, emailContent);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return true;
+            }
+        }
+        private bool? DetermineIsPlacedByStyle(string style)
+        {
+            if (string.IsNullOrEmpty(style))
+                return false;
+
+            var normalizedStyle = style.Trim().ToLower();
+
+            if (normalizedStyle == "self")
+                return null;
+
+            return false;
+        }
+
+        private async Task AssignDeliveryForOrder(string oderCode)
+        {
+            var deliveryEmp = await _employeeService.GetDevliveryEmployeeForOder();
+            if (deliveryEmp == null) return;
+            var assign = new TrackingHistory()
+            {
+                OrderCode = oderCode,
+                OldStatus = "Order created successfully",
+                NewStatus = "Waiting for pick up",
+                ActionType = "Pending",
+                CreateAt = DateOnly.FromDateTime(DateTime.Now),
+                CurrentAssign = deliveryEmp.Name,
+                NextAssign = "Warehouse Staff"
+            };
+
+            await _trackingHistoryService.CreateAsync(assign);
         }
     }
 }

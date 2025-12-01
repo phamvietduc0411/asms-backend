@@ -28,8 +28,7 @@ namespace ASMS.Services.Model.OrderDetail
         public int? ShelfQuantity { get; set; }
         public bool? IsPlaced { get; set; }
 
-        public List<int>? ProductTypeIds { get; set; }
-
-        public List<int>? ServiceIds { get; set; }
+        public List<string>? ProductTypeNames { get; set; }
+        public List<string>? ServiceNames { get; set; }
     }
 }

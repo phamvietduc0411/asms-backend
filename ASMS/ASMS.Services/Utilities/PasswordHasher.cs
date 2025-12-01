@@ -13,6 +13,5 @@ namespace ASMS.Services.Utilities
 
         public static bool VerifyPassword(string password, string hashedPassword)
             => Argon2.Verify(hashedPassword, password);
-
     }
 }
