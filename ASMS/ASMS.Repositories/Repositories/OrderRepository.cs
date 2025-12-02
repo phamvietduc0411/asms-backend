@@ -154,5 +154,26 @@ namespace ASMS.Repositories.Repositories
             }
         }
 
+        public async Task<int> GetNumberOfOrders(DateTime startDate, DateTime endDate, string? status)
+        {
+            var query = _dbSet.AsQueryable();
+
+            query = query.Where(o => o.OrderDate.HasValue &&
+                                     o.OrderDate.Value.ToDateTime(TimeOnly.MinValue) >= startDate.Date &&
+                                     o.OrderDate.Value.ToDateTime(TimeOnly.MinValue) <= endDate.Date);
+
+            // Lọc theo status 
+            if (!string.IsNullOrWhiteSpace(status))
+            {
+                string statusLower = status.ToLower();
+                query = query.Where(o => o.Status != null && o.Status.ToLower() == statusLower);
+            }
+
+            int count = await query.CountAsync();
+            return count;
+
+
+        }
+
     }
 }
