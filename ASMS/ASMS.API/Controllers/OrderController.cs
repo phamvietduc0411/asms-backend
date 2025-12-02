@@ -174,5 +174,17 @@ namespace ASMS.API.Controllers
                 return BadRequest(new { success = false, message = ex.Message });
             }
         }
+        /// <summary>
+        /// Lấy tất cả orders chưa hoàn thành mà nhân viên đang phụ trách
+        /// </summary>
+        /// <param name="employeeCode">Mã nhân viên</param>
+        /// <returns>Danh sách orders</returns>
+        /// <response code="200">Returns list of active orders</response>
+        [HttpGet("employee/{employeeCode}/active-orders")]
+        public async Task<IActionResult> GetActiveOrdersByEmployee(string employeeCode)
+        {
+            var orders = await _orderService.GetActiveOrdersByEmployeeAsync(employeeCode);
+            return Ok(orders);
+        }
     }
 }

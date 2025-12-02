@@ -119,8 +119,9 @@ namespace ASMS.Repositories.Repositories
         public async Task<IEnumerable<Order>> GetByStatusAsync(string status)
         {
             return await _dbSet
-                .Where(o => o.Status == status)
-                .ToListAsync();
+        .Where(o => o.Status != null && o.Status.ToLower() == status.ToLower())
+        .AsNoTracking()
+        .ToListAsync();
         }
         public async Task<IEnumerable<Order>> GetAllAsync()
         {
@@ -128,5 +129,30 @@ namespace ASMS.Repositories.Repositories
                 .AsNoTracking()
                 .ToListAsync();
         }
+        public async Task<List<Order>> GetActiveOrdersByEmployeeAsync(string employeeCode)
+        {
+            try
+            {
+                var orders = await _dbSet
+                    .Where(o => o.Status != null && o.Status.ToLower() != "retrieved")
+                    .Where(o => _context.TrackingHistories
+                        .Where(th => th.OrderCode == o.OrderCode)
+                        .OrderByDescending(th => th.CreateAt)
+                        .ThenByDescending(th => th.TrackingHistoryId)
+                        .Select(th => th.CurrentAssign)
+                        .FirstOrDefault() == employeeCode)
+                    .Include(o => o.CustomerCodeNavigation)
+                    .AsNoTracking()
+                    .ToListAsync();
+
+                return orders;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while getting active orders for employee {EmployeeCode}", employeeCode);
+                throw;
+            }
+        }
+
     }
 }

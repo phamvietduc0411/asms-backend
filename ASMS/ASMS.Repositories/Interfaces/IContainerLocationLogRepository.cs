@@ -1,4 +1,5 @@
-﻿using ASMS.Repositories.Entities;
+﻿using ASMS.Repositories.Common;
+using ASMS.Repositories.Entities;
 using ASMS.Repositories.Infrastructures;
 using System;
 using System.Collections.Generic;
@@ -10,7 +11,10 @@ namespace ASMS.Repositories.Interfaces
 {
     public interface IContainerLocationLogRepository : IGenericRepository<ContainerLocationLog>
     {
-        Task<IEnumerable<ContainerLocationLog>> GetAllAsync();
+        Task<PaginatedList<ContainerLocationLog>> GetWithFilterAsync(
+    string? containerCode,
+    int pageNumber,
+    int pageSize);
         Task DeleteAsync(int id);
         Task<List<ContainerLocationLog>> GetByContainerCodeAsync(string containerCode);
         Task<ContainerLocationLog> GetLastAsync();

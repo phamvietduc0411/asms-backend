@@ -19,6 +19,8 @@ public partial class ProductType
 
     public string? Description { get; set; }
 
+    public string? Vname { get; set; }
+
     public virtual ICollection<Container> Containers { get; set; } = new List<Container>();
 
     public virtual ICollection<OrderDetailProductType> OrderDetailProductTypes { get; set; } = new List<OrderDetailProductType>();

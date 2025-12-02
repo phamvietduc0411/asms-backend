@@ -18,27 +18,32 @@ namespace ASMS.API.Controllers
 
         #region Get Tracking Histories with Filter
         /// <summary>
-        /// Get tracking histories with pagination and optional filter by order code.
+        /// Get tracking histories with pagination and optional filters
         /// </summary>
         /// <param name="pageNumber">Current page number (default = 1)</param>
         /// <param name="pageSize">Number of items per page (default = 10)</param>
         /// <param name="orderCode">Filter by Order Code (optional)</param>
+        /// <param name="currentAssign">Filter by Current Assign Employee Code (optional)</param>
+        /// <param name="nextAssign">Filter by Next Assign Employee Code (optional)</param>
         /// <returns>A paginated list of tracking histories</returns>
         /// <response code="200">Returns a paginated list of tracking histories</response>
         /// <response code="400">Invalid request parameters</response>
-        /// <response code="500">Internal server error</response>
         [HttpGet]
         public async Task<IActionResult> GetWithFilterAsync(
             [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 10,
-            [FromQuery] string? orderCode = null)
+            [FromQuery] string? orderCode = null,
+            [FromQuery] string? currentAssign = null,
+            [FromQuery] string? nextAssign = null)
         {
             if (pageNumber < 1 || pageSize < 1)
             {
                 return BadRequest("Page number and page size must be greater than 0.");
             }
 
-            var result = await _trackingHistoryService.GetWithFilterAsync(pageNumber, pageSize, orderCode);
+            var result = await _trackingHistoryService.GetWithFilterAsync(
+                pageNumber, pageSize, orderCode, currentAssign, nextAssign);
+
             return Ok(result);
         }
         #endregion

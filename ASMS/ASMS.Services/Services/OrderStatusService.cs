@@ -265,6 +265,11 @@ namespace ASMS.Services.Services
                 {
                     return false;
                 }
+                if (order.Status?.ToLower() != "overdue")
+                {
+                    _logger.LogWarning($"Order {orderCode} is not overdue (current status: {order.Status}). Cannot move to expired storage.");
+                    throw new InvalidOperationException($"Order must be in 'overdue' status to move to expired storage. Current status: {order.Status}");
+                }
 
                 // Tìm kho quá hạn
                 var expiredWarehouse = await _unitOfWork.Building.GetByNameAsync("WareHouse Expired");
@@ -426,7 +431,6 @@ namespace ASMS.Services.Services
             }
             else if (style == "self")
             {
-
                 bool hasDelivery = await HasDeliveryServiceAsync(order);
 
                 if (hasDelivery)
@@ -438,7 +442,6 @@ namespace ASMS.Services.Services
                     return _workflowsByStyle["self_no_delivery"];
                 }
             }
-
 
             return _workflowsByStyle["full"];
         }
@@ -526,8 +529,8 @@ namespace ASMS.Services.Services
             var statusLower = status.ToLower();
             string roleName = statusLower switch
             {
-                "new" or "pending" => "Manager",
-                "wait pick up" or "verify" or "checkout" or "pick up" => "Delivery Staff",
+                "new" => "Manager",
+                "pending" or "wait pick up" or "verify" or "checkout" or "pick up" => "Delivery Staff",
                 "processing" or "stored" or "renting" => "Warehouse Staff",
                 _ => "Warehouse Staff"
             };

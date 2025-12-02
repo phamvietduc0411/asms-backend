@@ -47,6 +47,7 @@ namespace ASMS.Services
             services.AddScoped<IPayOSService, PayOSService>();
             services.AddScoped<IOrderStatusService, OrderStatusService>();
             services.AddScoped<IDistanceService, DistanceService>();
+            services.AddScoped<IOrderMaintenanceService, OrderMaintenanceService>();
             services.Configure<PayOSSettings>(
             configuration.GetSection("PayOSSettings"));
 

@@ -1,4 +1,5 @@
-﻿using ASMS.Repositories.Data;
+﻿using ASMS.Repositories.Common;
+using ASMS.Repositories.Data;
 using ASMS.Repositories.Entities;
 using ASMS.Repositories.Infrastructures;
 using ASMS.Repositories.Interfaces;
@@ -18,9 +19,22 @@ namespace ASMS.Repositories.Repositories
         {
         }
 
-        public async Task<IEnumerable<ContainerLocationLog>> GetAllAsync()
+        public async Task<PaginatedList<ContainerLocationLog>> GetWithFilterAsync(
+    string? containerCode,
+    int pageNumber,
+    int pageSize)
         {
-            return await _dbSet.AsNoTracking().ToListAsync();
+            var query = _dbSet.AsNoTracking().AsQueryable();
+
+            if (!string.IsNullOrEmpty(containerCode))
+            {
+                query = query.Where(c => c.ContainerCode == containerCode);
+            }
+
+            query = query.OrderByDescending(c => c.UpdatedDate)
+                         .ThenByDescending(c => c.ContainerLocationLogId);
+
+            return await PaginatedList<ContainerLocationLog>.CreateAsync(query, pageNumber, pageSize);
         }
 
         public async Task DeleteAsync(int id)

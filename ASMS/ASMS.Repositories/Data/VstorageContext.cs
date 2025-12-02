@@ -354,7 +354,7 @@ public partial class VstorageContext : DbContext
                 .IsUnicode(false);
             entity.Property(e => e.PhoneContact).HasMaxLength(50);
             entity.Property(e => e.Status)
-                .HasMaxLength(20)
+                .HasMaxLength(50)
                 .IsUnicode(false);
             entity.Property(e => e.Style).HasMaxLength(50);
             entity.Property(e => e.TotalPrice).HasColumnType("decimal(18, 0)");
@@ -515,6 +515,9 @@ public partial class VstorageContext : DbContext
             entity.Property(e => e.Status)
                 .HasMaxLength(10)
                 .IsUnicode(false);
+            entity.Property(e => e.Vname)
+                .HasMaxLength(200)
+                .HasColumnName("VName");
         });
 
         modelBuilder.Entity<Service>(entity =>
@@ -531,6 +534,9 @@ public partial class VstorageContext : DbContext
                 .HasMaxLength(50)
                 .IsUnicode(false);
             entity.Property(e => e.Price).HasColumnType("decimal(18, 0)");
+            entity.Property(e => e.Vname)
+                .HasMaxLength(200)
+                .HasColumnName("VName");
         });
 
         modelBuilder.Entity<Shelf>(entity =>
