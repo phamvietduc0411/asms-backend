@@ -20,7 +20,7 @@ namespace ASMS.Repositories.Repositories
         {
         }
 
-        public async Task<List<TrackingHistory>> GetWithFilterAsync(int pageNumber, int pageSize, string? orderCode)
+        public async Task<List<TrackingHistory>> GetWithFilterAsync(int pageNumber, int pageSize, string? orderCode, string? currentAssign, string? nextAssign)
         {
             try
             {
@@ -31,6 +31,15 @@ namespace ASMS.Repositories.Repositories
                     query = query.Where(th => th.OrderCode == orderCode);
                 }
 
+                if (!string.IsNullOrWhiteSpace(currentAssign))
+                {
+                    query = query.Where(th => th.CurrentAssign == currentAssign);
+                }
+
+                if (!string.IsNullOrWhiteSpace(nextAssign))
+                {
+                    query = query.Where(th => th.NextAssign == nextAssign);
+                }
                 return await query
                     .OrderByDescending(th => th.CreateAt)
                     .ThenByDescending(th => th.TrackingHistoryId)
@@ -45,7 +54,7 @@ namespace ASMS.Repositories.Repositories
             }
         }
 
-        public async Task<int> GetTotalCountWithFilterAsync(string? orderCode)
+        public async Task<int> GetTotalCountWithFilterAsync(string? orderCode, string? currentAssign, string? nextAssign)
         {
             try
             {
@@ -54,6 +63,15 @@ namespace ASMS.Repositories.Repositories
                 if (!string.IsNullOrWhiteSpace(orderCode))
                 {
                     query = query.Where(th => th.OrderCode == orderCode);
+                }
+                if (!string.IsNullOrWhiteSpace(currentAssign))
+                {
+                    query = query.Where(th => th.CurrentAssign == currentAssign);
+                }
+
+                if (!string.IsNullOrWhiteSpace(nextAssign))
+                {
+                    query = query.Where(th => th.NextAssign == nextAssign);
                 }
 
                 return await query.CountAsync();

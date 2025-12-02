@@ -22,10 +22,10 @@ namespace ASMS.Services.Services
             _mapper = mapper;
         }
 
-        public async Task<PaginatedTrackingHistoryResponse> GetWithFilterAsync(int pageNumber, int pageSize, string? orderCode)
+        public async Task<PaginatedTrackingHistoryResponse> GetWithFilterAsync(int pageNumber, int pageSize, string? orderCode, string? currentAssign, string? nextAssign)
         {
-            var trackingHistories = await _unitOfWork.TrackingHistories.GetWithFilterAsync(pageNumber, pageSize, orderCode);
-            var totalCount = await _unitOfWork.TrackingHistories.GetTotalCountWithFilterAsync(orderCode);
+            var trackingHistories = await _unitOfWork.TrackingHistories.GetWithFilterAsync(pageNumber, pageSize, orderCode, currentAssign, nextAssign);
+            var totalCount = await _unitOfWork.TrackingHistories.GetTotalCountWithFilterAsync(orderCode, currentAssign, nextAssign);
 
             var mappedHistories = _mapper.Map<List<TrackingHistoryResponse>>(trackingHistories);
 
@@ -123,7 +123,7 @@ namespace ASMS.Services.Services
 
             // Get all tracking history for this order (ordered by time)
             var trackingHistories = await _unitOfWork.TrackingHistories
-                .GetWithFilterAsync(1, 1000, orderCode); // Get all records
+                .GetWithFilterAsync(1, 1000, orderCode, null, null); // Get all records
 
             var mappedHistories = _mapper.Map<List<TrackingHistoryResponse>>(trackingHistories);
 

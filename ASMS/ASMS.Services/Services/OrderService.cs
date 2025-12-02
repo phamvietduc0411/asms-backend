@@ -63,7 +63,7 @@ namespace ASMS.Services.Services
         {
             _logger.LogInformation("Creating new order for customer {Code}", request.CustomerCode);
 
-            var orderDate = DateOnly.FromDateTime(DateTime.Now);
+            var orderDate = GetVietnamToday();
             var orderCode = await GenerateOrderCodeAsync(orderDate);
 
             var order = new Order
@@ -211,21 +211,22 @@ namespace ASMS.Services.Services
 
 
             // Generate order code
-            var orderDate = DateOnly.FromDateTime(DateTime.Now);
+            var orderDate = GetVietnamToday();
             var orderCode = await GenerateOrderCodeAsync(orderDate);
 
             // Calculate total price and unpaid amount
-            decimal totalPrice = 0;
-            foreach (var detail in request.OrderDetails)
-            {
-                if (detail.Price.HasValue && !string.IsNullOrEmpty(detail.Quantity))
-                {
-                    if (int.TryParse(detail.Quantity, out var qty))
-                    {
-                        totalPrice += detail.Price.Value * qty;
-                    }
-                }
-            }
+            //decimal totalPrice = 0;
+            //foreach (var detail in request.OrderDetails)
+            //{
+            //    if (detail.Price.HasValue && !string.IsNullOrEmpty(detail.Quantity))
+            //    {
+            //        if (int.TryParse(detail.Quantity, out var qty))
+            //        {
+            //            totalPrice += detail.Price.Value * qty;
+            //        }
+            //    }
+            //}
+            //decimal totalPrice = request.TotalPrice ?? 0;
 
             //Create new customer 
             request.CustomerCode = await CreateCustomer(request);
@@ -239,10 +240,10 @@ namespace ASMS.Services.Services
                 OrderDate = orderDate,
                 DepositDate = request.DepositDate,
                 ReturnDate = request.ReturnDate,
-                Status = request.Status ?? "Pending",
+                Status = string.IsNullOrWhiteSpace(request.Status) ? "pending" : request.Status.ToLower(),
                 PaymentStatus = request.PaymentStatus ?? "Unpaid",
-                TotalPrice = totalPrice,
-                UnpaidAmount = totalPrice,
+                TotalPrice = request.TotalPrice,
+                UnpaidAmount = request.UnpaidAmount,
                 //StorageTypeId = request.StorageTypeId,
                 //ShelfTypeId = request.ShelfTypeId,
                 //ShelfQuantity = request.ShelfQuantity,
@@ -382,7 +383,8 @@ namespace ASMS.Services.Services
                 await _unitOfWork.OrderDetailServices.AddAsync(service);
             }
             // Assgin oder for delivery
-            await AssignDeliveryForOrder(orderCode);
+            //await AssignDeliveryForOrder(orderCode);
+            await CreateInitialTrackingHistoryAsync(orderCode, request.Style);
 
             //Create new customer 
             //request.CustomerCode = await CreateCustomer(request);
@@ -401,8 +403,8 @@ namespace ASMS.Services.Services
                 ReturnDate = request.ReturnDate,
                 Status = order.Status,
                 PaymentStatus = order.PaymentStatus,
-                TotalPrice = totalPrice,
-                UnpaidAmount = totalPrice,
+                TotalPrice = order.TotalPrice,
+                UnpaidAmount = order.UnpaidAmount,
                 StorageTypeId = request.StorageTypeId,
                 ShelfTypeId = request.ShelfTypeId,
                 ShelfQuantity = request.ShelfQuantity,
@@ -451,6 +453,12 @@ namespace ASMS.Services.Services
             .Where(name => name != null)
             .ToList()
             }).ToList();
+        }
+
+        public async Task<List<OrderResponse>> GetActiveOrdersByEmployeeAsync(string employeeCode)
+        {
+            var orders = await _unitOfWork.Orders.GetActiveOrdersByEmployeeAsync(employeeCode);
+            return _mapper.Map<List<OrderResponse>>(orders);
         }
         // Generate order code theo format: YYYYMMDD-XXXX
         private async Task<string> GenerateOrderCodeAsync(DateOnly date)
@@ -512,7 +520,7 @@ namespace ASMS.Services.Services
                 CurrentAssign = request.EmployeeCode,
                 NextAssign = request.NextAssign,
                 Image = request.Image,
-                CreateAt = DateOnly.FromDateTime(DateTime.Now)
+                CreateAt = GetVietnamToday()
             };
 
             await _unitOfWork.TrackingHistories.AddAsync(tracking);
@@ -587,12 +595,108 @@ namespace ASMS.Services.Services
                 OldStatus = "Order created successfully",
                 NewStatus = "Waiting for pick up",
                 ActionType = "Pending",
-                CreateAt = DateOnly.FromDateTime(DateTime.Now),
+                CreateAt = GetVietnamToday(), 
                 CurrentAssign = deliveryEmp.Name,
                 NextAssign = "Warehouse Staff"
             };
 
             await _trackingHistoryService.CreateAsync(assign);
+        }
+
+        private async Task CreateInitialTrackingHistoryAsync(string orderCode, string style)
+        {
+            try
+            {
+
+                var workflow = DetermineWorkflowType(style);
+
+                var manager = await _unitOfWork.Employee.GetAvailableEmployeeByRoleAsync("Manager");
+                if (manager == null)
+                {
+                    _logger.LogWarning($"No available Manager for order {orderCode}");
+                    return;
+                }
+
+                string? nextAssign = null;
+
+                if (workflow == "full" || workflow == "self_with_delivery")
+                {
+                    var deliveryStaff = await _unitOfWork.Employee.GetAvailableEmployeeByRoleAsync("Delivery Staff");
+                    if (deliveryStaff != null)
+                    {
+                        nextAssign = deliveryStaff.EmployeeCode;
+                        deliveryStaff.Status = "InOrder";
+                        await _unitOfWork.Employee.UpdateAsync(deliveryStaff);
+                    }
+                }
+                else if (workflow == "self_no_delivery")
+                {
+                    var warehouseStaff = await _unitOfWork.Employee.GetAvailableEmployeeByRoleAsync("Warehouse Staff");
+                    if (warehouseStaff != null)
+                    {
+                        nextAssign = warehouseStaff.EmployeeCode;
+                    }
+                }
+
+                // Tạo tracking history đầu tiên
+                var initialTracking = new TrackingHistory
+                {
+                    OrderCode = orderCode,
+                    OrderDetailCode = null,
+                    OldStatus = null,
+                    NewStatus = "pending",
+                    ActionType = "Order Created",
+                    CreateAt = GetVietnamToday(),
+                    CurrentAssign = nextAssign,
+                    NextAssign = nextAssign ?? manager.EmployeeCode,
+                    Image = null
+                };
+
+                await _unitOfWork.TrackingHistories.AddAsync(initialTracking);
+
+                _logger.LogInformation($"Initial tracking history created for order {orderCode}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error creating initial tracking history for order {orderCode}");
+                throw;
+            }
+        }
+
+        private string DetermineWorkflowType(string? style)
+        {
+            if (string.IsNullOrEmpty(style)) return "full";
+
+            var normalizedStyle = style.Trim().ToLower();
+
+            if (normalizedStyle == "full") return "full";
+
+            return "self_with_delivery";
+        }
+
+        private DateOnly GetVietnamToday()
+        {
+            try
+            {
+                var vietnamTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+                var vietnamNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vietnamTimeZone);
+                return DateOnly.FromDateTime(vietnamNow);
+            }
+            catch (TimeZoneNotFoundException)
+            {
+                try
+                {
+                    var vietnamTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh");
+                    var vietnamNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vietnamTimeZone);
+                    return DateOnly.FromDateTime(vietnamNow);
+                }
+                catch
+                {
+                    // Fallback: tạo UTC+7 manual
+                    var vietnamNow = DateTime.UtcNow.AddHours(7);
+                    return DateOnly.FromDateTime(vietnamNow);
+                }
+            }
         }
     }
 }

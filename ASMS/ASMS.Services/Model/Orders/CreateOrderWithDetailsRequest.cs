@@ -38,6 +38,9 @@ namespace ASMS.Services.Model.Orders
 
         public string? Image { get; set; }
         public string? Style { get; set; }
+        public decimal? TotalPrice { get; set; }
+
+        public decimal? UnpaidAmount { get; set; }
 
         public List<OrderDetailItemRequest> OrderDetails { get; set; } = new List<OrderDetailItemRequest>();
 

@@ -15,5 +15,6 @@ namespace ASMS.Services.Model.ProductType
         public bool? IsFragile { get; set; }
         public bool? CanStack { get; set; }
         public string? Description { get; set; }
+        public string? Vname { get; set; }
     }
 }

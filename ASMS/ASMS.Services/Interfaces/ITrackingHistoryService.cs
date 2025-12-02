@@ -10,7 +10,7 @@ namespace ASMS.Services.Interfaces
 {
     public interface ITrackingHistoryService
     {
-        Task<PaginatedTrackingHistoryResponse> GetWithFilterAsync(int pageNumber, int pageSize, string? orderCode);
+        Task<PaginatedTrackingHistoryResponse> GetWithFilterAsync(int pageNumber, int pageSize, string? orderCode, string? currentAssign, string? nextAssign);
         Task<TrackingHistoryResponse> CreateAsync(CreateTrackingHistoryRequest request);
         Task<TrackingHistoryResponse> UpdateAsync(int id, UpdateTrackingHistoryRequest request);
         Task<bool> DeleteAsync(int id);

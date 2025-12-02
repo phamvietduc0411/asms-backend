@@ -1,8 +1,11 @@
 ﻿using ASMS.Repositories.Data;
 using ASMS.Repositories.Entities;
 using ASMS.Services;
+using ASMS.Services.Interfaces;
 using ASMS.Services.Mappings;
 using ASMS.Services.Model.Authentication;
+using Hangfire;
+using Hangfire.SqlServer;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -85,9 +88,29 @@ namespace ASMS.API
 
             builder.Services.AddDbContext<VstorageContext>(options =>
             {
-                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
-                //options.UseSqlServer(builder.Configuration.GetConnectionString("DeployConnection"));
+                //options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DeployConnection"));
                 options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+            });
+            // Hangfire Configuration
+            var connectionString = builder.Configuration.GetConnectionString("DeployConnection");
+            builder.Services.AddHangfire(config => config
+                .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+                .UseSimpleAssemblyNameTypeSerializer()
+                .UseRecommendedSerializerSettings()
+                .UseSqlServerStorage(connectionString, new SqlServerStorageOptions
+                {
+                    CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+                    SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+                    QueuePollInterval = TimeSpan.Zero,
+                    UseRecommendedIsolationLevel = true,
+                    DisableGlobalLocks = true,
+                    SchemaName = "Hangfire"
+                }));
+
+            builder.Services.AddHangfireServer(options =>
+            {
+                options.WorkerCount = 1;
             });
 
             builder.Services.AddCors(options =>
@@ -109,6 +132,37 @@ namespace ASMS.API
             builder.Services.AddSwaggerGen();
 
             var app = builder.Build();
+            app.UseHangfireDashboard("/hangfire", new DashboardOptions
+            {
+                DashboardTitle = "VStorage Background Jobs"
+            });
+
+            using (var scope = app.Services.CreateScope())
+            {
+                var recurringJobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
+
+                TimeZoneInfo vietnamTimeZone;
+                try
+                {
+                    vietnamTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+                }
+                catch (TimeZoneNotFoundException)
+                {
+                    vietnamTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh");
+                }
+
+                recurringJobManager.AddOrUpdate<IOrderMaintenanceService>(
+                    "check-overdue-orders",
+                    service => service.CheckAndProcessOverdueOrdersAsync(),
+                    "0 0 * * *",
+                    new RecurringJobOptions { TimeZone = vietnamTimeZone });
+
+                recurringJobManager.AddOrUpdate<IOrderMaintenanceService>(
+                    "move-expired-orders",
+                    service => service.MoveOldOverdueOrdersToExpiredStorageAsync(),
+                    "0 1 * * *",
+                    new RecurringJobOptions { TimeZone = vietnamTimeZone });
+            }
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment() || app.Environment.IsProduction())

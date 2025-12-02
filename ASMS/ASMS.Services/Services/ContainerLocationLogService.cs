@@ -1,4 +1,5 @@
-﻿using ASMS.Repositories.Entities;
+﻿using ASMS.Repositories.Common;
+using ASMS.Repositories.Entities;
 using ASMS.Repositories.Infrastructures;
 using ASMS.Services.Interfaces;
 using ASMS.Services.Model.ContainerLocationLog;
@@ -22,10 +23,23 @@ namespace ASMS.Services.Services
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<ContainerLocationLogResponse>> GetAllAsync()
+        public async Task<PaginatedList<ContainerLocationLogResponse>> GetWithFilterAsync(
+    string? containerCode,
+    int pageNumber,
+    int pageSize)
         {
-            var logs = await _unitOfWork.ContainerLocationLogs.GetAllAsync();
-            return _mapper.Map<IEnumerable<ContainerLocationLogResponse>>(logs);
+            var logs = await _unitOfWork.ContainerLocationLogs.GetWithFilterAsync(
+                containerCode,
+                pageNumber,
+                pageSize);
+
+            var mappedItems = _mapper.Map<List<ContainerLocationLogResponse>>(logs.Items);
+
+            return new PaginatedList<ContainerLocationLogResponse>(
+                mappedItems,
+                logs.CurrentPage,
+                logs.PageSize,
+                logs.TotalRecords);
         }
 
         public async Task<ContainerLocationLogResponse?> GetByIdAsync(int id)
