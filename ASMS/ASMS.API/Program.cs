@@ -5,6 +5,7 @@ using ASMS.Services.Interfaces;
 using ASMS.Services.Mappings;
 using ASMS.Services.Model.Authentication;
 using Hangfire;
+using Hangfire.Dashboard;
 using Hangfire.SqlServer;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -134,7 +135,8 @@ namespace ASMS.API
             var app = builder.Build();
             app.UseHangfireDashboard("/hangfire", new DashboardOptions
             {
-                DashboardTitle = "VStorage Background Jobs"
+                DashboardTitle = "VStorage Background Jobs",
+                Authorization = new[] { new AllowAllAuthorizationFilter() }
             });
 
             using (var scope = app.Services.CreateScope())
@@ -182,5 +184,12 @@ namespace ASMS.API
 
             app.Run();
         }
+    }
+}
+public class AllowAllAuthorizationFilter : IDashboardAuthorizationFilter
+{
+    public bool Authorize(DashboardContext context)
+    {
+        return true; 
     }
 }
