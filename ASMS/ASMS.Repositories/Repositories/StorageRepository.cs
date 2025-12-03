@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ASMS.Repositories.Data;
+﻿using ASMS.Repositories.Data;
 using ASMS.Repositories.Entities;
 using ASMS.Repositories.Infrastructures;
 using ASMS.Repositories.Interfaces;
@@ -120,7 +115,6 @@ namespace ASMS.Repositories.Repositories
                 .CountAsync();
         }
 
-
-
+        public async Task<List<Storage>> GetAllStorage() => await _dbSet.Include(t => t.StorageType).ToListAsync();
     }
 }

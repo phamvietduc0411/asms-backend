@@ -158,21 +158,25 @@ namespace ASMS.Repositories.Repositories
         {
             var query = _dbSet.AsQueryable();
 
-            query = query.Where(o => o.OrderDate.HasValue &&
-                                     o.OrderDate.Value.ToDateTime(TimeOnly.MinValue) >= startDate.Date &&
-                                     o.OrderDate.Value.ToDateTime(TimeOnly.MinValue) <= endDate.Date);
+            DateOnly start = DateOnly.FromDateTime(startDate);
+            DateOnly end = DateOnly.FromDateTime(endDate);
 
-            // Lọc theo status 
+            query = query.Where(o => o.OrderDate.HasValue &&
+                                     o.OrderDate.Value >= start &&
+                                     o.OrderDate.Value <= end);
+
             if (!string.IsNullOrWhiteSpace(status))
             {
                 string statusLower = status.ToLower();
                 query = query.Where(o => o.Status != null && o.Status.ToLower() == statusLower);
             }
 
-            int count = await query.CountAsync();
-            return count;
+            return await query.CountAsync();
+        }
 
-
+        public IQueryable<Order> GetAllToCaculatePrice()
+        {
+            return _dbSet.AsQueryable();
         }
 
     }

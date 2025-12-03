@@ -1,6 +1,8 @@
 ﻿using ASMS.Repositories.Infrastructures;
 using ASMS.Services.Interfaces;
+using ASMS.Services.Model.Storages;
 using ASMS.Services.Utilities;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -45,9 +47,63 @@ namespace ASMS.Services.Services
             return (weekStart, weekEnd);
         }
 
+        public async Task<decimal> GetRevenueAsync(DateOnly targetDate, string type)
+        {
+            var orders =  _unitOfWork.Orders.GetAllToCaculatePrice();
 
+            DateOnly start;
+            DateOnly end;
 
+            switch (type.ToLower())
+            {
+                case "week":
+                    int diff = targetDate.DayOfWeek - DayOfWeek.Monday;
+                    if (diff < 0) diff += 7;
 
+                    start = targetDate.AddDays(-diff);
+                    end = start.AddDays(6);
+                    break;
+
+                case "year":
+                    start = new DateOnly(targetDate.Year, 1, 1);
+                    end = new DateOnly(targetDate.Year, 12, 31);
+                    break;
+
+                default: // month
+                    start = new DateOnly(targetDate.Year, targetDate.Month, 1);
+                    end = start.AddMonths(1).AddDays(-1);
+                    break;
+            }
+            orders = orders.Where(o => o.OrderDate.Value >= start &&
+                                     o.OrderDate.Value <= end);
+            decimal revenue = (decimal)await orders.SumAsync(o => o.TotalPrice);
+
+            return revenue;
+        }
+
+        public async Task<List<StorageUseageDashboardResponse>> GetWarehouseUsagePercentAsync()
+        {
+            var storages = await _unitOfWork.Storages.GetAllStorage();
+
+            if (storages == null || storages.Count == 0)
+                return new List<StorageUseageDashboardResponse>();
+
+            var result = storages.Select(s => {
+                decimal total = s.TotalVolume ?? 0m;
+                decimal used = s.UsedVolume ?? 0m;
+
+                return new StorageUseageDashboardResponse
+                {
+                    StorageTypeName = s.StorageType?.Name ?? "Unknown",
+                    TotalVolume = (decimal)total,
+                    UsedVolume = (decimal)used,
+                    PercentUsed = total > 0 ? Math.Round((decimal)(used / total * 100), 2) : 0,
+                    PercentRemaining = total > 0 ? Math.Round((decimal)((total - used) / total * 100), 2) : 0
+                };
+            }).ToList();
+
+            return result;
+        }
 
 
     }

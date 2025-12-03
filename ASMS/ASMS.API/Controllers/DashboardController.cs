@@ -16,7 +16,7 @@ namespace ASMS.API.Controllers
             _dashBoardService = dashBoardService;
         }
 
-        [HttpGet("Revenue-by-day")]
+        [HttpGet("Get-Number-of-Oders")]
         public async Task<IActionResult> GetNumberOfOrders([FromQuery] DateOnly? date,[FromQuery] string? status,[FromQuery] bool isWeekly = false)
         {
             try
@@ -38,6 +38,52 @@ namespace ASMS.API.Controllers
                 return StatusCode(500, new { success = false, message = ex.Message });
             }
         }
+
+        [HttpGet("Revenue")]
+        public async Task<IActionResult> GetRevenueAsync(
+            [FromQuery] DateOnly? date,
+            [FromQuery] string type = "month") 
+        {
+            try
+            {
+                type = type.ToLower();
+                var targetDate = date ?? DateOnly.FromDateTime(DateTime.Today);
+
+                var revenue = await _dashBoardService.GetRevenueAsync(targetDate, type);
+
+                return Ok(new
+                {
+                    success = true,
+                    date = targetDate.ToString("yyyy-MM-dd"),
+                    type,
+                    revenue
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+        [HttpGet("warehouse-usage-percent")]
+        public async Task<IActionResult> GetWarehouseUsagePercentAsync()
+        {
+            try
+            {
+                var usage = await _dashBoardService.GetWarehouseUsagePercentAsync();
+
+                return Ok(new
+                {
+                    success = true,
+                    warehouseUsage = usage
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+
 
 
     }
