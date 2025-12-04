@@ -147,7 +147,7 @@ namespace ASMS.Services.Services
 
             if (order != null)
             {
-                order.PaymentStatus = isSuccess ? "PAID" : "Failed";
+                order.PaymentStatus = isSuccess ? "Paid" : "Unpaid";
                 if (isSuccess)
                 {
                     order.UnpaidAmount = 0;
@@ -164,17 +164,17 @@ namespace ASMS.Services.Services
                     await _unitOfWork.PaymentHistories.AddAsync(payment);
 
                     // Tracking
-                    var tracking = new TrackingHistory
-                    {
-                        OrderDetailCode = null,
-                        OldStatus = order.Status,
-                        NewStatus = "Paid",
-                        ActionType = "Payment",
-                        CreateAt = DateOnly.FromDateTime(DateTime.Now),
-                    };
-                    await _unitOfWork.TrackingHistories.AddAsync(tracking);
+                    //var tracking = new TrackingHistory
+                    //{
+                    //    OrderDetailCode = null,
+                    //    OldStatus = order.Status,
+                    //    NewStatus = "Paid",
+                    //    ActionType = "Payment",
+                    //    CreateAt = DateOnly.FromDateTime(DateTime.Now),
+                    //};
+                    //await _unitOfWork.TrackingHistories.AddAsync(tracking);
 
-                    order.Status = "Paid";
+                    //order.Status = "Paid";
                 }
 
                 await _unitOfWork.Orders.UpdateAsync(order);

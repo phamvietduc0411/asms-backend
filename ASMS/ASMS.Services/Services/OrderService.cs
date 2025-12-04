@@ -607,24 +607,16 @@ namespace ASMS.Services.Services
         {
             try
             {
-
                 var workflow = DetermineWorkflowType(style);
 
-                var manager = await _unitOfWork.Employee.GetAvailableEmployeeByRoleAsync("Manager");
-                if (manager == null)
-                {
-                    _logger.LogWarning($"No available Manager for order {orderCode}");
-                    return;
-                }
-
-                string? nextAssign = null;
+                string? firstEmployee = null;
 
                 if (workflow == "full" || workflow == "self_with_delivery")
                 {
                     var deliveryStaff = await _unitOfWork.Employee.GetAvailableEmployeeByRoleAsync("Delivery Staff");
                     if (deliveryStaff != null)
                     {
-                        nextAssign = deliveryStaff.EmployeeCode;
+                        firstEmployee = deliveryStaff.EmployeeCode;
                         deliveryStaff.Status = "InOrder";
                         await _unitOfWork.Employee.UpdateAsync(deliveryStaff);
                     }
@@ -634,11 +626,18 @@ namespace ASMS.Services.Services
                     var warehouseStaff = await _unitOfWork.Employee.GetAvailableEmployeeByRoleAsync("Warehouse Staff");
                     if (warehouseStaff != null)
                     {
-                        nextAssign = warehouseStaff.EmployeeCode;
+                        firstEmployee = warehouseStaff.EmployeeCode;
+                        warehouseStaff.Status = "InOrder";
+                        await _unitOfWork.Employee.UpdateAsync(warehouseStaff);
                     }
                 }
 
-                // Tạo tracking history đầu tiên
+                if (firstEmployee == null)
+                {
+                    _logger.LogWarning($"No available employee for order {orderCode}");
+                    return;
+                }
+
                 var initialTracking = new TrackingHistory
                 {
                     OrderCode = orderCode,
@@ -647,8 +646,8 @@ namespace ASMS.Services.Services
                     NewStatus = "pending",
                     ActionType = "Order Created",
                     CreateAt = GetVietnamToday(),
-                    CurrentAssign = nextAssign,
-                    NextAssign = nextAssign ?? manager.EmployeeCode,
+                    CurrentAssign = firstEmployee,
+                    NextAssign = firstEmployee,
                     Image = null
                 };
 

@@ -20,23 +20,23 @@ namespace ASMS.Services.Services
         private readonly Dictionary<string, List<string>> _workflowsByStyle = new()
 {
     {
-        "full", new List<string>  
+        "full", new List<string>
         {
-            "new", "pending", "wait pick up", "verify", "checkout",
+            "pending", "wait pick up", "verify", "checkout",
             "pick up", "processing", "stored", "retrieved"
         }
     },
     {
-        "self_with_delivery", new List<string> 
+        "self_with_delivery", new List<string>
         {
-            "new", "pending", "wait pick up", "verify", "checkout",
+            "pending", "wait pick up", "verify", "checkout",
             "pick up", "renting", "retrieved"
         }
     },
     {
-        "self_no_delivery", new List<string>  
+        "self_no_delivery", new List<string>
         {
-            "new", "pending", "checkout", "renting", "retrieved"
+            "pending", "checkout", "renting", "retrieved"
         }
     }
 };
@@ -471,35 +471,42 @@ namespace ASMS.Services.Services
         /// Thêm tracking history mới
         /// </summary>
         private async Task AddTrackingHistoryAsync(
-            string orderCode,
-            string? oldStatus,
-            string? newStatus,
-            string actionType,
-            string? nextAssign = null)
+    string orderCode,
+    string? oldStatus,
+    string? newStatus,
+    string actionType,
+    string? nextAssign = null)
         {
             var order = await _unitOfWork.Orders.GetByCodeAsync(orderCode);
             if (order == null) return;
 
-            // Lấy CurrentAssign từ NextAssign của tracking history gần nhất
             var latestTracking = await _unitOfWork.TrackingHistories.GetLatestByOrderCodeAsync(orderCode);
             string? currentAssign = latestTracking?.NextAssign;
 
-            // Nếu là đơn hàng mới hoặc không có tracking history, tìm nhân viên phù hợp
-            var newStatusLower = newStatus?.ToLower();
-            if (currentAssign == null || newStatusLower == "new" || newStatusLower == "pending")
+            if (currentAssign == null)
             {
                 currentAssign = await AssignEmployeeBasedOnStatusAsync(newStatus, order.Style, orderCode);
             }
 
-            // Xác định NextAssign cho trạng thái tiếp theo
             var workflow = await GetWorkflowForOrderAsync(order);
-            var currentIndex = workflow.IndexOf(newStatusLower ?? "new");
+            var currentIndex = workflow.IndexOf(newStatus?.ToLower() ?? "pending");
             string? nextAssignEmployee = null;
 
             if (currentIndex >= 0 && currentIndex < workflow.Count - 1)
             {
                 var nextStatus = workflow[currentIndex + 1];
-                nextAssignEmployee = await AssignEmployeeBasedOnStatusAsync(nextStatus, order.Style, orderCode);
+
+                var currentRole = await GetRoleForStatusAsync(newStatus, order);
+                var nextRole = await GetRoleForStatusAsync(nextStatus, order);
+
+                if (currentRole != nextRole)
+                {
+                    nextAssignEmployee = await AssignEmployeeBasedOnStatusAsync(nextStatus, order.Style, orderCode);
+                }
+                else
+                {
+                    nextAssignEmployee = currentAssign;
+                }
             }
 
             var trackingHistory = new TrackingHistory
@@ -517,7 +524,30 @@ namespace ASMS.Services.Services
 
             await _unitOfWork.TrackingHistories.AddAsync(trackingHistory);
         }
+        /// <summary>
+        /// Lấy role tương ứng với status
+        /// </summary>
+        private async Task<string> GetRoleForStatusAsync(string? status, Order order)
+        {
+            if (string.IsNullOrEmpty(status)) return "Warehouse Staff";
 
+            var statusLower = status.ToLower();
+
+            if (statusLower == "pending")
+            {
+                var workflow = await GetWorkflowForOrderAsync(order);
+                return workflow == _workflowsByStyle["self_no_delivery"]
+                    ? "Warehouse Staff"
+                    : "Delivery Staff";
+            }
+
+            return statusLower switch
+            {
+                "wait pick up" or "verify" or "checkout" or "pick up" => "Delivery Staff",
+                "processing" or "stored" or "renting" => "Warehouse Staff",
+                _ => "Warehouse Staff"
+            };
+        }
         /// <summary>
         /// Gán nhân viên dựa trên trạng thái và role phù hợp
         /// Nếu role giống với tracking history gần nhất thì giữ nguyên nhân viên đó
@@ -526,16 +556,11 @@ namespace ASMS.Services.Services
         {
             if (string.IsNullOrEmpty(status)) return null;
 
-            var statusLower = status.ToLower();
-            string roleName = statusLower switch
-            {
-                "new" => "Manager",
-                "pending" or "wait pick up" or "verify" or "checkout" or "pick up" => "Delivery Staff",
-                "processing" or "stored" or "renting" => "Warehouse Staff",
-                _ => "Warehouse Staff"
-            };
+            var order = await _unitOfWork.Orders.GetByCodeAsync(orderCode);
+            if (order == null) return null;
 
-            // Kiểm tra xem có nhân viên đang làm order này với cùng role không
+            var roleName = await GetRoleForStatusAsync(status, order);
+
             if (!string.IsNullOrEmpty(orderCode))
             {
                 var latestTracking = await _unitOfWork.TrackingHistories.GetLatestByOrderCodeAsync(orderCode);
@@ -544,23 +569,20 @@ namespace ASMS.Services.Services
                     var currentEmployee = await _unitOfWork.Employee.GetByCodeAsync(latestTracking.CurrentAssign);
                     if (currentEmployee?.EmployeeRole?.Name == roleName)
                     {
-
                         return currentEmployee.EmployeeCode;
                     }
                 }
             }
 
-            // Role khác hoặc không có tracking history trước đó -> tìm nhân viên mới
             var employee = await _unitOfWork.Employee.GetAvailableEmployeeByRoleAsync(roleName);
-
             if (employee != null)
             {
-                if (statusLower != "stored" && statusLower != "renting" && roleName != "Manager")
+                var statusLower = status.ToLower();
+                if (statusLower != "stored" && statusLower != "renting")
                 {
                     employee.Status = "InOrder";
                     await _unitOfWork.Employee.UpdateAsync(employee);
                 }
-
                 return employee.EmployeeCode;
             }
 
@@ -583,14 +605,9 @@ namespace ASMS.Services.Services
             var newStatusLower = newStatus?.ToLower();
             var roleName = employee.EmployeeRole?.Name;
 
-            // ✅ Xác định bước cuối cùng của từng role
             bool isLastStepOfRole = false;
 
-            if (roleName == "Manager" && newStatusLower == "pending")
-            {
-                isLastStepOfRole = true;
-            }
-            else if (roleName == "Delivery Staff" && newStatusLower == "pick up")
+            if (roleName == "Delivery Staff" && newStatusLower == "pick up")
             {
                 isLastStepOfRole = true;
             }
