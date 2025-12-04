@@ -147,7 +147,7 @@ namespace ASMS.Services.Services
 
             if (order != null)
             {
-                order.PaymentStatus = isSuccess ? "PAID" : "Failed";
+                order.PaymentStatus = isSuccess ? "Paid" : "Unpaid";
                 if (isSuccess)
                 {
                     order.UnpaidAmount = 0;
