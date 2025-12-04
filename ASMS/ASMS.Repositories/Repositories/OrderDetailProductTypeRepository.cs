@@ -7,6 +7,7 @@ using ASMS.Repositories.Data;
 using ASMS.Repositories.Entities;
 using ASMS.Repositories.Infrastructures;
 using ASMS.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace ASMS.Repositories.Repositories
@@ -17,5 +18,12 @@ namespace ASMS.Repositories.Repositories
            VstorageContext context, ILogger logger) : base(context, logger)
         {
         }
+        public async Task<List<OrderDetailProductType>> GetByOrderDetailIdAsync(int orderDetailId)
+        {
+            return await _dbSet
+                .Where(odpt => odpt.OrderDetailId == orderDetailId)
+                .ToListAsync();
+        }
+
     }
 }

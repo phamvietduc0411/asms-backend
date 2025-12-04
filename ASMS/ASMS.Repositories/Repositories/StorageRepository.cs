@@ -76,6 +76,7 @@ namespace ASMS.Repositories.Repositories
             try
             {
                 return await _dbSet
+                    .AsNoTracking()
                     .Include(s => s.Building)
                     .Include(s => s.StorageType)
                     .Include(s => s.ProductType)
@@ -116,5 +117,11 @@ namespace ASMS.Repositories.Repositories
         }
 
         public async Task<List<Storage>> GetAllStorage() => await _dbSet.Include(t => t.StorageType).ToListAsync();
+        public async Task<Storage?> GetByCodeWithBuildingAsync(string storageCode)
+        {
+            return await _dbSet
+                .Include(s => s.Building)
+                .FirstOrDefaultAsync(s => s.StorageCode == storageCode);
+        }
     }
 }

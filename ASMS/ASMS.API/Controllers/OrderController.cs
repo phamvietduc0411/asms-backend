@@ -160,7 +160,20 @@ namespace ASMS.API.Controllers
                 return StatusCode(500, new { message = "Đã xảy ra lỗi khi tạo đơn hàng", details = ex.Message });
             }
         }
-
+        [HttpPut("{orderCode}/with-details")]
+        public async Task<IActionResult> UpdateOrderWithDetails(string orderCode, [FromBody] UpdateOrderWithDetailsRequest request)
+        {
+            try
+            {
+                var response = await _orderService.UpdateOrderWithDetailsAsync(orderCode, request);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating order with details {OrderCode}", orderCode);
+                return BadRequest(new { message = ex.Message });
+            }
+        }
         [HttpPost("UpdateProcess")]
         public async Task<IActionResult> UpdateProcessAsync([FromBody] UpdateOrderProcessRequest request)
         {

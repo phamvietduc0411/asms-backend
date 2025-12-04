@@ -173,7 +173,10 @@ namespace ASMS.Services.Services
 
                 // Cập nhật trạng thái nhân viên
                 await UpdateEmployeeStatusAsync(orderCode, newStatus);
-
+                if (order.Style?.ToLower() == "self")
+                {
+                    await UpdateStorageStatusForSelfOrderAsync(orderCode, newStatus);
+                }
                 await _unitOfWork.CompleteAsync();
 
                 _logger.LogInformation($"Order {orderCode} status updated from {oldStatus} to {newStatus}");
@@ -687,6 +690,58 @@ namespace ASMS.Services.Services
             }
 
             return false;
+        }
+        /// <summary>
+        /// Update Storage status theo workflow của Self order
+        /// </summary>
+        private async Task UpdateStorageStatusForSelfOrderAsync(string orderCode, string newStatus)
+        {
+            try
+            {
+                var orderDetails = await _unitOfWork.OrderDetails.GetByOrderCodeAsync(orderCode);
+                var storageCodes = orderDetails
+                    .Where(od => !string.IsNullOrEmpty(od.StorageCode))
+                    .Select(od => od.StorageCode)
+                    .Distinct()
+                    .ToList();
+
+                var newStatusLower = newStatus?.ToLower();
+                string? storageStatus = null;
+
+                switch (newStatusLower)
+                {
+                    case "renting":
+                        storageStatus = "Rented";
+                        break;
+                    case "retrieved":
+                        storageStatus = "Ready";
+                        break;
+                }
+
+                if (storageStatus == null) return;
+
+                foreach (var storageCode in storageCodes)
+                {
+                    var storage = await _unitOfWork.Storages.GetByCodeAsync(storageCode);
+                    if (storage == null)
+                    {
+                        _logger.LogWarning($"Storage {storageCode} not found for order {orderCode}");
+                        continue;
+                    }
+
+                    storage.Status = storageStatus;
+                    await _unitOfWork.Storages.UpdateAsync(storage);
+
+                    _logger.LogInformation($"Storage {storageCode} status updated to {storageStatus} for order {orderCode}");
+                }
+
+                await _unitOfWork.CompleteAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error updating storage status for order {orderCode}");
+                throw;
+            }
         }
 
         #endregion

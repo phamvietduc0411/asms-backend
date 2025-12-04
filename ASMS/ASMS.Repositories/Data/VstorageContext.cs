@@ -379,7 +379,7 @@ public partial class VstorageContext : DbContext
             entity.HasIndex(e => e.StorageCode, "IX_OrderDetail_StorageCode");
 
             entity.Property(e => e.OrderDetailId)
-                .ValueGeneratedNever()
+                .ValueGeneratedOnAdd()
                 .HasColumnName("OrderDetailID");
             entity.Property(e => e.ContainerCode)
                 .HasMaxLength(50)

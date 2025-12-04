@@ -10,5 +10,6 @@ namespace ASMS.Repositories.Interfaces
 {
     public interface IOrderDetailProductTypeRepository : IGenericRepository<OrderDetailProductType>
     {
+        Task<List<OrderDetailProductType>> GetByOrderDetailIdAsync(int orderDetailId);
     }
 }
