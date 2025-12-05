@@ -68,7 +68,7 @@ namespace ASMS.Repositories.Repositories
                 .Include(e => e.EmployeeRole)
                 .Where(e => e.EmployeeRole != null
                     && e.EmployeeRole.Name == roleName
-                    && e.Status == "Active"
+                    //&& e.Status == "Active"
                     && e.IsActive == true)
                 .OrderBy(e => e.OrderActionCount ?? 0)
                 .FirstOrDefaultAsync();

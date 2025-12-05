@@ -209,30 +209,12 @@ namespace ASMS.Services.Services
         {
             _logger.LogInformation("Creating new order with details for customer {Code}", request.CustomerCode);
 
-
-            // Generate order code
             var orderDate = GetVietnamToday();
             var orderCode = await GenerateOrderCodeAsync(orderDate);
 
-            // Calculate total price and unpaid amount
-            //decimal totalPrice = 0;
-            //foreach (var detail in request.OrderDetails)
-            //{
-            //    if (detail.Price.HasValue && !string.IsNullOrEmpty(detail.Quantity))
-            //    {
-            //        if (int.TryParse(detail.Quantity, out var qty))
-            //        {
-            //            totalPrice += detail.Price.Value * qty;
-            //        }
-            //    }
-            //}
-            //decimal totalPrice = request.TotalPrice ?? 0;
-
-            //Create new customer 
             request.CustomerCode = await CreateCustomer(request);
             var isCreateSuccess = CreatePasswordAndSendEmail(request.Email);
 
-            // Create Order entity
             var order = new Order
             {
                 OrderCode = orderCode,
@@ -244,9 +226,6 @@ namespace ASMS.Services.Services
                 PaymentStatus = request.PaymentStatus ?? "Unpaid",
                 TotalPrice = request.TotalPrice,
                 UnpaidAmount = request.UnpaidAmount,
-                //StorageTypeId = request.StorageTypeId,
-                //ShelfTypeId = request.ShelfTypeId,
-                //ShelfQuantity = request.ShelfQuantity,
                 CustomerName = request.CustomerName,
                 PhoneContact = request.PhoneContact,
                 Email = request.Email,
@@ -269,10 +248,10 @@ namespace ASMS.Services.Services
             var servicesToAdd = new List<ASMS.Repositories.Entities.OrderDetailService>();
 
             bool? isPlacedValue = DetermineIsPlacedByStyle(request.Style);
+
             for (int i = 0; i < request.OrderDetails.Count; i++)
             {
                 var detailRequest = request.OrderDetails[i];
-
                 var orderDetailId = baseOrderDetailId + i;
 
                 Container container = null;
@@ -285,7 +264,6 @@ namespace ASMS.Services.Services
                     }
                 }
 
-                // Calculate SubTotal
                 decimal? subTotal = null;
                 if (detailRequest.Price.HasValue && !string.IsNullOrEmpty(detailRequest.Quantity))
                 {
@@ -295,7 +273,6 @@ namespace ASMS.Services.Services
                     }
                 }
 
-                // Create OrderDetail
                 var orderDetail = new OrderDetail
                 {
                     OrderDetailId = orderDetailId,
@@ -305,7 +282,6 @@ namespace ASMS.Services.Services
                     Price = detailRequest.Price,
                     Quantity = detailRequest.Quantity,
                     SubTotal = subTotal,
-                    //Address = detailRequest.Address,
                     StorageTypeId = detailRequest.StorageTypeId,
                     ShelfTypeId = detailRequest.ShelfTypeId,
                     ShelfQuantity = detailRequest.ShelfQuantity,
@@ -316,7 +292,6 @@ namespace ASMS.Services.Services
                 };
 
                 orderDetailsToAdd.Add(orderDetail);
-
 
                 if (detailRequest.ProductTypeIds != null && detailRequest.ProductTypeIds.Any())
                 {
@@ -331,7 +306,6 @@ namespace ASMS.Services.Services
                     }
                 }
 
-                // Prepare Services
                 if (detailRequest.ServiceIds != null && detailRequest.ServiceIds.Any())
                 {
                     foreach (var serviceId in detailRequest.ServiceIds)
@@ -344,7 +318,6 @@ namespace ASMS.Services.Services
                     }
                 }
 
-                // Add to response list
                 orderDetailResponses.Add(new OrderDetailItemResponse
                 {
                     OrderDetailId = orderDetailId,
@@ -355,7 +328,6 @@ namespace ASMS.Services.Services
                     Price = detailRequest.Price,
                     Quantity = detailRequest.Quantity,
                     SubTotal = subTotal,
-                    //Address = detailRequest.Address,
                     StorageTypeId = detailRequest.StorageTypeId,
                     ShelfTypeId = detailRequest.ShelfTypeId,
                     ShelfQuantity = detailRequest.ShelfQuantity,
@@ -363,7 +335,6 @@ namespace ASMS.Services.Services
                     ContainerType = detailRequest.ContainerType,
                     ContainerQuantity = detailRequest.ContainerQuantity,
                     IsPlaced = isPlacedValue,
-                    //Status = string.IsNullOrEmpty(detailRequest.ContainerCode) ? "Pending" : "Assigned"
                 });
             }
 
@@ -382,15 +353,22 @@ namespace ASMS.Services.Services
             {
                 await _unitOfWork.OrderDetailServices.AddAsync(service);
             }
-            // Assgin oder for delivery
-            //await AssignDeliveryForOrder(orderCode);
-            await CreateInitialTrackingHistoryAsync(orderCode, request.Style);
-
-            //Create new customer 
-            //request.CustomerCode = await CreateCustomer(request);
-            //var isCreateSuccess = CreatePasswordAndSendEmail(request.Email, request);
 
             await _unitOfWork.CompleteAsync();
+
+            await CreateInitialTrackingHistoryAsync(orderCode, request.Style);
+
+            if (request.Style?.ToLower() == "self")
+            {
+                try
+                {
+                    await ReserveStoragesForSelfOrderAsync(orderCode);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"Error reserving storages for order {orderCode}, but order created successfully");
+                }
+            }
 
             _logger.LogInformation("Order {OrderCode} with {Count} details created successfully", orderCode, orderDetailResponses.Count);
 
@@ -414,6 +392,278 @@ namespace ASMS.Services.Services
                 Note = request.Note,
                 Image = request.Image,
                 Address = request.Address,
+                OrderDetails = orderDetailResponses
+            };
+        }
+
+        public async Task<UpdateOrderWithDetailsResponse> UpdateOrderWithDetailsAsync(string orderCode, UpdateOrderWithDetailsRequest request)
+        {
+            _logger.LogInformation("Updating order {OrderCode} with details", orderCode);
+
+            var existingOrder = await _unitOfWork.Orders.GetByCodeAsync(orderCode);
+            if (existingOrder == null)
+            {
+                throw new Exception($"Order {orderCode} not found");
+            }
+
+            var oldStyle = existingOrder.Style?.ToLower();
+            var newStyle = request.Style?.ToLower();
+
+            existingOrder.DepositDate = request.DepositDate;
+            existingOrder.ReturnDate = request.ReturnDate;
+            existingOrder.Status = string.IsNullOrWhiteSpace(request.Status) ? existingOrder.Status : request.Status.ToLower();
+            existingOrder.PaymentStatus = request.PaymentStatus ?? existingOrder.PaymentStatus;
+            existingOrder.TotalPrice = request.TotalPrice;
+            existingOrder.UnpaidAmount = request.UnpaidAmount;
+            existingOrder.CustomerName = request.CustomerName;
+            existingOrder.PhoneContact = request.PhoneContact;
+            existingOrder.Email = request.Email;
+            existingOrder.Note = request.Note;
+            existingOrder.Image = request.Image;
+            existingOrder.Address = request.Address;
+            existingOrder.Style = request.Style;
+
+            await _unitOfWork.Orders.UpdateAsync(existingOrder);
+            await _unitOfWork.CompleteAsync();
+
+            _logger.LogInformation("Order {OrderCode} updated, now updating order details", orderCode);
+
+            var existingDetails = await _unitOfWork.OrderDetails.GetByOrderCodeAsync(orderCode);
+            var existingDetailIds = existingDetails.Select(od => od.OrderDetailId).ToHashSet();
+
+            var requestDetailIds = request.OrderDetails
+                .Where(d => d.OrderDetailId.HasValue)
+                .Select(d => d.OrderDetailId.Value)
+                .ToHashSet();
+
+            var detailsToDelete = existingDetails
+                .Where(od => !requestDetailIds.Contains(od.OrderDetailId))
+                .ToList();
+
+            foreach (var detailToDelete in detailsToDelete)
+            {
+                var productTypes = await _unitOfWork.OrderDetailProductTypes.GetByOrderDetailIdAsync(detailToDelete.OrderDetailId);
+                foreach (var pt in productTypes)
+                {
+                    _unitOfWork.OrderDetailProductTypes.Remove(pt);
+                }
+
+                var services = await _unitOfWork.OrderDetailServices.GetByOrderDetailIdAsync(detailToDelete.OrderDetailId);
+                foreach (var svc in services)
+                {
+                    _unitOfWork.OrderDetailServices.Remove(svc);
+                }
+
+                _unitOfWork.OrderDetails.Remove(detailToDelete);
+            }
+
+            await _unitOfWork.CompleteAsync();
+
+            var orderDetailResponses = new List<OrderDetailItemResponse>();
+            bool? isPlacedValue = DetermineIsPlacedByStyle(request.Style);
+
+            var baseOrderDetailId = await GenerateOrderDetailIdAsync();
+            int newDetailCounter = 0;
+
+            foreach (var detailRequest in request.OrderDetails)
+            {
+                OrderDetail orderDetail;
+                int orderDetailId;
+
+                if (detailRequest.OrderDetailId.HasValue && existingDetailIds.Contains(detailRequest.OrderDetailId.Value))
+                {
+                    orderDetailId = detailRequest.OrderDetailId.Value;
+                    orderDetail = existingDetails.First(od => od.OrderDetailId == orderDetailId);
+
+                    orderDetail.StorageCode = detailRequest.StorageCode;
+                    orderDetail.ContainerCode = detailRequest.ContainerCode;
+                    orderDetail.Price = detailRequest.Price;
+                    orderDetail.Quantity = detailRequest.Quantity;
+                    orderDetail.StorageTypeId = detailRequest.StorageTypeId;
+                    orderDetail.ShelfTypeId = detailRequest.ShelfTypeId;
+                    orderDetail.ShelfQuantity = detailRequest.ShelfQuantity;
+                    orderDetail.Image = detailRequest.Image;
+                    orderDetail.ContainerType = detailRequest.ContainerType;
+                    orderDetail.ContainerQuantity = detailRequest.ContainerQuantity;
+                    orderDetail.IsPlaced = isPlacedValue;
+
+                    if (detailRequest.Price.HasValue && !string.IsNullOrEmpty(detailRequest.Quantity))
+                    {
+                        if (int.TryParse(detailRequest.Quantity, out var qty))
+                        {
+                            orderDetail.SubTotal = detailRequest.Price.Value * qty;
+                        }
+                    }
+
+                    await _unitOfWork.OrderDetails.UpdateAsync(orderDetail);
+
+                    var existingProductTypes = await _unitOfWork.OrderDetailProductTypes.GetByOrderDetailIdAsync(orderDetailId);
+                    foreach (var pt in existingProductTypes)
+                    {
+                        _unitOfWork.OrderDetailProductTypes.Remove(pt);
+                    }
+
+                    if (detailRequest.ProductTypeIds != null && detailRequest.ProductTypeIds.Any())
+                    {
+                        foreach (var productTypeId in detailRequest.ProductTypeIds)
+                        {
+                            await _unitOfWork.OrderDetailProductTypes.AddAsync(new OrderDetailProductType
+                            {
+                                OrderDetailId = orderDetailId,
+                                ProductTypeId = productTypeId,
+                                IsActive = true
+                            });
+                        }
+                    }
+
+                    var existingServices = await _unitOfWork.OrderDetailServices.GetByOrderDetailIdAsync(orderDetailId);
+                    foreach (var svc in existingServices)
+                    {
+                        _unitOfWork.OrderDetailServices.Remove(svc);
+                    }
+
+                    if (detailRequest.ServiceIds != null && detailRequest.ServiceIds.Any())
+                    {
+                        foreach (var serviceId in detailRequest.ServiceIds)
+                        {
+                            await _unitOfWork.OrderDetailServices.AddAsync(new ASMS.Repositories.Entities.OrderDetailService
+                            {
+                                OrderDetailId = orderDetailId,
+                                ServiceId = serviceId
+                            });
+                        }
+                    }
+                }
+                else
+                {
+                    orderDetailId = baseOrderDetailId + newDetailCounter;
+                    newDetailCounter++;
+
+                    decimal? subTotal = null;
+                    if (detailRequest.Price.HasValue && !string.IsNullOrEmpty(detailRequest.Quantity))
+                    {
+                        if (int.TryParse(detailRequest.Quantity, out var qty))
+                        {
+                            subTotal = detailRequest.Price.Value * qty;
+                        }
+                    }
+
+                    orderDetail = new OrderDetail
+                    {
+                        OrderDetailId = orderDetailId,
+                        OrderCode = orderCode,
+                        StorageCode = detailRequest.StorageCode,
+                        ContainerCode = detailRequest.ContainerCode,
+                        Price = detailRequest.Price,
+                        Quantity = detailRequest.Quantity,
+                        SubTotal = subTotal,
+                        StorageTypeId = detailRequest.StorageTypeId,
+                        ShelfTypeId = detailRequest.ShelfTypeId,
+                        ShelfQuantity = detailRequest.ShelfQuantity,
+                        Image = detailRequest.Image,
+                        ContainerType = detailRequest.ContainerType,
+                        ContainerQuantity = detailRequest.ContainerQuantity,
+                        IsPlaced = isPlacedValue,
+                    };
+
+                    await _unitOfWork.OrderDetails.AddAsync(orderDetail);
+
+                    if (detailRequest.ProductTypeIds != null && detailRequest.ProductTypeIds.Any())
+                    {
+                        foreach (var productTypeId in detailRequest.ProductTypeIds)
+                        {
+                            await _unitOfWork.OrderDetailProductTypes.AddAsync(new OrderDetailProductType
+                            {
+                                OrderDetailId = orderDetailId,
+                                ProductTypeId = productTypeId,
+                                IsActive = true
+                            });
+                        }
+                    }
+
+                    if (detailRequest.ServiceIds != null && detailRequest.ServiceIds.Any())
+                    {
+                        foreach (var serviceId in detailRequest.ServiceIds)
+                        {
+                            await _unitOfWork.OrderDetailServices.AddAsync(new ASMS.Repositories.Entities.OrderDetailService
+                            {
+                                OrderDetailId = orderDetailId,
+                                ServiceId = serviceId
+                            });
+                        }
+                    }
+                }
+
+                Container? container = null;
+                if (!string.IsNullOrEmpty(detailRequest.ContainerCode))
+                {
+                    container = await _unitOfWork.Containers.GetByCodeAsync(detailRequest.ContainerCode);
+                }
+
+                orderDetailResponses.Add(new OrderDetailItemResponse
+                {
+                    OrderDetailId = orderDetailId,
+                    StorageCode = detailRequest.StorageCode,
+                    ContainerCode = detailRequest.ContainerCode,
+                    FloorCode = container?.FloorCode,
+                    FloorNumber = container?.FloorCodeNavigation?.FloorNumber,
+                    Price = detailRequest.Price,
+                    Quantity = detailRequest.Quantity,
+                    SubTotal = orderDetail.SubTotal,
+                    StorageTypeId = detailRequest.StorageTypeId,
+                    ShelfTypeId = detailRequest.ShelfTypeId,
+                    ShelfQuantity = detailRequest.ShelfQuantity,
+                    Image = detailRequest.Image,
+                    ContainerType = detailRequest.ContainerType,
+                    ContainerQuantity = detailRequest.ContainerQuantity,
+                    IsPlaced = isPlacedValue,
+                });
+            }
+
+            await _unitOfWork.CompleteAsync();
+            if (newStyle == "self")
+            {
+                try
+                {
+                    await UpdateStoragesForSelfOrderAsync(orderCode, oldStyle);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"Error updating storages for order {orderCode}");
+                }
+            }
+            else if (oldStyle == "self" && newStyle != "self")
+            {
+                try
+                {
+                    await ReleaseStoragesForOrderAsync(orderCode);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"Error releasing storages for order {orderCode}");
+                }
+            }
+
+            _logger.LogInformation("Order {OrderCode} with {Count} details updated successfully", orderCode, orderDetailResponses.Count);
+
+            return new UpdateOrderWithDetailsResponse
+            {
+                OrderCode = orderCode,
+                CustomerCode = existingOrder.CustomerCode,
+                OrderDate = existingOrder.OrderDate,
+                DepositDate = existingOrder.DepositDate,
+                ReturnDate = existingOrder.ReturnDate,
+                Status = existingOrder.Status,
+                PaymentStatus = existingOrder.PaymentStatus,
+                TotalPrice = existingOrder.TotalPrice,
+                UnpaidAmount = existingOrder.UnpaidAmount,
+                CustomerName = existingOrder.CustomerName,
+                PhoneContact = existingOrder.PhoneContact,
+                Email = existingOrder.Email,
+                Note = existingOrder.Note,
+                Image = existingOrder.Image,
+                Address = existingOrder.Address,
+                Style = existingOrder.Style,
                 OrderDetails = orderDetailResponses
             };
         }
@@ -459,6 +709,165 @@ namespace ASMS.Services.Services
         {
             var orders = await _unitOfWork.Orders.GetActiveOrdersByEmployeeAsync(employeeCode);
             return _mapper.Map<List<OrderResponse>>(orders);
+        }
+
+        /// <summary>
+        /// Reserve storages khi tạo Self order (Status: pending → Reserved)
+        /// </summary>
+        private async Task ReserveStoragesForSelfOrderAsync(string orderCode)
+        {
+            try
+            {
+                var orderDetails = await _unitOfWork.OrderDetails.GetByOrderCodeAsync(orderCode);
+                var storageCodesToReserve = orderDetails
+                    .Where(od => !string.IsNullOrEmpty(od.StorageCode))
+                    .Select(od => od.StorageCode)
+                    .Distinct()
+                    .ToList();
+
+                foreach (var storageCode in storageCodesToReserve)
+                {
+                    var storage = await _unitOfWork.Storages.GetByCodeWithBuildingAsync(storageCode);
+                    if (storage == null)
+                    {
+                        _logger.LogWarning($"Storage {storageCode} not found for order {orderCode}");
+                        continue;
+                    }
+
+                    if (!ValidateSelfStorage(storage))
+                    {
+                        _logger.LogWarning($"Storage {storageCode} validation failed for order {orderCode}");
+                        continue;
+                    }
+
+                    storage.Status = "Reserved";
+                    await _unitOfWork.Storages.UpdateAsync(storage);
+
+                    _logger.LogInformation($"Storage {storageCode} reserved for order {orderCode}");
+                }
+
+                await _unitOfWork.CompleteAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error reserving storages for order {orderCode}");
+                throw;
+            }
+        }
+        /// <summary>
+        /// Release storages khi đổi từ Self sang non-Self
+        /// </summary>
+        private async Task ReleaseStoragesForOrderAsync(string orderCode)
+        {
+            try
+            {
+                var orderDetails = await _unitOfWork.OrderDetails.GetByOrderCodeAsync(orderCode);
+                var storageCodes = orderDetails
+                    .Where(od => !string.IsNullOrEmpty(od.StorageCode))
+                    .Select(od => od.StorageCode)
+                    .Distinct()
+                    .ToList();
+
+                foreach (var storageCode in storageCodes)
+                {
+                    var storage = await _unitOfWork.Storages.GetByCodeWithBuildingAsync(storageCode);
+                    if (storage == null) continue;
+
+                    storage.Status = "Ready";
+                    await _unitOfWork.Storages.UpdateAsync(storage);
+                }
+
+                await _unitOfWork.CompleteAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error releasing storages for order {orderCode}");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Update storages cho Self order khi update
+        /// </summary>
+        private async Task UpdateStoragesForSelfOrderAsync(string orderCode, string? oldStyle)
+        {
+            try
+            {
+                // Lấy storage codes hiện tại
+                var currentDetails = await _unitOfWork.OrderDetails.GetByOrderCodeAsync(orderCode);
+                var currentStorageCodes = currentDetails
+                    .Where(od => !string.IsNullOrEmpty(od.StorageCode))
+                    .Select(od => od.StorageCode)
+                    .Distinct()
+                    .ToHashSet();
+
+
+                if (oldStyle == "self")
+                {
+                }
+
+                // Reserve các storage mới
+                foreach (var storageCode in currentStorageCodes)
+                {
+                    var storage = await _unitOfWork.Storages.GetByCodeWithBuildingAsync(storageCode);
+                    if (storage == null) continue;
+
+                    if (!ValidateSelfStorage(storage)) continue;
+
+                    if (storage.Status?.ToLower() != "reserved")
+                    {
+                        storage.Status = "Reserved";
+                        await _unitOfWork.Storages.UpdateAsync(storage);
+                    }
+                }
+
+                await _unitOfWork.CompleteAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error updating storages for order {orderCode}");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Validate storage có phù hợp cho Self order không
+        /// </summary>
+        private bool ValidateSelfStorage(Storage storage)
+        {
+            if (storage.IsActive != true)
+            {
+                _logger.LogWarning($"Storage {storage.StorageCode} is not active");
+                return false;
+            }
+
+            if (storage.BuildingId == null)
+            {
+                _logger.LogWarning($"Storage {storage.StorageCode} has no building");
+                return false;
+            }
+
+            var building = storage.Building;
+            if (building == null)
+            {
+                _logger.LogWarning($"Building not loaded for storage {storage.StorageCode}");
+                return false;
+            }
+
+            if (building.IsActive != true)
+            {
+                _logger.LogWarning($"Building {building.BuildingCode} is not active");
+                return false;
+            }
+
+            if (building.Status?.ToLower() != "ready")
+            {
+                _logger.LogWarning($"Building {building.BuildingCode} status is {building.Status}, not Ready");
+                return false;
+            }
+
+            var buildingName = building.Name?.ToLower();
+            return buildingName == "self-storage" || buildingName == "self-storage with ac";
         }
         // Generate order code theo format: YYYYMMDD-XXXX
         private async Task<string> GenerateOrderCodeAsync(DateOnly date)
@@ -608,7 +1017,6 @@ namespace ASMS.Services.Services
             try
             {
                 var workflow = DetermineWorkflowType(style);
-
                 string? firstEmployee = null;
 
                 if (workflow == "full" || workflow == "self_with_delivery")
@@ -617,8 +1025,10 @@ namespace ASMS.Services.Services
                     if (deliveryStaff != null)
                     {
                         firstEmployee = deliveryStaff.EmployeeCode;
-                        deliveryStaff.Status = "InOrder";
+
+                        deliveryStaff.OrderActionCount = (deliveryStaff.OrderActionCount ?? 0) + 1;
                         await _unitOfWork.Employee.UpdateAsync(deliveryStaff);
+                        await _unitOfWork.CompleteAsync();
                     }
                 }
                 else if (workflow == "self_no_delivery")
@@ -627,15 +1037,16 @@ namespace ASMS.Services.Services
                     if (warehouseStaff != null)
                     {
                         firstEmployee = warehouseStaff.EmployeeCode;
-                        warehouseStaff.Status = "InOrder";
+
+                        warehouseStaff.OrderActionCount = (warehouseStaff.OrderActionCount ?? 0) + 1;
                         await _unitOfWork.Employee.UpdateAsync(warehouseStaff);
+                        await _unitOfWork.CompleteAsync();
                     }
                 }
 
                 if (firstEmployee == null)
                 {
-                    _logger.LogWarning($"No available employee for order {orderCode}");
-                    return;
+                    _logger.LogWarning($"No available employee for order {orderCode}, creating tracking without assignment");
                 }
 
                 var initialTracking = new TrackingHistory
@@ -652,6 +1063,7 @@ namespace ASMS.Services.Services
                 };
 
                 await _unitOfWork.TrackingHistories.AddAsync(initialTracking);
+                await _unitOfWork.CompleteAsync();
 
                 _logger.LogInformation($"Initial tracking history created for order {orderCode}");
             }

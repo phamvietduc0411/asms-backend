@@ -63,6 +63,7 @@ namespace ASMS.Repositories.Repositories
                 .Include(od => od.OrderDetailServices)
                     .ThenInclude(ods => ods.Service)
                 .Include(od => od.ContainerCodeNavigation)
+                .AsNoTracking()
                 //.Include (x => x.OrderCodeNavigation)
                 .Where(x => x.OrderCode == orderCode)
                 .ToListAsync();
@@ -73,7 +74,7 @@ namespace ASMS.Repositories.Repositories
             if (!await _dbSet.AnyAsync())
                 return 0;
 
-            return await _dbSet.MaxAsync(od => od.OrderDetailId);
+            return await _dbSet.AsNoTracking().MaxAsync(od => od.OrderDetailId);
         }
     }
 }
