@@ -1017,7 +1017,6 @@ namespace ASMS.Services.Services
             try
             {
                 var workflow = DetermineWorkflowType(style);
-
                 string? firstEmployee = null;
 
                 if (workflow == "full" || workflow == "self_with_delivery")
@@ -1026,8 +1025,10 @@ namespace ASMS.Services.Services
                     if (deliveryStaff != null)
                     {
                         firstEmployee = deliveryStaff.EmployeeCode;
-                        deliveryStaff.Status = "InOrder";
+
+                        deliveryStaff.OrderActionCount = (deliveryStaff.OrderActionCount ?? 0) + 1;
                         await _unitOfWork.Employee.UpdateAsync(deliveryStaff);
+                        await _unitOfWork.CompleteAsync();
                     }
                 }
                 else if (workflow == "self_no_delivery")
@@ -1036,15 +1037,16 @@ namespace ASMS.Services.Services
                     if (warehouseStaff != null)
                     {
                         firstEmployee = warehouseStaff.EmployeeCode;
-                        warehouseStaff.Status = "InOrder";
+
+                        warehouseStaff.OrderActionCount = (warehouseStaff.OrderActionCount ?? 0) + 1;
                         await _unitOfWork.Employee.UpdateAsync(warehouseStaff);
+                        await _unitOfWork.CompleteAsync();
                     }
                 }
 
                 if (firstEmployee == null)
                 {
-                    _logger.LogWarning($"No available employee for order {orderCode}");
-                    return;
+                    _logger.LogWarning($"No available employee for order {orderCode}, creating tracking without assignment");
                 }
 
                 var initialTracking = new TrackingHistory
@@ -1061,6 +1063,7 @@ namespace ASMS.Services.Services
                 };
 
                 await _unitOfWork.TrackingHistories.AddAsync(initialTracking);
+                await _unitOfWork.CompleteAsync();
 
                 _logger.LogInformation($"Initial tracking history created for order {orderCode}");
             }
