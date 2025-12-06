@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ASMS.Repositories.Entities;
+﻿using ASMS.Repositories.Entities;
 using ASMS.Repositories.Infrastructures;
 
 namespace ASMS.Repositories.Interfaces
@@ -14,7 +9,6 @@ namespace ASMS.Repositories.Interfaces
         Task<int> GetTotalCountWithFilterAsync(string? customerCode, DateOnly? orderDate, DateOnly? depositDate, DateOnly? returnDate, string style);
         Task<Order?> GetByCodeAsync(string orderCode);
         Task<Order?> GetWithDetailsAsync(string orderCode);
-
         Task<int> CountOrdersByDateAsync(DateOnly date);
         Task<IEnumerable<Order>> GetOverdueOrdersAsync(DateOnly currentDate);
         Task<IEnumerable<Order>> GetByStatusAsync(string status);
@@ -22,5 +16,7 @@ namespace ASMS.Repositories.Interfaces
         Task<List<Order>> GetActiveOrdersByEmployeeAsync(string employeeCode);
         Task<int> GetNumberOfOrders(DateTime startDate, DateTime endDate, string? status);
         IQueryable<Order> GetAllToCaculatePrice();
-    }
+        Task<Order?> GetFullOrder(string orderCode);
+        
+        }
 }

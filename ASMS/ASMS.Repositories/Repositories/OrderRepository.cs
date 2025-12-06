@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ASMS.Repositories.Data;
+﻿using ASMS.Repositories.Data;
 using ASMS.Repositories.Entities;
 using ASMS.Repositories.Infrastructures;
 using ASMS.Repositories.Interfaces;
@@ -50,7 +45,6 @@ namespace ASMS.Repositories.Repositories
                 throw;
             }
         }
-
         public async Task<int> GetTotalCountWithFilterAsync(string? customerCode, DateOnly? orderDate, DateOnly? depositDate, DateOnly? returnDate, string style)
         {
             try
@@ -80,7 +74,6 @@ namespace ASMS.Repositories.Repositories
                 throw;
             }
         }
-
         public async Task<Order?> GetByCodeAsync(string orderCode)
         {
             try
@@ -115,7 +108,6 @@ namespace ASMS.Repositories.Repositories
                     && o.ReturnDate.Value < currentDate)
                 .ToListAsync();
         }
-
         public async Task<IEnumerable<Order>> GetByStatusAsync(string status)
         {
             return await _dbSet
@@ -153,7 +145,6 @@ namespace ASMS.Repositories.Repositories
                 throw;
             }
         }
-
         public async Task<int> GetNumberOfOrders(DateTime startDate, DateTime endDate, string? status)
         {
             var query = _dbSet.AsQueryable();
@@ -173,10 +164,35 @@ namespace ASMS.Repositories.Repositories
 
             return await query.CountAsync();
         }
-
         public IQueryable<Order> GetAllToCaculatePrice()
         {
             return _dbSet.AsQueryable();
+        }
+
+        public async Task<Order?> GetFullOrder(string orderCode)
+        {
+            return await _dbSet
+                .Include(o => o.OrderDetails)
+                    .ThenInclude(d => d.StorageCodeNavigation)
+                        .ThenInclude(s => s.StorageType)
+
+                .Include(o => o.OrderDetails)
+                    .ThenInclude(d => d.ContainerCodeNavigation)
+                        .ThenInclude(c => c.ContainerType)
+
+                .Include(o => o.OrderDetails)
+                    .ThenInclude(d => d.OrderDetailProductTypes)
+
+                .Include(o => o.OrderDetails)
+                    .ThenInclude(d => d.OrderDetailServices)
+
+                .Include(o => o.CustomerCodeNavigation)
+
+                .Include(o => o.PaymentHistories)
+                .Include(o => o.TrackingHistories)
+                .Include(o => o.PaymentResults)
+
+                .FirstOrDefaultAsync(o => o.OrderCode == orderCode);
         }
 
     }

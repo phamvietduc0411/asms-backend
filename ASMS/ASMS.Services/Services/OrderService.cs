@@ -213,7 +213,7 @@ namespace ASMS.Services.Services
             var orderCode = await GenerateOrderCodeAsync(orderDate);
 
             var existingCustomer = await _unitOfWork.Customer.GetCustomerByEmailAsync(request.Email);
-            if(existingCustomer == null)
+            if (existingCustomer == null)
             {
                 request.CustomerCode = await CreateCustomer(request);
                 var isCreateSuccess = CreatePasswordAndSendEmail(request.Email);
@@ -379,6 +379,8 @@ namespace ASMS.Services.Services
             }
 
             _logger.LogInformation("Order {OrderCode} with {Count} details created successfully", orderCode, orderDetailResponses.Count);
+
+            await SendInvoiceToCustomerAsync(order, orderDetailsToAdd, order.Email);
 
             return new CreateOrderWithDetailsResponse
             {
@@ -700,7 +702,7 @@ namespace ASMS.Services.Services
                 StorageTypeId = od.StorageTypeId,
                 ShelfTypeId = od.ShelfTypeId,
                 ShelfQuantity = od.ShelfQuantity,
-                IsPlaced = od.IsPlaced, 
+                IsPlaced = od.IsPlaced,
                 ProductTypeNames = od.OrderDetailProductTypes
             .Select(odpt => odpt.ProductType?.Name)
             .Where(name => name != null)
@@ -1012,7 +1014,7 @@ namespace ASMS.Services.Services
                 OldStatus = "Order created successfully",
                 NewStatus = "Waiting for pick up",
                 ActionType = "Pending",
-                CreateAt = GetVietnamToday(), 
+                CreateAt = GetVietnamToday(),
                 CurrentAssign = deliveryEmp.Name,
                 NextAssign = "Warehouse Staff"
             };
@@ -1117,5 +1119,26 @@ namespace ASMS.Services.Services
                 }
             }
         }
+
+        private async Task<bool> SendInvoiceToCustomerAsync(Order order, List<OrderDetail> details, string customerMail)
+        {
+            try
+            {
+                var fullOrder = await _unitOfWork.Orders.GetFullOrder(order.OrderCode);
+                var html = EmailTemplates.OrderInvoice(fullOrder, _mailConfig.Email);
+
+                await _password.SendEmailAsync(customerMail,
+                                                   $"Đơn hàng {order.OrderCode} đã được tạo",
+                                                   html);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error sending invoice email to customer for order {order.OrderCode}");
+                return false;
+            }
+        }
+
     }
 }
