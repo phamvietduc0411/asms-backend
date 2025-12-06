@@ -212,8 +212,16 @@ namespace ASMS.Services.Services
             var orderDate = GetVietnamToday();
             var orderCode = await GenerateOrderCodeAsync(orderDate);
 
-            request.CustomerCode = await CreateCustomer(request);
-            var isCreateSuccess = CreatePasswordAndSendEmail(request.Email);
+            var existingCustomer = await _unitOfWork.Customer.GetCustomerByEmailAsync(request.Email);
+            if(existingCustomer == null)
+            {
+                request.CustomerCode = await CreateCustomer(request);
+                var isCreateSuccess = CreatePasswordAndSendEmail(request.Email);
+            }
+            else
+            {
+                request.CustomerCode = existingCustomer.CustomerCode;
+            }
 
             var order = new Order
             {
