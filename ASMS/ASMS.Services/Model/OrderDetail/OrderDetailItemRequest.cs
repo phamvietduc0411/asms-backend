@@ -29,6 +29,11 @@ namespace ASMS.Services.Model.OrderDetail
 
         public int? ShelfQuantity { get; set; }
         public bool? IsPlaced { get; set; }
+        public decimal? Length { get; set; }
+
+        public decimal? Width { get; set; }
+
+        public decimal? Height { get; set; }
 
         public List<int>? ProductTypeIds { get; set; }
 

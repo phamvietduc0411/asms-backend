@@ -33,6 +33,12 @@ public partial class OrderDetail
 
     public bool? IsPlaced { get; set; }
 
+    public decimal? Length { get; set; }
+
+    public decimal? Width { get; set; }
+
+    public decimal? Height { get; set; }
+
     public virtual Container? ContainerCodeNavigation { get; set; }
 
     public virtual Order? OrderCodeNavigation { get; set; }

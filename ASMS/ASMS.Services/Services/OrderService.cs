@@ -353,6 +353,9 @@ namespace ASMS.Services.Services
                     ContainerType = detailRequest.ContainerType,
                     ContainerQuantity = detailRequest.ContainerQuantity,
                     IsPlaced = isPlacedValue,
+                    Length = detailRequest.Length,
+                    Width = detailRequest.Width,
+                    Height = detailRequest.Height,
                 };
 
                 orderDetailsToAdd.Add(orderDetail);
@@ -399,6 +402,9 @@ namespace ASMS.Services.Services
                     ContainerType = detailRequest.ContainerType,
                     ContainerQuantity = detailRequest.ContainerQuantity,
                     IsPlaced = isPlacedValue,
+                    Length = detailRequest.Length,
+                    Width = detailRequest.Width,
+                    Height = detailRequest.Height,
                 });
             }
 
@@ -561,6 +567,9 @@ namespace ASMS.Services.Services
                     orderDetail.ContainerType = detailRequest.ContainerType;
                     orderDetail.ContainerQuantity = detailRequest.ContainerQuantity;
                     orderDetail.IsPlaced = isPlacedValue;
+                    orderDetail.Length = detailRequest.Length;
+                    orderDetail.Width = detailRequest.Width;
+                    orderDetail.Height = detailRequest.Height;
 
                     if (detailRequest.Price.HasValue && !string.IsNullOrEmpty(detailRequest.Quantity))
                     {
@@ -635,6 +644,9 @@ namespace ASMS.Services.Services
                         ContainerType = detailRequest.ContainerType,
                         ContainerQuantity = detailRequest.ContainerQuantity,
                         IsPlaced = isPlacedValue,
+                        Length = detailRequest.Length,
+                        Width = detailRequest.Width,
+                        Height = detailRequest.Height,
                     };
 
                     await _unitOfWork.OrderDetails.AddAsync(orderDetail);
@@ -689,6 +701,9 @@ namespace ASMS.Services.Services
                     ContainerType = detailRequest.ContainerType,
                     ContainerQuantity = detailRequest.ContainerQuantity,
                     IsPlaced = isPlacedValue,
+                    Length = detailRequest.Length,
+                    Width = detailRequest.Width,
+                    Height = detailRequest.Height,
                 });
             }
 

@@ -473,10 +473,12 @@ public partial class VstorageContext : DbContext
             entity.Property(e => e.ContainerCode)
                 .HasMaxLength(50)
                 .IsUnicode(false);
+            entity.Property(e => e.Height).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.Image)
                 .HasMaxLength(500)
                 .IsUnicode(false);
             entity.Property(e => e.IsPlaced).HasColumnName("isPlaced");
+            entity.Property(e => e.Length).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.OrderCode)
                 .HasMaxLength(50)
                 .IsUnicode(false);
@@ -487,6 +489,7 @@ public partial class VstorageContext : DbContext
                 .IsUnicode(false);
             entity.Property(e => e.StorageTypeId).HasColumnName("StorageTypeID");
             entity.Property(e => e.SubTotal).HasColumnType("decimal(18, 0)");
+            entity.Property(e => e.Width).HasColumnType("decimal(10, 2)");
 
             entity.HasOne(d => d.ContainerCodeNavigation).WithMany(p => p.OrderDetails)
                 .HasForeignKey(d => d.ContainerCode)
