@@ -27,7 +27,7 @@ namespace ASMS.Services.Model.Orders
         public string? Note { get; set; }
         public string? Address { get; set; }
 
-        public string? Image { get; set; }
+        public List<string>? ImageUrls { get; set; }
         public string? Style { get; set; }
         public List<OrderDetailItemResponse> OrderDetails { get; set; } = new List<OrderDetailItemResponse>();
     }

@@ -39,6 +39,8 @@ public partial class Order
 
     public string? BuildingCode { get; set; }
 
+    public virtual ICollection<Contact> Contacts { get; set; } = new List<Contact>();
+
     public virtual Customer? CustomerCodeNavigation { get; set; }
 
     public virtual ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();

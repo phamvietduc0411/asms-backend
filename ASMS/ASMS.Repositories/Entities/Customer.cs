@@ -21,6 +21,8 @@ public partial class Customer
 
     public int Id { get; set; }
 
+    public virtual ICollection<Contact> Contacts { get; set; } = new List<Contact>();
+
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
     public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
 

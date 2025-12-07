@@ -20,6 +20,7 @@ namespace ASMS.Repositories.Interfaces
         Task UpdateStackingInfoAsync(string containerCode, int layer, int serialNumber, string containerAboveCode);
         Task MoveContainerToLayer1Async(string containerCode);
         Task<Container?> GetByCodeForUpdateAsync(string containerCode);
+        Task<List<Container>> GetByFloorCodeAsNoTrackingAsync(string floorCode);
 
     }
 }

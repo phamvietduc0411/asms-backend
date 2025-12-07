@@ -69,6 +69,21 @@ namespace ASMS.Repositories.Repositories
                 .OrderBy(f => f.FloorNumber)
                 .ToListAsync();
         }
+        public async Task<List<Floor>> GetByShelfCodeAsNoTrackingAsync(string shelfCode)
+        {
+            try
+            {
+                return await _dbSet
+                    .AsNoTracking()
+                    .Where(f => f.ShelfCode == shelfCode)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting floors by shelf code {Code} with no tracking", shelfCode);
+                throw;
+            }
+        }
 
     }
 }

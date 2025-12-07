@@ -18,6 +18,10 @@ namespace ASMS.Services.Services
         private static readonly int storageSmallCapacity = 10;
         private static readonly int storageMediumCapacity = 6;
         private static readonly int storageLargeCapacity = 4;
+        private const string BUILDING_AC = "Self-Storage With AC";
+        private const string BUILDING_NORMAL = "Self-Storage";
+        private const string BUILDING_WAREHOUSE_PREFIX = "WareHouse";
+
 
         public StorageService(IUnitOfWork unitOfWork, IMapper mapper)
         {
@@ -134,6 +138,245 @@ namespace ASMS.Services.Services
 
             return false;
 
+        }
+        /// <summary>
+        /// Tính toán volume dựa trên container trong kho WareHouse
+        /// </summary>
+        private async Task<(decimal UsedVolume, int TotalContainers)> CalculateContainerBasedVolumeAsync(string storageCode)
+        {
+            try
+            {
+                var shelves = await _unitOfWork.Shelves.GetByStorageCodeAsNoTrackingAsync(storageCode);
+
+                decimal totalUsedVolume = 0;
+                int totalContainers = 0;
+
+                foreach (var shelf in shelves)
+                {
+                    var floors = await _unitOfWork.Floors.GetByShelfCodeAsNoTrackingAsync(shelf.ShelfCode);
+
+                    foreach (var floor in floors)
+                    {
+                        var containers = await _unitOfWork.Containers.GetByFloorCodeAsNoTrackingAsync(floor.FloorCode);
+
+                        foreach (var container in containers)
+                        {
+                            if (container.ContainerType != null)
+                            {
+                                var containerVolume =
+                                    (container.ContainerType.Length ?? 0) *
+                                    (container.ContainerType.Width ?? 0) *
+                                    (container.ContainerType.Height ?? 0);
+
+                                totalUsedVolume += containerVolume;
+                                totalContainers++;
+                            }
+                        }
+                    }
+                }
+
+                return (totalUsedVolume, totalContainers);
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+        /// <summary>
+        /// Tính toán volume cho một storage (không cập nhật database)
+        /// </summary>
+        public async Task<StorageVolumeCalculationResult> CalculateStorageVolumeAsync(string storageCode)
+        {
+            try
+            {
+                var storage = await _unitOfWork.Storages.GetByCodeAsNoTrackingAsync(storageCode);
+                if (storage == null)
+                {
+                    return null;
+                }
+
+                var building = storage.Building;
+                if (building == null)
+                {
+                    return null;
+                }
+
+                var totalVolume = storage.TotalVolume ??
+                    (storage.Length * storage.Width * storage.Height) ?? 0;
+
+                var result = new StorageVolumeCalculationResult
+                {
+                    StorageCode = storageCode,
+                    StorageName = storage.StorageType?.Name ?? storageCode,
+                    BuildingName = building.Name,
+                    Status = storage.Status,
+                    TotalVolume = totalVolume
+                };
+
+                // === CASE 1: Self-Storage hoặc Self-Storage With AC ===
+                if (building.Name == BUILDING_AC || building.Name == BUILDING_NORMAL)
+                {
+                    if (storage.Status == "Reserved")
+                    {
+                        result.UsedVolume = totalVolume;
+                        result.UtilizationRate = 100m;
+                        result.IsReserved = true;
+                        result.CalculationMethod = "Reserved (100% occupied)";
+
+                    }
+                    else
+                    {
+                        result.UsedVolume = 0;
+                        result.UtilizationRate = 0;
+                        result.IsReserved = false;
+                        result.CalculationMethod = "Not Reserved (0% occupied)";
+
+                    }
+                }
+                // === CASE 2: WareHouse (bắt đầu bằng "WareHouse") ===
+                else if (building.Name?.StartsWith(BUILDING_WAREHOUSE_PREFIX) == true)
+                {
+                    var volumeData = await CalculateContainerBasedVolumeAsync(storageCode);
+
+                    result.UsedVolume = volumeData.UsedVolume;
+                    result.UtilizationRate = totalVolume > 0
+                        ? Math.Round((volumeData.UsedVolume / totalVolume) * 100, 2)
+                        : 0;
+                    result.TotalContainers = volumeData.TotalContainers;
+                    result.IsReserved = false;
+                    result.CalculationMethod = $"Container-based ({volumeData.TotalContainers} containers)";
+
+                }
+                else
+                {
+                    result.UsedVolume = 0;
+                    result.UtilizationRate = 0;
+                    result.CalculationMethod = "Unknown building type";
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Tính toán và cập nhật volume cho một storage
+        /// </summary>
+        public async Task<StorageVolumeCalculationResult> CalculateAndUpdateStorageVolumeAsync(string storageCode)
+        {
+            try
+            {
+                var result = await CalculateStorageVolumeAsync(storageCode);
+
+                if (result == null)
+                {
+                    return null;
+                }
+
+                // Cập nhật vào database
+                var storage = await _unitOfWork.Storages.GetByCodeWithoutIncludesAsync(storageCode);
+                if (storage != null)
+                {
+                    storage.UsedVolume = result.UsedVolume;
+                    storage.UtilizationRate = result.UtilizationRate;
+                    storage.TotalContainers = result.TotalContainers;
+                    storage.LastOptimizedDate = DateTime.Now;
+
+                    await _unitOfWork.Storages.UpdateAsync(storage);
+                    await _unitOfWork.CompleteAsync();
+
+
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+        /// <summary>
+        /// Tính toán và cập nhật volume cho TẤT CẢ storages
+        /// </summary>
+        public async Task<BatchVolumeCalculationResult> CalculateAndUpdateAllStorageVolumesAsync()
+        {
+            var result = new BatchVolumeCalculationResult();
+
+            try
+            {
+                var storages = await _unitOfWork.Storages.GetAllAsNoTrackingAsync();
+                result.TotalStorages = storages.Count;
+
+
+                var storageUpdates = new List<(string StorageCode, decimal UsedVolume, decimal UtilizationRate, int TotalContainers)>();
+
+                foreach (var storage in storages)
+                {
+                    try
+                    {
+                        var calculationResult = await CalculateStorageVolumeAsync(storage.StorageCode);
+
+                        if (calculationResult != null)
+                        {
+                            result.Details.Add(calculationResult);
+
+                            storageUpdates.Add((
+                                storage.StorageCode,
+                                calculationResult.UsedVolume,
+                                calculationResult.UtilizationRate,
+                                calculationResult.TotalContainers
+                            ));
+                        }
+                        else
+                        {
+                            result.FailedStorages++;
+                            result.Errors.Add($"Failed to calculate volume for storage {storage.StorageCode}");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        result.FailedStorages++;
+                        result.Errors.Add($"Error for storage {storage.StorageCode}: {ex.Message}");
+                    }
+                }
+
+                if (storageUpdates.Any())
+                {
+                    await BatchUpdateStoragesAsync(storageUpdates);
+                    result.UpdatedStorages = storageUpdates.Count;
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+        /// <summary>
+        /// ✅ BATCH UPDATE STORAGES - CẬP NHẬT HÀNG LOẠT
+        /// </summary>
+        private async Task BatchUpdateStoragesAsync(
+            List<(string StorageCode, decimal UsedVolume, decimal UtilizationRate, int TotalContainers)> updates)
+        {
+            foreach (var update in updates)
+            {
+                var storage = await _unitOfWork.Storages.GetByCodeWithoutIncludesAsync(update.StorageCode);
+
+                if (storage != null)
+                {
+                    storage.UsedVolume = update.UsedVolume;
+                    storage.UtilizationRate = update.UtilizationRate;
+                    storage.TotalContainers = update.TotalContainers;
+                    storage.LastOptimizedDate = DateTime.Now;
+
+                    await _unitOfWork.Storages.UpdateAsync(storage);
+                }
+            }
+            await _unitOfWork.CompleteAsync();
         }
     }
 }

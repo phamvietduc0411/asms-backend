@@ -18,5 +18,16 @@ namespace ASMS.Services.Model.Orders
         public decimal? TotalPrice { get; set; }
         public decimal? UnpaidAmount { get; set; }
         public string? Style { get; set; }
+        public string? CustomerName { get; set; }
+
+        public string? PhoneContact { get; set; }
+
+        public string? Email { get; set; }
+
+        public string? Note { get; set; }
+
+        public string? Address { get; set; }
+
+        public List<string>? ImageUrls { get; set; }
     }
 }

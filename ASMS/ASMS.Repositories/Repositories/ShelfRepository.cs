@@ -71,6 +71,21 @@ namespace ASMS.Repositories.Repositories
                 .Where(s => s.StorageCode == storageCode)
                 .CountAsync();
         }
+        public async Task<List<Shelf>> GetByStorageCodeAsNoTrackingAsync(string storageCode)
+        {
+            try
+            {
+                return await _dbSet
+                    .AsNoTracking()
+                    .Where(s => s.StorageCode == storageCode)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting shelves by storage code {Code} with no tracking", storageCode);
+                throw;
+            }
+        }
 
     }
 }

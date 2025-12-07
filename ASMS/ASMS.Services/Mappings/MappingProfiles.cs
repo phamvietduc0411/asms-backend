@@ -27,6 +27,7 @@ using ASMS.Services.Model.ContainerLocationLog;
 using ASMS.Services.Model.PaymentHistory;
 using ASMS.Services.Model.EmployeeRole;
 using ASMS.Services.Model.ShelfType;
+using ASMS.Services.Model.Pricing;
 
 namespace ASMS.Services.Mappings
 {
@@ -204,6 +205,21 @@ namespace ASMS.Services.Mappings
             CreateMap<CreateShelfTypeRequest, ShelfType>();
             CreateMap<UpdateShelfTypeRequest, ShelfType>();
             #endregion
+            // Pricing mappings
+            CreateMap<Pricing, PricingResponse>();
+            CreateMap<CreatePricingRequest, Pricing>();
+            CreateMap<UpdatePricingRequest, Pricing>()
+                .ForMember(dest => dest.CreatedDate, opt => opt.Ignore())
+                .ForMember(dest => dest.PricingId, opt => opt.Ignore());
+
+            // ShippingRate mappings
+            CreateMap<ShippingRate, ShippingRateResponse>()
+                .ForMember(dest => dest.DistanceRangeDisplay, opt => opt.Ignore())
+                .ForMember(dest => dest.ContainerQtyDisplay, opt => opt.Ignore());
+            CreateMap<CreateShippingRateRequest, ShippingRate>();
+            CreateMap<UpdateShippingRateRequest, ShippingRate>()
+                .ForMember(dest => dest.CreatedDate, opt => opt.Ignore())
+                .ForMember(dest => dest.ShippingRateId, opt => opt.Ignore());
         }
 
 

@@ -17,5 +17,8 @@ namespace ASMS.Repositories.Interfaces
         Task<int> GetNumberOfStorageWithBuildingCode(int buildingId, string storageType);
         Task<List<Storage>> GetAllStorage();
         Task<Storage?> GetByCodeWithBuildingAsync(string storageCode);
+        Task<Storage?> GetByCodeAsNoTrackingAsync(string storageCode);
+        Task<Storage?> GetByCodeWithoutIncludesAsync(string storageCode);
+        Task<List<Storage>> GetAllAsNoTrackingAsync();
     }
 }

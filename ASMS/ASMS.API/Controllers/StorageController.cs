@@ -125,5 +125,27 @@ namespace ASMS.API.Controllers
             }
         }
         #endregion
+        /// <summary>
+        /// Calculate and update volume for ALL storages (batch operation)
+        /// </summary>
+        [HttpPost("calculate-all")]
+        public async Task<IActionResult> CalculateAllStorageVolumes()
+        {
+            try
+            {
+                var result = await _storageService.CalculateAndUpdateAllStorageVolumesAsync();
+
+                return Ok(new
+                {
+                    message = $"Batch calculation completed: {result.UpdatedStorages} updated, {result.FailedStorages} failed",
+                    data = result
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
     }
 }

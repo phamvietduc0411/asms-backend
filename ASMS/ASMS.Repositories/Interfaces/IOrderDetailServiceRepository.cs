@@ -12,5 +12,8 @@ namespace ASMS.Repositories.Interfaces
     {
         Task<List<Service>> GetByIdsAsync(List<int> ids);
         Task<IEnumerable<OrderDetailService>> GetByOrderDetailIdAsync(int orderDetailId);
+        Task<List<OrderDetailService>> GetByOrderDetailIdForDeleteAsync(int orderDetailId);
+        Task DeleteByOrderDetailIdAsync(int orderDetailId);
     }
 }
+

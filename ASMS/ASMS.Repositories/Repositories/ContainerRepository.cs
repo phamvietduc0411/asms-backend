@@ -122,6 +122,22 @@ namespace ASMS.Repositories.Repositories
                 await _context.SaveChangesAsync();
             }
         }
+        public async Task<List<Container>> GetByFloorCodeAsNoTrackingAsync(string floorCode)
+        {
+            try
+            {
+                return await _dbSet
+                    .AsNoTracking()
+                    .Include(c => c.ContainerType)
+                    .Where(c => c.FloorCode == floorCode)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting containers by floor code {Code} with no tracking", floorCode);
+                throw;
+            }
+        }
 
     }
 }

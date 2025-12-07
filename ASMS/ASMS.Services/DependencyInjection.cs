@@ -49,6 +49,9 @@ namespace ASMS.Services
             services.AddScoped<IDistanceService, DistanceService>();
             services.AddScoped<IOrderMaintenanceService, OrderMaintenanceService>();
             services.AddScoped<IDashboardService, DashboardService>();
+            services.AddScoped<IPricingService, PricingService>();
+            services.AddScoped<IContactService, ContactService>();
+            services.AddScoped<IBusinessRuleService, BusinessRuleService>();
             services.Configure<PayOSSettings>(configuration.GetSection("PayOSSettings"));
 
             services.AddSingleton(sp =>

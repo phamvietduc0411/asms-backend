@@ -21,9 +21,21 @@ namespace ASMS.Repositories.Repositories
         public async Task<List<OrderDetailProductType>> GetByOrderDetailIdAsync(int orderDetailId)
         {
             return await _dbSet
+                .AsNoTracking()
                 .Where(odpt => odpt.OrderDetailId == orderDetailId)
                 .ToListAsync();
         }
-
+        public async Task<List<OrderDetailProductType>> GetByOrderDetailIdForDeleteAsync(int orderDetailId)
+        {
+            return await _dbSet
+                .Where(odpt => odpt.OrderDetailId == orderDetailId)
+                .ToListAsync();
+        }
+        public async Task DeleteByOrderDetailIdAsync(int orderDetailId)
+        {
+            await _context.Database.ExecuteSqlRawAsync(
+                "DELETE FROM OrderDetailProductType WHERE OrderDetailId = {0}",
+                orderDetailId);
+        }
     }
 }
