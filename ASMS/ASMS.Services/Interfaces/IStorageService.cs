@@ -14,5 +14,6 @@ namespace ASMS.Services.Interfaces
         Task<StorageResponse> CreateAsync(CreateStorageRequest request);
         Task<StorageResponse> UpdateAsync(string storageCode, UpdateStorageRequest request);
         Task<bool> ToggleActiveAsync(string storageCode);
+        Task<BatchVolumeCalculationResult> CalculateAndUpdateAllStorageVolumesAsync();
     }
 }

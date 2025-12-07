@@ -19,6 +19,11 @@ namespace ASMS.Services.Model.Orders
         public string? Image { get; set; }
         public int? ContainerType { get; set; }
         public int? ContainerQuantity { get; set; }
+        public decimal? Length { get; set; }
+
+        public decimal? Width { get; set; }
+
+        public decimal? Height { get; set; }
         public List<int>? ProductTypeIds { get; set; }
         public List<int>? ServiceIds { get; set; }
     }

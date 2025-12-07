@@ -1,4 +1,5 @@
-﻿using ASMS.Repositories.Entities;
+﻿using System.Text.Json;
+using ASMS.Repositories.Entities;
 using ASMS.Repositories.Infrastructures;
 using ASMS.Services.Interfaces;
 using ASMS.Services.Model.Authentication;
@@ -42,7 +43,29 @@ namespace ASMS.Services.Services
         {
             var orders = await _unitOfWork.Orders.GetWithFilterAsync(pageNumber, pageSize, customerCode, orderDate, depositDate, returnDate, style);
             var totalCount = await _unitOfWork.Orders.GetTotalCountWithFilterAsync(customerCode, orderDate, depositDate, returnDate, style);
+            var orderResponses = orders.Select(order =>
+            {
+                var response = _mapper.Map<OrderResponse>(order);
 
+                if (!string.IsNullOrEmpty(order.Image))
+                {
+                    try
+                    {
+                        response.ImageUrls = JsonSerializer.Deserialize<List<string>>(order.Image);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, $"Error deserializing ImageUrls for order {order.OrderCode}");
+                        response.ImageUrls = new List<string>();
+                    }
+                }
+                else
+                {
+                    response.ImageUrls = new List<string>();
+                }
+
+                return response;
+            }).ToList();
             return new PaginatedOrderResponse
             {
                 Data = _mapper.Map<List<OrderResponse>>(orders),
@@ -56,7 +79,28 @@ namespace ASMS.Services.Services
         public async Task<OrderResponse?> GetByCodeAsync(string orderCode)
         {
             var order = await _unitOfWork.Orders.GetByCodeAsync(orderCode);
-            return order == null ? null : _mapper.Map<OrderResponse>(order);
+            if (order == null) return null;
+
+            var response = _mapper.Map<OrderResponse>(order);
+
+            if (!string.IsNullOrEmpty(order.Image))
+            {
+                try
+                {
+                    response.ImageUrls = JsonSerializer.Deserialize<List<string>>(order.Image);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, $"Error deserializing ImageUrls for order {orderCode}");
+                    response.ImageUrls = new List<string>();
+                }
+            }
+            else
+            {
+                response.ImageUrls = new List<string>();
+            }
+
+            return response;
         }
 
         public async Task<CreateOrderResponse> CreateAsync(CreateOrderRequest request)
@@ -222,6 +266,18 @@ namespace ASMS.Services.Services
             {
                 request.CustomerCode = existingCustomer.CustomerCode;
             }
+            string? imageJson = null;
+            if (request.ImageUrls != null && request.ImageUrls.Any())
+            {
+                try
+                {
+                    imageJson = JsonSerializer.Serialize(request.ImageUrls);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Error serializing ImageUrls for order creation");
+                }
+            }
 
             var order = new Order
             {
@@ -238,7 +294,7 @@ namespace ASMS.Services.Services
                 PhoneContact = request.PhoneContact,
                 Email = request.Email,
                 Note = request.Note,
-                Image = request.Image,
+                Image = imageJson,
                 Address = request.Address,
                 Style = request.Style
             };
@@ -297,6 +353,9 @@ namespace ASMS.Services.Services
                     ContainerType = detailRequest.ContainerType,
                     ContainerQuantity = detailRequest.ContainerQuantity,
                     IsPlaced = isPlacedValue,
+                    Length = detailRequest.Length,
+                    Width = detailRequest.Width,
+                    Height = detailRequest.Height,
                 };
 
                 orderDetailsToAdd.Add(orderDetail);
@@ -343,6 +402,9 @@ namespace ASMS.Services.Services
                     ContainerType = detailRequest.ContainerType,
                     ContainerQuantity = detailRequest.ContainerQuantity,
                     IsPlaced = isPlacedValue,
+                    Length = detailRequest.Length,
+                    Width = detailRequest.Width,
+                    Height = detailRequest.Height,
                 });
             }
 
@@ -400,7 +462,7 @@ namespace ASMS.Services.Services
                 PhoneContact = request.PhoneContact,
                 Email = request.Email,
                 Note = request.Note,
-                Image = request.Image,
+                ImageUrls = request.ImageUrls,
                 Address = request.Address,
                 OrderDetails = orderDetailResponses
             };
@@ -418,6 +480,18 @@ namespace ASMS.Services.Services
 
             var oldStyle = existingOrder.Style?.ToLower();
             var newStyle = request.Style?.ToLower();
+            string? imageJson = null;
+            if (request.ImageUrls != null && request.ImageUrls.Any())
+            {
+                try
+                {
+                    imageJson = JsonSerializer.Serialize(request.ImageUrls);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, $"Error serializing ImageUrls for order {orderCode}");
+                }
+            }
 
             existingOrder.DepositDate = request.DepositDate;
             existingOrder.ReturnDate = request.ReturnDate;
@@ -429,7 +503,7 @@ namespace ASMS.Services.Services
             existingOrder.PhoneContact = request.PhoneContact;
             existingOrder.Email = request.Email;
             existingOrder.Note = request.Note;
-            existingOrder.Image = request.Image;
+            existingOrder.Image = imageJson;
             existingOrder.Address = request.Address;
             existingOrder.Style = request.Style;
 
@@ -452,17 +526,11 @@ namespace ASMS.Services.Services
 
             foreach (var detailToDelete in detailsToDelete)
             {
-                var productTypes = await _unitOfWork.OrderDetailProductTypes.GetByOrderDetailIdAsync(detailToDelete.OrderDetailId);
-                foreach (var pt in productTypes)
-                {
-                    _unitOfWork.OrderDetailProductTypes.Remove(pt);
-                }
+                var productTypes = await _unitOfWork.OrderDetailProductTypes.GetByOrderDetailIdForDeleteAsync(detailToDelete.OrderDetailId);
+                _unitOfWork.OrderDetailProductTypes.RemoveRange(productTypes);
 
-                var services = await _unitOfWork.OrderDetailServices.GetByOrderDetailIdAsync(detailToDelete.OrderDetailId);
-                foreach (var svc in services)
-                {
-                    _unitOfWork.OrderDetailServices.Remove(svc);
-                }
+                var services = await _unitOfWork.OrderDetailServices.GetByOrderDetailIdForDeleteAsync(detailToDelete.OrderDetailId);
+                _unitOfWork.OrderDetailServices.RemoveRange(services);
 
                 _unitOfWork.OrderDetails.Remove(detailToDelete);
             }
@@ -474,6 +542,9 @@ namespace ASMS.Services.Services
 
             var baseOrderDetailId = await GenerateOrderDetailIdAsync();
             int newDetailCounter = 0;
+
+            var productTypesToAdd = new List<OrderDetailProductType>();
+            var servicesToAdd = new List<ASMS.Repositories.Entities.OrderDetailService>();
 
             foreach (var detailRequest in request.OrderDetails)
             {
@@ -496,6 +567,9 @@ namespace ASMS.Services.Services
                     orderDetail.ContainerType = detailRequest.ContainerType;
                     orderDetail.ContainerQuantity = detailRequest.ContainerQuantity;
                     orderDetail.IsPlaced = isPlacedValue;
+                    orderDetail.Length = detailRequest.Length;
+                    orderDetail.Width = detailRequest.Width;
+                    orderDetail.Height = detailRequest.Height;
 
                     if (detailRequest.Price.HasValue && !string.IsNullOrEmpty(detailRequest.Quantity))
                     {
@@ -506,18 +580,20 @@ namespace ASMS.Services.Services
                     }
 
                     await _unitOfWork.OrderDetails.UpdateAsync(orderDetail);
+                    await _unitOfWork.CompleteAsync();
 
-                    var existingProductTypes = await _unitOfWork.OrderDetailProductTypes.GetByOrderDetailIdAsync(orderDetailId);
-                    foreach (var pt in existingProductTypes)
-                    {
-                        _unitOfWork.OrderDetailProductTypes.Remove(pt);
-                    }
+                    await _unitOfWork.OrderDetailProductTypes.DeleteByOrderDetailIdAsync(orderDetailId);
+                    await _unitOfWork.OrderDetailServices.DeleteByOrderDetailIdAsync(orderDetailId);
+
+                    await _unitOfWork.CompleteAsync();
+
+                    _unitOfWork.Context.ChangeTracker.Clear();
 
                     if (detailRequest.ProductTypeIds != null && detailRequest.ProductTypeIds.Any())
                     {
                         foreach (var productTypeId in detailRequest.ProductTypeIds)
                         {
-                            await _unitOfWork.OrderDetailProductTypes.AddAsync(new OrderDetailProductType
+                            productTypesToAdd.Add(new OrderDetailProductType
                             {
                                 OrderDetailId = orderDetailId,
                                 ProductTypeId = productTypeId,
@@ -526,17 +602,11 @@ namespace ASMS.Services.Services
                         }
                     }
 
-                    var existingServices = await _unitOfWork.OrderDetailServices.GetByOrderDetailIdAsync(orderDetailId);
-                    foreach (var svc in existingServices)
-                    {
-                        _unitOfWork.OrderDetailServices.Remove(svc);
-                    }
-
                     if (detailRequest.ServiceIds != null && detailRequest.ServiceIds.Any())
                     {
                         foreach (var serviceId in detailRequest.ServiceIds)
                         {
-                            await _unitOfWork.OrderDetailServices.AddAsync(new ASMS.Repositories.Entities.OrderDetailService
+                            servicesToAdd.Add(new ASMS.Repositories.Entities.OrderDetailService
                             {
                                 OrderDetailId = orderDetailId,
                                 ServiceId = serviceId
@@ -574,15 +644,19 @@ namespace ASMS.Services.Services
                         ContainerType = detailRequest.ContainerType,
                         ContainerQuantity = detailRequest.ContainerQuantity,
                         IsPlaced = isPlacedValue,
+                        Length = detailRequest.Length,
+                        Width = detailRequest.Width,
+                        Height = detailRequest.Height,
                     };
 
                     await _unitOfWork.OrderDetails.AddAsync(orderDetail);
+                    await _unitOfWork.CompleteAsync();
 
                     if (detailRequest.ProductTypeIds != null && detailRequest.ProductTypeIds.Any())
                     {
                         foreach (var productTypeId in detailRequest.ProductTypeIds)
                         {
-                            await _unitOfWork.OrderDetailProductTypes.AddAsync(new OrderDetailProductType
+                            productTypesToAdd.Add(new OrderDetailProductType
                             {
                                 OrderDetailId = orderDetailId,
                                 ProductTypeId = productTypeId,
@@ -595,7 +669,7 @@ namespace ASMS.Services.Services
                     {
                         foreach (var serviceId in detailRequest.ServiceIds)
                         {
-                            await _unitOfWork.OrderDetailServices.AddAsync(new ASMS.Repositories.Entities.OrderDetailService
+                            servicesToAdd.Add(new ASMS.Repositories.Entities.OrderDetailService
                             {
                                 OrderDetailId = orderDetailId,
                                 ServiceId = serviceId
@@ -627,10 +701,24 @@ namespace ASMS.Services.Services
                     ContainerType = detailRequest.ContainerType,
                     ContainerQuantity = detailRequest.ContainerQuantity,
                     IsPlaced = isPlacedValue,
+                    Length = detailRequest.Length,
+                    Width = detailRequest.Width,
+                    Height = detailRequest.Height,
                 });
             }
 
+            foreach (var productType in productTypesToAdd)
+            {
+                await _unitOfWork.OrderDetailProductTypes.AddAsync(productType);
+            }
+
+            foreach (var service in servicesToAdd)
+            {
+                await _unitOfWork.OrderDetailServices.AddAsync(service);
+            }
+
             await _unitOfWork.CompleteAsync();
+
             if (newStyle == "self")
             {
                 try
@@ -671,7 +759,7 @@ namespace ASMS.Services.Services
                 PhoneContact = existingOrder.PhoneContact,
                 Email = existingOrder.Email,
                 Note = existingOrder.Note,
-                Image = existingOrder.Image,
+                ImageUrls = request.ImageUrls,
                 Address = existingOrder.Address,
                 Style = existingOrder.Style,
                 OrderDetails = orderDetailResponses
@@ -684,34 +772,33 @@ namespace ASMS.Services.Services
             var orderDetails = await _unitOfWork.OrderDetails.GetByOrderCodeAsync(orderCode);
 
             return orderDetails.Select(od => new OrderDetailItemResponse
-            {
-                OrderDetailId = od.OrderDetailId,
+                {
+                    OrderDetailId = od.OrderDetailId,
                 //OrderCode = od.OrderCode,
-                StorageCode = od.StorageCode,
-                ContainerCode = od.ContainerCode,
-                FloorCode = od.ContainerCodeNavigation?.FloorCode,
-                FloorNumber = null,
+                    StorageCode = od.StorageCode,
+                    ContainerCode = od.ContainerCode,
+                    FloorCode = od.ContainerCodeNavigation?.FloorCode,
+                    FloorNumber = null,
                 //ServiceId = od.ServiceId,
-                Price = od.Price,
-                Quantity = od.Quantity,
-                SubTotal = od.SubTotal,
+                    Price = od.Price,
+                    Quantity = od.Quantity,
+                    SubTotal = od.SubTotal,
                 //Address = od.Address,
                 Image = od.Image,
-                ContainerType = od.ContainerType,
-                ContainerQuantity = od.ContainerQuantity,
-                StorageTypeId = od.StorageTypeId,
-                ShelfTypeId = od.ShelfTypeId,
-                ShelfQuantity = od.ShelfQuantity,
-                IsPlaced = od.IsPlaced,
-                ProductTypeNames = od.OrderDetailProductTypes
-            .Select(odpt => odpt.ProductType?.Name)
-            .Where(name => name != null)
-            .ToList(),
-
-                ServiceNames = od.OrderDetailServices
-            .Select(ods => ods.Service?.Name)
-            .Where(name => name != null)
-            .ToList()
+                    ContainerType = od.ContainerType,
+                    ContainerQuantity = od.ContainerQuantity,
+                    StorageTypeId = od.StorageTypeId,
+                    ShelfTypeId = od.ShelfTypeId,
+                    ShelfQuantity = od.ShelfQuantity,
+                    IsPlaced = od.IsPlaced,
+                    ProductTypeNames = od.OrderDetailProductTypes
+                        .Select(odpt => odpt.ProductType?.Name)
+                        .Where(name => name != null)
+                        .ToList(),
+                    ServiceNames = od.OrderDetailServices
+                        .Select(ods => ods.Service?.Name)
+                        .Where(name => name != null)
+                        .ToList()
             }).ToList();
         }
 

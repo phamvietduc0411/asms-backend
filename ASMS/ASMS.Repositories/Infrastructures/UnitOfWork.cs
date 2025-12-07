@@ -9,6 +9,7 @@ namespace ASMS.Repositories.Infrastructures
     public class UnitOfWork : IUnitOfWork
     {
         private readonly VstorageContext _context;
+        public VstorageContext Context => _context;
         private readonly ILogger _logger;
         public IEmployeeRoleRepository EmployeeRoles { get; private set; }
         public IWorkflowTemplateRepository WorkflowTemplates { get; private set; }
@@ -34,7 +35,10 @@ namespace ASMS.Repositories.Infrastructures
         public IOrderDetailServiceRepository OrderDetailServices { get; private set; }
         public IOrderDetailProductTypeRepository OrderDetailProductTypes { get; private set; }
         public IPaymentResultRepository PaymentResults { get; private set; }
-
+        public IPricingRepository Pricings { get; private set; }
+        public IShippingRateRepository ShippingRates { get; private set; }
+        public IContactRepository Contacts { get; private set; }
+        public IBusinessRuleRepository BusinessRules { get; private set; }
 
         public UnitOfWork(
             VstorageContext context,
@@ -66,6 +70,10 @@ namespace ASMS.Repositories.Infrastructures
             OrderDetailServices = new OrderDetailServiceRepository(_context, _logger);
             OrderDetailProductTypes = new OrderDetailProductTypeRepository(_context, _logger);
             PaymentResults = new PaymentResultRepository(_context, _logger);
+            Pricings = new PricingRepository(_context, _logger);
+            ShippingRates = new ShippingRateRepository(_context, _logger);
+            Contacts = new ContactRepository(_context, _logger);
+            BusinessRules = new BusinessRuleRepository(_context, _logger);
         }
         public async Task CompleteAsync() => await _context.SaveChangesAsync();
     }

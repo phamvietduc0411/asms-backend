@@ -36,7 +36,7 @@ namespace ASMS.Services.Model.Orders
 
         public string? Address { get; set; }
 
-        public string? Image { get; set; }
+        public List<string>? ImageUrls { get; set; }
         public string? Style { get; set; }
         public decimal? TotalPrice { get; set; }
 

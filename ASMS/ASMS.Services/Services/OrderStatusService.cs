@@ -23,20 +23,22 @@ namespace ASMS.Services.Services
         "full", new List<string>
         {
             "pending", "wait pick up", "verify", "checkout",
-            "pick up", "processing", "stored", "retrieved"
+            "pick up", "delivered", "processing", "stored", "overdue", "retrieved",
+            "wait pick up", "pick up", "delivered", "completed" 
         }
     },
     {
         "self_with_delivery", new List<string>
         {
             "pending", "wait pick up", "verify", "checkout",
-            "pick up", "renting", "retrieved"
+            "pick up", "delivered", "renting", "overdue", "retrieved",
+            "wait pick up", "pick up", "delivered", "completed" 
         }
     },
     {
         "self_no_delivery", new List<string>
         {
-            "pending", "checkout", "renting", "retrieved"
+            "pending", "checkout", "renting", "overdue", "retrieved", "completed" 
         }
     }
 };
@@ -466,6 +468,8 @@ namespace ASMS.Services.Services
                 "renting" => "Renting Active",
                 "retrieved" => "Order Retrieved",
                 "overdue" => "Order Overdue",
+                "delivered" => "Delivered to Warehouse/Customer",
+                "completed" => "Order Completed",
                 _ => "Status Update"
             };
         }
@@ -546,8 +550,9 @@ namespace ASMS.Services.Services
 
             return statusLower switch
             {
-                "wait pick up" or "verify" or "checkout" or "pick up" => "Delivery Staff",
+                "wait pick up" or "verify" or "checkout" or "pick up" or "delivered" => "Delivery Staff",
                 "processing" or "stored" or "renting" => "Warehouse Staff",
+                "retrieved" or "completed" => "Warehouse Staff",
                 _ => "Warehouse Staff"
             };
         }
@@ -610,11 +615,17 @@ namespace ASMS.Services.Services
 
             bool isLastStepOfRole = false;
 
-            if (roleName == "Delivery Staff" && newStatusLower == "pick up")
+            if (roleName == "Delivery Staff" && newStatusLower == "delivered")
             {
-                isLastStepOfRole = true;
+                var trackingHistories = await _unitOfWork.TrackingHistories.GetByOrderCodeAsync(orderCode);
+                var deliveredCount = trackingHistories.Count(th => th.NewStatus?.ToLower() == "delivered");
+
+                if (deliveredCount >= 2) 
+                {
+                    isLastStepOfRole = true;
+                }
             }
-            else if (roleName == "Warehouse Staff" && (newStatusLower == "stored" || newStatusLower == "renting"))
+            else if (roleName == "Warehouse Staff" && newStatusLower == "completed") 
             {
                 isLastStepOfRole = true;
             }
@@ -714,6 +725,7 @@ namespace ASMS.Services.Services
                         storageStatus = "Rented";
                         break;
                     case "retrieved":
+                    case "completed":
                         storageStatus = "Ready";
                         break;
                 }

@@ -123,5 +123,51 @@ namespace ASMS.Repositories.Repositories
                 .Include(s => s.Building)
                 .FirstOrDefaultAsync(s => s.StorageCode == storageCode);
         }
+
+        public async Task<Storage?> GetByCodeAsNoTrackingAsync(string storageCode)
+        {
+            try
+            {
+                return await _dbSet
+                    .AsNoTracking()
+                    .Include(s => s.Building)
+                    .Include(s => s.StorageType)
+                    .FirstOrDefaultAsync(s => s.StorageCode == storageCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting storage by code {Code} with no tracking", storageCode);
+                throw;
+            }
+        }
+
+        public async Task<Storage?> GetByCodeWithoutIncludesAsync(string storageCode)
+        {
+            try
+            {
+                return await _dbSet
+                    .FirstOrDefaultAsync(s => s.StorageCode == storageCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting storage by code {Code} without includes", storageCode);
+                throw;
+            }
+        }
+
+        public async Task<List<Storage>> GetAllAsNoTrackingAsync()
+        {
+            try
+            {
+                return await _dbSet
+                    .AsNoTracking()
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting all storages with no tracking");
+                throw;
+            }
+        }
     }
 }

@@ -18,6 +18,10 @@ public partial class VstorageContext : DbContext
 
     public virtual DbSet<Building> Buildings { get; set; }
 
+    public virtual DbSet<BusinessRule> BusinessRules { get; set; }
+
+    public virtual DbSet<Contact> Contacts { get; set; }
+
     public virtual DbSet<Container> Containers { get; set; }
 
     public virtual DbSet<ContainerLocationLog> ContainerLocationLogs { get; set; }
@@ -43,12 +47,16 @@ public partial class VstorageContext : DbContext
     public virtual DbSet<PaymentHistory> PaymentHistories { get; set; }
 
 
+    public virtual DbSet<Pricing> Pricings { get; set; }
+
     public virtual DbSet<ProductType> ProductTypes { get; set; }
     public virtual DbSet<Service> Services { get; set; }
 
     public virtual DbSet<Shelf> Shelves { get; set; }
 
     public virtual DbSet<ShelfType> ShelfTypes { get; set; }
+
+    public virtual DbSet<ShippingRate> ShippingRates { get; set; }
 
     public virtual DbSet<Storage> Storages { get; set; }
 
@@ -93,6 +101,88 @@ public partial class VstorageContext : DbContext
             entity.Property(e => e.Status)
                 .HasMaxLength(10)
                 .IsUnicode(false);
+        });
+
+        modelBuilder.Entity<BusinessRule>(entity =>
+        {
+            entity.HasKey(e => e.BusinessRuleId).HasName("PK__Business__EC5F5D2257C14EF0");
+
+            entity.ToTable("BusinessRule");
+
+            entity.HasIndex(e => e.Category, "IX_BusinessRule_Category");
+
+            entity.HasIndex(e => e.IsActive, "IX_BusinessRule_IsActive");
+
+            entity.HasIndex(e => e.RuleType, "IX_BusinessRule_RuleType");
+
+            entity.HasIndex(e => e.RuleCode, "UQ__Business__D618C1EE6B938F38").IsUnique();
+
+            entity.Property(e => e.Category).HasMaxLength(100);
+            entity.Property(e => e.CreatedBy)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.CreatedDate)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.EffectiveDate)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.ExpiryDate).HasColumnType("datetime");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.Notes).HasMaxLength(500);
+            entity.Property(e => e.Priority)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasDefaultValue("Medium");
+            entity.Property(e => e.RuleCode)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.RuleDescription).HasMaxLength(2000);
+            entity.Property(e => e.RuleName).HasMaxLength(200);
+            entity.Property(e => e.RuleType)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasDefaultValue("Business");
+            entity.Property(e => e.UpdatedBy)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.UpdatedDate)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+        });
+
+        modelBuilder.Entity<Contact>(entity =>
+        {
+            entity.HasKey(e => e.ContactId).HasName("PK__Contact__5C66259B83251215");
+
+            entity.ToTable("Contact");
+
+            entity.Property(e => e.CustomerCode)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.Email)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.EmployeeCode)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.Message).HasMaxLength(1000);
+            entity.Property(e => e.Name).HasMaxLength(100);
+            entity.Property(e => e.OrderCode)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.PhoneContact)
+                .HasMaxLength(20)
+                .IsUnicode(false);
+
+            entity.HasOne(d => d.CustomerCodeNavigation).WithMany(p => p.Contacts)
+                .HasPrincipalKey(p => p.CustomerCode)
+                .HasForeignKey(d => d.CustomerCode)
+                .HasConstraintName("FK_Contact_Customer");
+
+            entity.HasOne(d => d.OrderCodeNavigation).WithMany(p => p.Contacts)
+                .HasForeignKey(d => d.OrderCode)
+                .HasConstraintName("FK_Contact_Order");
         });
 
         modelBuilder.Entity<Container>(entity =>
@@ -347,7 +437,6 @@ public partial class VstorageContext : DbContext
                 .IsUnicode(false);
             entity.Property(e => e.CustomerName).HasMaxLength(1000);
             entity.Property(e => e.Email).HasMaxLength(500);
-            entity.Property(e => e.Image).HasMaxLength(1000);
             entity.Property(e => e.Note).HasMaxLength(1000);
             entity.Property(e => e.PaymentStatus)
                 .HasMaxLength(20)
@@ -384,10 +473,12 @@ public partial class VstorageContext : DbContext
             entity.Property(e => e.ContainerCode)
                 .HasMaxLength(50)
                 .IsUnicode(false);
+            entity.Property(e => e.Height).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.Image)
                 .HasMaxLength(500)
                 .IsUnicode(false);
             entity.Property(e => e.IsPlaced).HasColumnName("isPlaced");
+            entity.Property(e => e.Length).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.OrderCode)
                 .HasMaxLength(50)
                 .IsUnicode(false);
@@ -398,6 +489,7 @@ public partial class VstorageContext : DbContext
                 .IsUnicode(false);
             entity.Property(e => e.StorageTypeId).HasColumnName("StorageTypeID");
             entity.Property(e => e.SubTotal).HasColumnType("decimal(18, 0)");
+            entity.Property(e => e.Width).HasColumnType("decimal(10, 2)");
 
             entity.HasOne(d => d.ContainerCodeNavigation).WithMany(p => p.OrderDetails)
                 .HasForeignKey(d => d.ContainerCode)
@@ -499,6 +591,26 @@ public partial class VstorageContext : DbContext
                 .HasConstraintName("FK_PaymentResults_Order");
         });
 
+        modelBuilder.Entity<Pricing>(entity =>
+        {
+            entity.HasKey(e => e.PricingId).HasName("PK__Pricing__EC306B12C3E6BE9C");
+
+            entity.ToTable("Pricing");
+
+            entity.Property(e => e.AdditionalInfo).HasMaxLength(500);
+            entity.Property(e => e.CreatedDate)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.ItemCode).HasMaxLength(20);
+            entity.Property(e => e.PricePerMonth).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.PricePerTrip).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.PricePerWeek).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.ServiceType).HasMaxLength(50);
+            entity.Property(e => e.UpdatedDate)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+        });
 
         modelBuilder.Entity<ProductType>(entity =>
         {
@@ -583,6 +695,28 @@ public partial class VstorageContext : DbContext
             entity.Property(e => e.Name).HasMaxLength(100);
             entity.Property(e => e.Price).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.Width).HasColumnType("decimal(18, 2)");
+        });
+
+        modelBuilder.Entity<ShippingRate>(entity =>
+        {
+            entity.HasKey(e => e.ShippingRateId).HasName("PK__Shipping__910335190758CFC9");
+
+            entity.Property(e => e.BasePrice).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.CreatedDate)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.DistanceMaxKm).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.DistanceMinKm).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.MonthlyRentalDiscount)
+                .HasDefaultValue(0.10m)
+                .HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.PriceUnit)
+                .HasMaxLength(20)
+                .HasDefaultValue("Fixed");
+            entity.Property(e => e.SpecialItemSurcharge)
+                .HasDefaultValue(0.15m)
+                .HasColumnType("decimal(5, 2)");
         });
 
         modelBuilder.Entity<Storage>(entity =>

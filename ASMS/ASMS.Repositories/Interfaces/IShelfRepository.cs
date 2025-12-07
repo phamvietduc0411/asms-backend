@@ -17,5 +17,6 @@ namespace ASMS.Repositories.Interfaces
         Task<IEnumerable<Shelf>> GetByStorageCodeAsync(string storageCode);
         Task<IEnumerable<Shelf>> GetAllShelvesByStorageCodeAsync(string storageCode);
         Task<int> GetNumberOfShelfWithStorageCode(string storageCode);
+        Task<List<Shelf>> GetByStorageCodeAsNoTrackingAsync(string storageCode);
     }
 }
