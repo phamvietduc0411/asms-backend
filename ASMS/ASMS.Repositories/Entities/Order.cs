@@ -36,35 +36,35 @@ public partial class Order
     public string? Address { get; set; }
 
     public string? Image { get; set; }
-    [NotMapped]
-    public List<string>? ImageUrls
-    {
-        get
-        {
-            if (string.IsNullOrEmpty(Image))
-                return new List<string>();
+    //[NotMapped]
+    //public List<string>? Image
+    //{
+    //    get
+    //    {
+    //        if (string.IsNullOrEmpty(Image))
+    //            return new List<string>();
 
-            try
-            {
-                return JsonSerializer.Deserialize<List<string>>(Image);
-            }
-            catch
-            {
-                return new List<string>();
-            }
-        }
-        set
-        {
-            if (value == null || !value.Any())
-            {
-                Image = null;
-            }
-            else
-            {
-                Image = JsonSerializer.Serialize(value);
-            }
-        }
-    }
+    //        try
+    //        {
+    //            return JsonSerializer.Deserialize<List<string>>(Image);
+    //        }
+    //        catch
+    //        {
+    //            return new List<string>();
+    //        }
+    //    }
+    //    set
+    //    {
+    //        if (value == null || !value.Any())
+    //        {
+    //            Image = null;
+    //        }
+    //        else
+    //        {
+    //            Image = JsonSerializer.Serialize(value);
+    //        }
+    //    }
+    //}
 
     public string? Style { get; set; }
 
