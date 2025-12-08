@@ -68,7 +68,7 @@ namespace ASMS.Services.Services
             }).ToList();
             return new PaginatedOrderResponse
             {
-                Data = _mapper.Map<List<OrderResponse>>(orders),
+                Data = orderResponses,
                 Page = pageNumber,
                 PageSize = pageSize,
                 TotalCount = totalCount,
@@ -267,11 +267,11 @@ namespace ASMS.Services.Services
                 request.CustomerCode = existingCustomer.CustomerCode;
             }
             string? imageJson = null;
-            if (request.ImageUrls != null && request.ImageUrls.Any())
+            if (request.Image != null && request.Image.Any())
             {
                 try
                 {
-                    imageJson = JsonSerializer.Serialize(request.ImageUrls);
+                    imageJson = JsonSerializer.Serialize(request.Image);
                 }
                 catch (Exception ex)
                 {
@@ -462,7 +462,7 @@ namespace ASMS.Services.Services
                 PhoneContact = request.PhoneContact,
                 Email = request.Email,
                 Note = request.Note,
-                ImageUrls = request.ImageUrls,
+                Image = request.Image,
                 Address = request.Address,
                 OrderDetails = orderDetailResponses
             };
@@ -481,11 +481,11 @@ namespace ASMS.Services.Services
             var oldStyle = existingOrder.Style?.ToLower();
             var newStyle = request.Style?.ToLower();
             string? imageJson = null;
-            if (request.ImageUrls != null && request.ImageUrls.Any())
+            if (request.Image != null && request.Image.Any())
             {
                 try
                 {
-                    imageJson = JsonSerializer.Serialize(request.ImageUrls);
+                    imageJson = JsonSerializer.Serialize(request.Image);
                 }
                 catch (Exception ex)
                 {
@@ -759,7 +759,7 @@ namespace ASMS.Services.Services
                 PhoneContact = existingOrder.PhoneContact,
                 Email = existingOrder.Email,
                 Note = existingOrder.Note,
-                ImageUrls = request.ImageUrls,
+                Image = request.Image,
                 Address = existingOrder.Address,
                 Style = existingOrder.Style,
                 OrderDetails = orderDetailResponses
@@ -992,11 +992,71 @@ namespace ASMS.Services.Services
             if (existing == null)
                 throw new Exception($"Order with code '{orderCode}' not found.");
 
-            _mapper.Map(request, existing);
+            string? imageJson = null;
+            if (request.Image != null && request.Image.Any())
+            {
+                try
+                {
+                    imageJson = JsonSerializer.Serialize(request.Image);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, $"Error serializing ImageUrls for order {orderCode}");
+                }
+            }
+            existing.CustomerCode = request.CustomerCode ?? existing.CustomerCode;
+            existing.OrderDate = request.OrderDate ?? existing.OrderDate;
+            existing.DepositDate = request.DepositDate;
+            existing.ReturnDate = request.ReturnDate;
+            existing.TotalPrice = request.TotalPrice ?? existing.TotalPrice;
+            existing.UnpaidAmount = request.UnpaidAmount ?? existing.UnpaidAmount;
+            existing.CustomerName = request.CustomerName ?? existing.CustomerName;
+            existing.PhoneContact = request.PhoneContact ?? existing.PhoneContact;
+            existing.Email = request.Email ?? existing.Email;
+            existing.Note = request.Note;
+            existing.Address = request.Address ?? existing.Address;
+            existing.Image = imageJson;
+
             await _unitOfWork.Orders.UpdateAsync(existing);
             await _unitOfWork.CompleteAsync();
 
-            return _mapper.Map<OrderResponse>(existing);
+
+            List<string>? imageUrls = new List<string>();
+            if (!string.IsNullOrEmpty(existing.Image))
+            {
+                try
+                {
+                    imageUrls = JsonSerializer.Deserialize<List<string>>(existing.Image);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, $"Error deserializing ImageUrls for order {orderCode}");
+                    imageUrls = new List<string>();
+                }
+            }
+
+            var response = new OrderResponse
+            {
+                OrderCode = existing.OrderCode,
+                CustomerCode = existing.CustomerCode,
+                OrderDate = existing.OrderDate,
+                DepositDate = existing.DepositDate,
+                ReturnDate = existing.ReturnDate,
+                Status = existing.Status,
+                PaymentStatus = existing.PaymentStatus,
+                TotalPrice = existing.TotalPrice,
+                UnpaidAmount = existing.UnpaidAmount,
+                CustomerName = existing.CustomerName,
+                PhoneContact = existing.PhoneContact,
+                Email = existing.Email,
+                Note = existing.Note,
+                Address = existing.Address,
+                ImageUrls = imageUrls,
+                Style = existing.Style,
+                //BuildingCode = existing.BuildingCode
+            };
+
+            return response;
         }
 
         public async Task<TrackingHistoryResponse> UpdateOrderProcessAsync(UpdateOrderProcessRequest request)
