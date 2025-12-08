@@ -188,20 +188,21 @@ namespace ASMS.API.Controllers
         /// 
         ///     POST /api/container/remove
         ///     {
-        ///         "containerCode": "CONT-A-001"
+        ///         "containerCode": "CONT-A-001",
+        ///         "orderCode": "ORD-001",      // Optional
+        ///         "performedBy": "user123"     // Optional
         ///     }
         /// 
         /// </remarks>
-        /// <param name="containerCode">Mã container cần lấy ra</param>
+        /// <param name="request">Thông tin container cần lấy ra</param>
         /// <returns>Kết quả lấy container</returns>
         [HttpPost("remove")]
         public async Task<ActionResult<RemoveContainerResponse>> RemoveContainer(
-            [FromBody] string containerCode, string orderCode, string performedBy)
+            [FromBody] RemoveContainerRequest request)  
         {
             try
             {
-
-                if (string.IsNullOrEmpty(containerCode))
+                if (string.IsNullOrEmpty(request.ContainerCode))
                 {
                     return BadRequest(new RemoveContainerResponse
                     {
@@ -210,20 +211,19 @@ namespace ASMS.API.Controllers
                     });
                 }
 
-                var response = await _containerService.RemoveContainerAsync(containerCode, orderCode, performedBy);
+                var response = await _containerService.RemoveContainerAsync(
+                    request.ContainerCode,
+                    request.OrderCode,
+                    request.PerformedBy);
 
                 if (!response.Success)
                 {
-
-
                     if (!string.IsNullOrEmpty(response.BlockingContainerCode))
                     {
                         return Conflict(response);
                     }
-
                     return BadRequest(response);
                 }
-
 
                 return Ok(response);
             }

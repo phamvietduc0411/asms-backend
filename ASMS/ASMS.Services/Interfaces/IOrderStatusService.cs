@@ -25,7 +25,7 @@ namespace ASMS.Services.Interfaces
         /// </summary>
         /// <param name="orderCode">Mã đơn hàng</param>
         /// <param name="newReturnDate">Ngày trả mới</param>
-        Task<OrderStatusResponse?> ExtendOrderAsync(string orderCode, DateOnly newReturnDate);
+        Task<OrderStatusResponse?> ExtendOrderAsync(string orderCode, DateOnly newReturnDate, decimal unpaidAmount);
 
         /// <summary>
         /// Chuyển đơn hàng vào kho quá hạn

@@ -377,7 +377,7 @@ namespace ASMS.Services.Services
 
             return suitable?.ContainerCode;
         }
-        public async Task<RemoveContainerResponse> RemoveContainerAsync(string containerCode, string orderCode = null, string performedBy = null)
+        public async Task<RemoveContainerResponse> RemoveContainerAsync(string containerCode, string orderCode, string performedBy)
         {
             try
             {

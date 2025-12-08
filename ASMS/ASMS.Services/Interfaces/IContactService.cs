@@ -19,5 +19,6 @@ namespace ASMS.Services.Interfaces
         Task<ContactResponse?> GetByIdAsync(int contactId);
         Task<ContactResponse> CreateAsync(CreateContactRequest request);
         Task<bool> UpdateAsync(int contactId, UpdateContactRequest request);
+        Task<ToggleContactActiveResponse> ToggleActiveAsync(int contactId);
     }
 }

@@ -15,6 +15,8 @@ namespace ASMS.Services.Model.OrderStatus
         public DateOnly? ReturnDate { get; set; }
         public string? CurrentAssignedEmployee { get; set; }
         public string? BuildingCode { get; set; }
+        public DateOnly? DepositDate { get; set; }
+        public decimal? TotalPrice { get; set; }
         public string Message { get; set; } = null!;
     }
 }
