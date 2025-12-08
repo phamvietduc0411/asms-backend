@@ -90,6 +90,26 @@ namespace ASMS.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
+        /// <summary>
+        /// Toggle contact active status (Active <-> Inactive)
+        /// </summary>
+        [HttpPatch("{id}/toggle-active")]
+        public async Task<IActionResult> ToggleActive(int id)
+        {
+            try
+            {
+                var result = await _contactService.ToggleActiveAsync(id);
+
+                if (result == null)
+                    return NotFound($"Contact with ID {id} not found");
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
 
     }
 }

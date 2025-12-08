@@ -68,9 +68,10 @@ namespace ASMS.API.Controllers
         /// </summary>
         /// <param name="orderCode">Mã đơn hàng</param>
         /// <param name="newReturnDate">Ngày trả mới (YYYY-MM-DD)</param>
+        /// <param name="unpaidAmount"></param>
         /// <returns></returns>
         [HttpPost("{orderCode}/extend")]
-        public async Task<IActionResult> ExtendOrder(string orderCode, [FromQuery] string newReturnDate)
+        public async Task<IActionResult> ExtendOrder(string orderCode, [FromQuery] string newReturnDate, [FromQuery] decimal unpaidAmount)
         {
             try
             {
@@ -79,7 +80,7 @@ namespace ASMS.API.Controllers
                     return BadRequest(new { error = "Invalid date format. Use YYYY-MM-DD" });
                 }
 
-                var result = await _orderStatusService.ExtendOrderAsync(orderCode, returnDate);
+                var result = await _orderStatusService.ExtendOrderAsync(orderCode, returnDate, unpaidAmount);
 
                 if (result == null)
                 {

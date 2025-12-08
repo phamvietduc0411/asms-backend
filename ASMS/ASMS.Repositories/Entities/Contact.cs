@@ -21,6 +21,8 @@ public partial class Contact
 
     public string Message { get; set; } = null!;
 
+    public bool? IsActive { get; set; }
+
     public virtual Customer? CustomerCodeNavigation { get; set; }
 
     public virtual Order? OrderCodeNavigation { get; set; }

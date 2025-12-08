@@ -166,6 +166,7 @@ public partial class VstorageContext : DbContext
             entity.Property(e => e.EmployeeCode)
                 .HasMaxLength(50)
                 .IsUnicode(false);
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.Message).HasMaxLength(1000);
             entity.Property(e => e.Name).HasMaxLength(100);
             entity.Property(e => e.OrderCode)

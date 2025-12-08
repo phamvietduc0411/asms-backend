@@ -18,5 +18,6 @@ namespace ASMS.Services.Model.Contact
         public string? PhoneContact { get; set; }
         public string? Email { get; set; }
         public string Message { get; set; }
+        public bool? IsActive { get; set; }
     }
 }

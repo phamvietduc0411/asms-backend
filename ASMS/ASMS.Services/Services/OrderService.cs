@@ -791,6 +791,9 @@ namespace ASMS.Services.Services
                     ShelfTypeId = od.ShelfTypeId,
                     ShelfQuantity = od.ShelfQuantity,
                     IsPlaced = od.IsPlaced,
+                    Length = od.Length,
+                    Width = od.Width,
+                    Height = od.Height, 
                     ProductTypeNames = od.OrderDetailProductTypes
                         .Select(odpt => odpt.ProductType?.Name)
                         .Where(name => name != null)

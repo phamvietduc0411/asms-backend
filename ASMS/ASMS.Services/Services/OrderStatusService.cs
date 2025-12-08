@@ -23,7 +23,7 @@ namespace ASMS.Services.Services
         "full", new List<string>
         {
             "pending", "wait pick up", "verify", "checkout",
-            "pick up", "delivered", "processing", "stored", "overdue", "retrieved",
+            "pick up", "delivered", "processing", "stored", "retrieved",
             "wait pick up", "pick up", "delivered", "completed" 
         }
     },
@@ -31,14 +31,14 @@ namespace ASMS.Services.Services
         "self_with_delivery", new List<string>
         {
             "pending", "wait pick up", "verify", "checkout",
-            "pick up", "delivered", "renting", "overdue", "retrieved",
+            "pick up", "delivered", "renting", "retrieved",
             "wait pick up", "pick up", "delivered", "completed" 
         }
     },
     {
         "self_no_delivery", new List<string>
         {
-            "pending", "checkout", "renting", "overdue", "retrieved", "completed" 
+            "pending", "checkout", "renting", "retrieved", "completed" 
         }
     }
 };
@@ -198,7 +198,7 @@ namespace ASMS.Services.Services
         /// <summary>
         /// Gia hạn đơn hàng
         /// </summary>
-        public async Task<OrderStatusResponse?> ExtendOrderAsync(string orderCode, DateOnly newReturnDate)
+        public async Task<OrderStatusResponse?> ExtendOrderAsync(string orderCode, DateOnly newReturnDate, decimal unpaidAmount)
         {
             try
             {
@@ -213,12 +213,15 @@ namespace ASMS.Services.Services
                 var currentStatus = order.Status?.ToLower();
 
                 order.ReturnDate = newReturnDate;
+                order.UnpaidAmount = unpaidAmount;
+                order.TotalPrice += unpaidAmount;
+                order.PaymentStatus = "Unpaid";
 
                 // Nếu đơn hàng đang Overdue, chuyển về trạng thái trước đó
                 if (currentStatus == "overdue")
                 {
                     // Xác định trạng thái trước Overdue dựa vào Style
-                    if (order.Style?.ToLower() == "full" || order.Style?.ToLower() == "self")
+                    if (order.Style?.ToLower() == "self")
                     {
                         order.Status = "renting";
                     }
@@ -409,6 +412,8 @@ namespace ASMS.Services.Services
                     ReturnDate = order.ReturnDate,
                     CurrentAssignedEmployee = latestTracking?.CurrentAssign,
                     BuildingCode = order.BuildingCode,
+                    DepositDate = order.DepositDate,
+                    TotalPrice = order.TotalPrice,
                     Message = "Order status retrieved successfully"
                 };
             }
@@ -585,12 +590,12 @@ namespace ASMS.Services.Services
             var employee = await _unitOfWork.Employee.GetAvailableEmployeeByRoleAsync(roleName);
             if (employee != null)
             {
-                var statusLower = status.ToLower();
-                if (statusLower != "stored" && statusLower != "renting")
-                {
-                    employee.Status = "InOrder";
-                    await _unitOfWork.Employee.UpdateAsync(employee);
-                }
+                //var statusLower = status.ToLower();
+                //if (statusLower != "stored" && statusLower != "renting")
+                //{
+                //    employee.Status = "InOrder";
+                //    await _unitOfWork.Employee.UpdateAsync(employee);
+                //}
                 return employee.EmployeeCode;
             }
 

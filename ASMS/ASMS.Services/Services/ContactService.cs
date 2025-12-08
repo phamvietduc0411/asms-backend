@@ -51,7 +51,8 @@ namespace ASMS.Services.Services
                 Name = c.Name,
                 PhoneContact = c.PhoneContact,
                 Email = c.Email,
-                Message = c.Message
+                Message = c.Message,
+                IsActive = c.IsActive,
             }).ToList();
 
             return new PaginatedContactResponse
@@ -180,6 +181,7 @@ namespace ASMS.Services.Services
                 contact.PhoneContact = request.PhoneContact ?? contact.PhoneContact;
                 contact.Email = request.Email ?? contact.Email;
                 contact.Message = request.Message ?? contact.Message;
+                contact.IsActive = request.IsActive ?? contact.IsActive;
 
                 await _unitOfWork.Contacts.UpdateAsync(contact);
                 await _unitOfWork.CompleteAsync();
@@ -191,6 +193,40 @@ namespace ASMS.Services.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating contact {Id}", contactId);
+                throw;
+            }
+        }
+        public async Task<ToggleContactActiveResponse> ToggleActiveAsync(int contactId)
+        {
+            try
+            {
+                var contact = await _unitOfWork.Contacts.GetEntityByIdAsync(contactId);
+
+                if (contact == null)
+                {
+                    _logger.LogWarning("Contact {Id} not found", contactId);
+                    return null;
+                }
+
+                // Toggle IsActive
+                contact.IsActive = !(contact.IsActive ?? false);
+
+                await _unitOfWork.Contacts.UpdateAsync(contact);
+                await _unitOfWork.CompleteAsync();
+
+                var status = contact.IsActive == true ? "activated" : "deactivated";
+                _logger.LogInformation("Contact {Id} {Status}", contactId, status);
+
+                return new ToggleContactActiveResponse
+                {
+                    ContactId = contactId,
+                    IsActive = contact.IsActive ?? false,
+                    Message = $"Contact successfully {status}"
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error toggling active status for contact {Id}", contactId);
                 throw;
             }
         }
