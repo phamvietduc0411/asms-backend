@@ -25,11 +25,13 @@ namespace ASMS.Services.Services
 
         public async Task<PaginatedList<ContainerLocationLogResponse>> GetWithFilterAsync(
     string? containerCode,
+    int? orderDetailId,
     int pageNumber,
     int pageSize)
         {
             var logs = await _unitOfWork.ContainerLocationLogs.GetWithFilterAsync(
                 containerCode,
+                orderDetailId,
                 pageNumber,
                 pageSize);
 

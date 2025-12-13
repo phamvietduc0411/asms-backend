@@ -41,6 +41,9 @@ namespace ASMS.Services.Model.Orders
         public decimal? TotalPrice { get; set; }
 
         public decimal? UnpaidAmount { get; set; }
+        public int? Passkey { get; set; } = null;
+
+        public decimal? Refund { get; set; } = 0;
 
         public List<OrderDetailItemRequest> OrderDetails { get; set; } = new List<OrderDetailItemRequest>();
 

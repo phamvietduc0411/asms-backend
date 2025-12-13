@@ -40,16 +40,16 @@ namespace ASMS.Services.Services
             };
         }
 
-        public async Task<OrderDetailResponse?> GetByIdAsync(int id)
+        public async Task<OrderDetailItemResponse?> GetByIdAsync(int id)
         {
-            var orderDetail = await _unitOfWork.OrderDetails.GetByIdAsync(id);
-            return _mapper.Map<OrderDetailResponse?>(orderDetail);
+            var orderDetail = await _unitOfWork.OrderDetails.GetByIdWithDetailsAsync(id);
+            return _mapper.Map<OrderDetailItemResponse?>(orderDetail);
         }
 
-        public async Task<IEnumerable<OrderDetailResponse>> GetByOrderCodeAsync(string orderCode)
+        public async Task<IEnumerable<OrderDetailItemResponse>> GetByOrderCodeAsync(string orderCode)
         {
-            var orderDetails = await _unitOfWork.OrderDetails.GetByOrderCodeAsync(orderCode);
-            return _mapper.Map<IEnumerable<OrderDetailResponse>>(orderDetails);
+            var orderDetails = await _unitOfWork.OrderDetails.GetByOrderCodeWithDetailsAsync(orderCode);
+            return _mapper.Map<IEnumerable<OrderDetailItemResponse>>(orderDetails);
         }
 
         public async Task<OrderDetailResponse> CreateAsync(CreateOrderDetailRequest request)
@@ -62,10 +62,18 @@ namespace ASMS.Services.Services
 
         public async Task<OrderDetailResponse?> UpdateAsync(int id, UpdateOrderDetailRequest request)
         {
-            var existing = await _unitOfWork.OrderDetails.GetByIdAsync(id);
+            var existing = await _unitOfWork.OrderDetails.GetByIdNoIncludeAsync(id);
             if (existing == null) return null;
 
-            _mapper.Map(request, existing);
+            existing.OrderCode = request.OrderCode ?? existing.OrderCode;
+            existing.StorageCode = request.StorageCode;
+            existing.ContainerCode = request.ContainerCode; 
+            existing.Price = request.Price ?? existing.Price;
+            existing.Quantity = request.Quantity ?? existing.Quantity;
+            existing.SubTotal = request.SubTotal ?? existing.SubTotal;
+            existing.Image = request.Image;
+            //existing.ContainerType = request.ContainerType;
+            //existing.ContainerQuantity = request.ContainerQuantity;
             await _unitOfWork.OrderDetails.UpdateAsync(existing);
             await _unitOfWork.CompleteAsync();
             return _mapper.Map<OrderDetailResponse>(existing);

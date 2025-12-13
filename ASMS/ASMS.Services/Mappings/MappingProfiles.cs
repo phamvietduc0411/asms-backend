@@ -69,7 +69,8 @@ namespace ASMS.Services.Mappings
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
             #endregion
             #region Tracking History
-            CreateMap<TrackingHistory, TrackingHistoryResponse>();
+            CreateMap<TrackingHistory, TrackingHistoryResponse>()
+                .ForMember(dest => dest.Image, opt => opt.Ignore());
 
             CreateMap<CreateTrackingHistoryRequest, TrackingHistory>()
                 .ForMember(d => d.TrackingHistoryId, o => o.Ignore())
@@ -135,9 +136,19 @@ namespace ASMS.Services.Mappings
                 .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
             CreateMap<OrderDetail, OrderDetailResponse>();
             CreateMap<OrderDetail, OrderDetailItemResponse>()
-                .ForMember(dest => dest.ContainerType, opt => opt.MapFrom(src => src.ContainerCodeNavigation != null ? src.ContainerCodeNavigation.ContainerTypeId : null))
+                .ForMember(dest => dest.ContainerType, opt => opt.MapFrom(src => src.ContainerType))
                 .ForMember(dest => dest.FloorCode, opt => opt.MapFrom(src => src.ContainerCodeNavigation != null ? src.ContainerCodeNavigation.FloorCode : null))
-                .ForMember(dest => dest.FloorNumber, opt => opt.MapFrom(src => src.ContainerCodeNavigation != null && src.ContainerCodeNavigation.FloorCodeNavigation != null ? src.ContainerCodeNavigation.FloorCodeNavigation.FloorNumber : null));
+                .ForMember(dest => dest.FloorNumber, opt => opt.MapFrom(src => src.ContainerCodeNavigation != null && src.ContainerCodeNavigation.FloorCodeNavigation != null ? src.ContainerCodeNavigation.FloorCodeNavigation.FloorNumber : null))
+                .ForMember(dest => dest.ProductTypeNames, opt => opt.MapFrom(src =>
+        src.OrderDetailProductTypes
+            .Where(odpt => odpt.ProductType != null)
+            .Select(odpt => odpt.ProductType.Name)
+            .ToList()))
+    .ForMember(dest => dest.ServiceNames, opt => opt.MapFrom(src =>
+        src.OrderDetailServices
+            .Where(ods => ods.Service != null)
+            .Select(ods => ods.Service.Name)
+            .ToList()));
             #endregion
             #region Container
             CreateMap<Container, ContainerResponse>()
@@ -220,6 +231,12 @@ namespace ASMS.Services.Mappings
             CreateMap<UpdateShippingRateRequest, ShippingRate>()
                 .ForMember(dest => dest.CreatedDate, opt => opt.Ignore())
                 .ForMember(dest => dest.ShippingRateId, opt => opt.Ignore());
+
+            CreateMap<Employee, EmployeeDto>()
+                .ForMember(dest => dest.EmployeeRoleName,
+                    opt => opt.MapFrom(src => src.EmployeeRole != null ? src.EmployeeRole.Name : null))
+                .ForMember(dest => dest.BuildingName,
+                    opt => opt.MapFrom(src => src.Building != null ? src.Building.Name : null));
         }
 
 

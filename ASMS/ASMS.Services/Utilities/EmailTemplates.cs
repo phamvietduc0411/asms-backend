@@ -121,5 +121,21 @@ namespace ASMS.Services.Utilities
 </body>
 </html>";
         }
+
+        public static string OrderPassKey(string orderCode, string passKey, string senderEmail) => $@"
+<html>
+<body style='font-family:Arial,sans-serif;'>
+    <div style='border:1px solid #ccc; padding:20px; border-radius:10px; max-width:600px; margin:auto;'>
+        <h2 style='text-align:center; color:#4285F4;'>ASMS - Mã truy cập Self Storage</h2>
+        <p>Chào bạn,</p>
+        <p>Đơn hàng <b>{orderCode}</b> của bạn đã sẵn sàng để sử dụng.</p>
+        <p>Mã truy cập (PassKey) của bạn là:</p>
+        <p style='font-size:32px; text-align:center; font-weight:bold; color:#4285F4; margin:20px 0; letter-spacing:5px;'>{passKey}</p>
+        <p>Vui lòng sử dụng mã này để truy cập kho self-storage của bạn.</p>
+        <p><b>Lưu ý:</b> Mã này chỉ có hiệu lực cho đơn hàng này và sẽ hết hiệu lực khi đơn hàng hoàn thành.</p>
+        <p>Trân trọng,<br/>Đội ngũ ASMS ({senderEmail})</p>
+    </div>
+</body>
+</html>";
     }
 }

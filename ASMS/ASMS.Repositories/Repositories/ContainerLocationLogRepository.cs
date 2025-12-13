@@ -21,6 +21,7 @@ namespace ASMS.Repositories.Repositories
 
         public async Task<PaginatedList<ContainerLocationLog>> GetWithFilterAsync(
     string? containerCode,
+    int? orderDetailId,
     int pageNumber,
     int pageSize)
         {
@@ -29,6 +30,11 @@ namespace ASMS.Repositories.Repositories
             if (!string.IsNullOrEmpty(containerCode))
             {
                 query = query.Where(c => c.ContainerCode == containerCode);
+            }
+
+            if (orderDetailId.HasValue)
+            {
+                query = query.Where(c => c.OrderDetailId == orderDetailId.Value);
             }
 
             query = query.OrderByDescending(c => c.UpdatedDate)

@@ -10,7 +10,7 @@ namespace ASMS.Services.Interfaces
 {
     public interface IContainerLocationLogService
     {
-        Task<PaginatedList<ContainerLocationLogResponse>> GetWithFilterAsync(string? containerCode, int pageNumber, int pageSize);
+        Task<PaginatedList<ContainerLocationLogResponse>> GetWithFilterAsync(string? containerCode, int? orderDetailId, int pageNumber, int pageSize);
         Task<ContainerLocationLogResponse?> GetByIdAsync(int id);
         Task<ContainerLocationLogResponse> CreateAsync(CreateContainerLocationLogRequest request);
         Task<ContainerLocationLogResponse?> UpdateAsync(int id, UpdateContainerLocationLogRequest request);

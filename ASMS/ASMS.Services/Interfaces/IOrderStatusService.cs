@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ASMS.Services.Model.OrderStatus;
+using ASMS.Services.Model.TrackingHistories;
 
 namespace ASMS.Services.Interfaces
 {
@@ -44,5 +45,9 @@ namespace ASMS.Services.Interfaces
         /// </summary>
         /// <param name="orderCode">Mã đơn hàng</param>
         Task<OrderStatusResponse?> GetOrderStatusAsync(string orderCode);
+        Task<TrackingHistoryResponse?> UpdateLatestTrackingImageAsync(UpdateTrackingImageRequest request);
+        Task<UpdatePassKeyResponse> UpdatePassKeyAsync(UpdatePassKeyRequest request);
+        Task<UpdateRefundResponse> UpdateRefundAsync(UpdateRefundRequest request);
+        Task<CancelOrderResponse> CancelOrderAsync(CancelOrderRequest request);
     }
 }

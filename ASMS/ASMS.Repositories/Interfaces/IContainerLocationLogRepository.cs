@@ -13,6 +13,7 @@ namespace ASMS.Repositories.Interfaces
     {
         Task<PaginatedList<ContainerLocationLog>> GetWithFilterAsync(
     string? containerCode,
+    int? orderDetailId,
     int pageNumber,
     int pageSize);
         Task DeleteAsync(int id);

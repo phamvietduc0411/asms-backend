@@ -145,16 +145,13 @@ namespace ASMS.Repositories.Repositories
                 throw;
             }
         }
-        public async Task<int> GetNumberOfOrders(DateTime startDate, DateTime endDate, string? status)
+        public async Task<int> GetNumberOfOrders(DateOnly startDate, DateOnly endDate, string? status)
         {
-            var query = _dbSet.AsQueryable();
-
-            DateOnly start = DateOnly.FromDateTime(startDate);
-            DateOnly end = DateOnly.FromDateTime(endDate);
-
-            query = query.Where(o => o.OrderDate.HasValue &&
-                                     o.OrderDate.Value >= start &&
-                                     o.OrderDate.Value <= end);
+            var query = _dbSet
+                .AsNoTracking()
+                .Where(o => o.OrderDate.HasValue &&
+                           o.OrderDate.Value >= startDate &&
+                           o.OrderDate.Value <= endDate);
 
             if (!string.IsNullOrWhiteSpace(status))
             {
@@ -194,6 +191,11 @@ namespace ASMS.Repositories.Repositories
 
                 .FirstOrDefaultAsync(o => o.OrderCode == orderCode);
         }
-
+        public async Task<Order?> GetByPassKeyAsync(int passKey)
+        {
+            return await _dbSet
+                .AsNoTracking()
+                .FirstOrDefaultAsync(o => o.Passkey == passKey && o.Status != "completed");
+        }
     }
 }

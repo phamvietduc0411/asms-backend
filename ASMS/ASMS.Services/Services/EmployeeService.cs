@@ -31,6 +31,15 @@ namespace ASMS.Services.Services
             }
             return employee;
         }
+        public async Task<EmployeeDto?> GetByIdDtoAsync(int id)
+        {
+            var employee = await _unitOfWork.Employee.GetEntityByIdAsync(id);
+            if (employee == null)
+            {
+                return null;
+            }
+            return _mapper.Map<EmployeeDto>(employee);
+        }
         public async Task<Employee> AddEmployeeAsync(CreateEmployeeRequest request)
         {
             var entity = _mapper.Map<Employee>(request);

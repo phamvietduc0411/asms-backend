@@ -286,6 +286,10 @@ public partial class VstorageContext : DbContext
 
             entity.ToTable("ContainerType");
 
+            entity.Property(e => e.AvailableQuantityInAc)
+                .HasDefaultValue(1)
+                .HasColumnName("AvailableQuantityInAC");
+            entity.Property(e => e.AvailableQuantityInNor).HasDefaultValue(1);
             entity.Property(e => e.Height).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.ImageUrl).HasMaxLength(1000);
             entity.Property(e => e.Length).HasColumnType("decimal(10, 2)");
@@ -443,6 +447,9 @@ public partial class VstorageContext : DbContext
                 .HasMaxLength(20)
                 .IsUnicode(false);
             entity.Property(e => e.PhoneContact).HasMaxLength(50);
+            entity.Property(e => e.Refund)
+                .HasDefaultValue(0m)
+                .HasColumnType("decimal(18, 0)");
             entity.Property(e => e.Status)
                 .HasMaxLength(50)
                 .IsUnicode(false);
@@ -581,9 +588,6 @@ public partial class VstorageContext : DbContext
             entity.Property(e => e.Status).HasMaxLength(20).IsRequired();
             entity.Property(e => e.Message).HasMaxLength(500);
             entity.Property(e => e.Url).HasMaxLength(1000);
-            entity.Property(e => e.Amount).HasColumnType("decimal(18,2)");
-            entity.Property(e => e.CreatedAt)
-                  .HasDefaultValueSql("GETUTCDATE()");
 
             // FK
             entity.HasOne(d => d.Order)
@@ -807,9 +811,6 @@ public partial class VstorageContext : DbContext
                 .IsUnicode(false);
             entity.Property(e => e.CurrentAssign)
                 .HasMaxLength(50)
-                .IsUnicode(false);
-            entity.Property(e => e.Image)
-                .HasMaxLength(500)
                 .IsUnicode(false);
             entity.Property(e => e.NewStatus)
                 .HasMaxLength(50)

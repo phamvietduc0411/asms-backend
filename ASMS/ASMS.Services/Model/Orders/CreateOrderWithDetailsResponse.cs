@@ -29,6 +29,9 @@ namespace ASMS.Services.Model.Orders
 
         public List<string>? Image { get; set; }
         public string? Style { get; set; }
+        public int? Passkey { get; set; } = null;
+
+        public decimal? Refund { get; set; } = 0;
         public List<OrderDetailItemResponse> OrderDetails { get; set; } = new List<OrderDetailItemResponse>();
     }
 }

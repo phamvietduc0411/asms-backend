@@ -15,6 +15,10 @@ namespace ASMS.Repositories.Interfaces
         Task<OrderDetail?> GetByIdAsync(int id);
         Task<List<OrderDetail>> GetByOrderCodeAsync(string orderCode);
         Task<int> GetMaxOrderDetailIdAsync();
+        Task<OrderDetail?> GetByIdNoIncludeAsync(int id);
+
+        Task<OrderDetail?> GetByIdWithDetailsAsync(int id, bool asNoTracking = true);
+        Task<List<OrderDetail>> GetByOrderCodeWithDetailsAsync(string orderCode, bool asNoTracking = true);
     }
 
 }

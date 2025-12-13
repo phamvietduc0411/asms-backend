@@ -7,6 +7,7 @@ namespace ASMS.Services.Interfaces
     public interface IEmployeeService
     {
         Task<Employee?> GetByIdAsync(int id);
+        Task<EmployeeDto?> GetByIdDtoAsync(int id);
         Task<Employee> AddEmployeeAsync(CreateEmployeeRequest request);
         Task<Employee> UpdateEmployeeAsync(Employee updateInfo);
         Task<PaginatedList<GetEmployeeResponse>> GetWithFilterAsync(string? roleName,string? status ,int pageNumber, int pageSize);

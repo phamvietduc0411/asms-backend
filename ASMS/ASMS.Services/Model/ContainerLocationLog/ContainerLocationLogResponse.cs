@@ -15,5 +15,12 @@ namespace ASMS.Services.Model.ContainerLocationLog
         public DateOnly? UpdatedDate { get; set; }
         public string? OldFloor { get; set; }
         public string? CurrentFloor { get; set; }
+        public string? Reason { get; set; }
+
+        public string? Algorithm { get; set; }
+
+        public string? Notes { get; set; }
+
+        public int? OrderDetailId { get; set; }
     }
 }

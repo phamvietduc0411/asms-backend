@@ -1,4 +1,5 @@
 ﻿using ASMS.Services.Interfaces;
+using ASMS.Services.Model.OrderStatus;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -172,6 +173,79 @@ namespace ASMS.API.Controllers
             {
                 return StatusCode(500, new { error = ex.Message });
             }
+        }
+        /// <summary>
+        /// Cập nhật hình ảnh cho tracking history mới nhất của đơn hàng
+        /// </summary>
+        /// <param name="request">Thông tin order code và danh sách image URLs</param>
+        /// <returns>Tracking history đã được cập nhật</returns>
+        [HttpPut("tracking/update-image")]
+        public async Task<IActionResult> UpdateLatestTrackingImage([FromBody] UpdateTrackingImageRequest request)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(request.OrderCode))
+                {
+                    return BadRequest(new { message = "OrderCode is required" });
+                }
+
+                var result = await _orderStatusService.UpdateLatestTrackingImageAsync(request);
+
+                if (result == null)
+                {
+                    return NotFound(new { message = $"No tracking history found for order {request.OrderCode}" });
+                }
+
+                return Ok(new
+                {
+                    message = "Tracking image updated successfully",
+                    data = result
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error updating tracking image", error = ex.Message });
+            }
+        }
+        [HttpPut("update-passkey")]
+        public async Task<IActionResult> UpdatePassKey([FromBody] UpdatePassKeyRequest request)
+        {
+            var result = await _orderStatusService.UpdatePassKeyAsync(request);
+
+            if (!result.Success)
+            {
+                return BadRequest(result);
+            }
+
+            return Ok(result);
+        }
+
+        [HttpPut("update-refund")]
+        public async Task<IActionResult> UpdateRefund([FromBody] UpdateRefundRequest request)
+        {
+            var result = await _orderStatusService.UpdateRefundAsync(request);
+
+            if (!result.Success)
+            {
+                return BadRequest(result);
+            }
+
+            return Ok(result);
+        }
+        /// <summary>
+        /// Hủy đơn hàng (chỉ cho phép khi status = pending)
+        /// </summary>
+        [HttpPost("cancel")]
+        public async Task<IActionResult> CancelOrder([FromBody] CancelOrderRequest request)
+        {
+            var result = await _orderStatusService.CancelOrderAsync(request);
+
+            if (!result.Success)
+            {
+                return BadRequest(result);
+            }
+
+            return Ok(result);
         }
     }
 }
