@@ -24,6 +24,9 @@ namespace ASMS.Services.Model.Orders
         public int? StorageTypeId { get; set; }
         public int? ShelfTypeId { get; set; }
         public int? ShelfQuantity { get; set; }
+        public int? Passkey { get; set; } = null;
+
+        public decimal? Refund { get; set; } = 0;
 
         public List<UpdateOrderDetailItemRequest> OrderDetails { get; set; } = new();
     }

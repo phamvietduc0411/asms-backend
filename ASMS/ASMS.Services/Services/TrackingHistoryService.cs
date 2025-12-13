@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using ASMS.Repositories.Entities;
 using ASMS.Repositories.Infrastructures;
@@ -27,7 +28,12 @@ namespace ASMS.Services.Services
             var trackingHistories = await _unitOfWork.TrackingHistories.GetWithFilterAsync(pageNumber, pageSize, orderCode, currentAssign, nextAssign);
             var totalCount = await _unitOfWork.TrackingHistories.GetTotalCountWithFilterAsync(orderCode, currentAssign, nextAssign);
 
-            var mappedHistories = _mapper.Map<List<TrackingHistoryResponse>>(trackingHistories);
+            var mappedHistories = trackingHistories.Select(th =>
+            {
+                var response = _mapper.Map<TrackingHistoryResponse>(th);
+                response.Image = DeserializeImageUrls(th.Image, th.TrackingHistoryId);
+                return response;
+            }).ToList();
 
             return new PaginatedTrackingHistoryResponse
             {
@@ -167,6 +173,23 @@ namespace ASMS.Services.Services
             if (result != null)
             {
                 await _unitOfWork.CompleteAsync();
+            }
+        }
+        /// <summary>
+        /// Helper method để deserialize Image từ JSON string thành List<string>
+        /// </summary>
+        private List<string>? DeserializeImageUrls(string? imageJson, int trackingHistoryId)
+        {
+            if (string.IsNullOrEmpty(imageJson))
+                return new List<string>();
+
+            try
+            {
+                return JsonSerializer.Deserialize<List<string>>(imageJson);
+            }
+            catch (Exception ex)
+            {
+                return new List<string>();
             }
         }
     }

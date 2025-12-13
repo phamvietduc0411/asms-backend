@@ -25,5 +25,7 @@ public partial class ContainerLocationLog
 
     public string? Notes { get; set; }
 
+    public int? OrderDetailId { get; set; }
+
     public virtual Container? ContainerCodeNavigation { get; set; }
 }

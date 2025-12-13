@@ -53,6 +53,7 @@ namespace ASMS.Services.Services
                 Email = c.Email,
                 Message = c.Message,
                 IsActive = c.IsActive,
+                Image = c.Image,
             }).ToList();
 
             return new PaginatedContactResponse
@@ -120,7 +121,8 @@ namespace ASMS.Services.Services
                     Name = request.Name,
                     PhoneContact = request.PhoneContact,
                     Email = request.Email,
-                    Message = request.Message
+                    Message = request.Message,
+                    Image = request.Image
                 };
 
                 await _unitOfWork.Contacts.AddAsync(contact);
@@ -182,6 +184,7 @@ namespace ASMS.Services.Services
                 contact.Email = request.Email ?? contact.Email;
                 contact.Message = request.Message ?? contact.Message;
                 contact.IsActive = request.IsActive ?? contact.IsActive;
+                contact.Image = request.Image ?? contact.Image;
 
                 await _unitOfWork.Contacts.UpdateAsync(contact);
                 await _unitOfWork.CompleteAsync();

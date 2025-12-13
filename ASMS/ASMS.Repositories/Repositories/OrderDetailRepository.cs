@@ -54,6 +54,11 @@ namespace ASMS.Repositories.Repositories
                 .Include(x => x.ContainerCodeNavigation)
                 .FirstOrDefaultAsync(x => x.OrderDetailId == id);
         }
+        public async Task<OrderDetail?> GetByIdNoIncludeAsync(int id)
+        {
+            return await _context.OrderDetails
+                .FirstOrDefaultAsync(x => x.OrderDetailId == id);
+        }
 
         public async Task<List<OrderDetail>> GetByOrderCodeAsync(string orderCode)
         {
@@ -75,6 +80,55 @@ namespace ASMS.Repositories.Repositories
                 return 0;
 
             return await _dbSet.AsNoTracking().MaxAsync(od => od.OrderDetailId);
+        }
+        public async Task<OrderDetail?> GetByIdWithDetailsAsync(int id, bool asNoTracking = true)
+        {
+            try
+            {
+                var query = _dbSet
+                    .Include(od => od.ContainerCodeNavigation)
+                        .ThenInclude(c => c.FloorCodeNavigation)
+                    .Include(od => od.OrderDetailProductTypes)
+                        .ThenInclude(odpt => odpt.ProductType)
+                    .Include(od => od.OrderDetailServices)
+                        .ThenInclude(ods => ods.Service)
+                    .Where(od => od.OrderDetailId == id);
+
+                if (asNoTracking)
+                    query = query.AsNoTracking();
+
+                return await query.FirstOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting order detail by id {Id} with details", id);
+                throw;
+            }
+        }
+
+        public async Task<List<OrderDetail>> GetByOrderCodeWithDetailsAsync(string orderCode, bool asNoTracking = true)
+        {
+            try
+            {
+                var query = _dbSet
+                    .Include(od => od.ContainerCodeNavigation)
+                        .ThenInclude(c => c.FloorCodeNavigation)
+                    .Include(od => od.OrderDetailProductTypes)
+                        .ThenInclude(odpt => odpt.ProductType)
+                    .Include(od => od.OrderDetailServices)
+                        .ThenInclude(ods => ods.Service)
+                    .Where(od => od.OrderCode == orderCode);
+
+                if (asNoTracking)
+                    query = query.AsNoTracking();
+
+                return await query.ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting order details by order code {Code} with details", orderCode);
+                throw;
+            }
         }
     }
 }

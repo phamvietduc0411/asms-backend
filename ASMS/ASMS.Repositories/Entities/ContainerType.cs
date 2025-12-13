@@ -19,5 +19,9 @@ public partial class ContainerType
 
     public decimal? Price { get; set; }
 
+    public int? AvailableQuantityInAc { get; set; }
+
+    public int? AvailableQuantityInNor { get; set; }
+
     public virtual ICollection<Container> Containers { get; set; } = new List<Container>();
 }

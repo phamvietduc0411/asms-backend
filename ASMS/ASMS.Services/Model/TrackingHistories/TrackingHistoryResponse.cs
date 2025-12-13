@@ -16,7 +16,7 @@ namespace ASMS.Services.Model.TrackingHistories
         public DateOnly? CreateAt { get; set; }
         public string? CurrentAssign { get; set; }
         public string? NextAssign { get; set; }
-        public string? Image { get; set; }
+        public List<string>? Image { get; set; }
         public string? OrderCode { get; set; }
     }
 }

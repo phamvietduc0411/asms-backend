@@ -159,11 +159,11 @@ namespace ASMS.API
                     "0 0 * * *",
                     new RecurringJobOptions { TimeZone = vietnamTimeZone });
 
-                recurringJobManager.AddOrUpdate<IOrderMaintenanceService>(
-                    "move-expired-orders",
-                    service => service.MoveOldOverdueOrdersToExpiredStorageAsync(),
-                    "0 1 * * *",
-                    new RecurringJobOptions { TimeZone = vietnamTimeZone });
+                //recurringJobManager.AddOrUpdate<IOrderMaintenanceService>(
+                //    "move-expired-orders",
+                //    service => service.MoveOldOverdueOrdersToExpiredStorageAsync(),
+                //    "0 1 * * *",
+                //    new RecurringJobOptions { TimeZone = vietnamTimeZone });
             }
 
             // Configure the HTTP request pipeline.
@@ -175,10 +175,9 @@ namespace ASMS.API
                     c.SwaggerEndpoint("/swagger/v1/swagger.json", "VStorage API");
                 });
             }
+            app.UseCors("AllowAllOrigins");
             app.UseHttpsRedirection();
             app.UseAuthentication();
-            app.UseAuthorization();
-            app.UseCors("AllowAllOrigins");
             app.UseAuthorization();
             app.MapControllers();
 

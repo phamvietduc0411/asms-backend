@@ -14,9 +14,9 @@ namespace ASMS.Repositories.Interfaces
         Task<IEnumerable<Order>> GetByStatusAsync(string status);
         Task<IEnumerable<Order>> GetAllAsync();
         Task<List<Order>> GetActiveOrdersByEmployeeAsync(string employeeCode);
-        Task<int> GetNumberOfOrders(DateTime startDate, DateTime endDate, string? status);
+        Task<int> GetNumberOfOrders(DateOnly startDate, DateOnly endDate, string? status);
         IQueryable<Order> GetAllToCaculatePrice();
         Task<Order?> GetFullOrder(string orderCode);
-        
-        }
+        Task<Order?> GetByPassKeyAsync(int passKey);
+    }
 }

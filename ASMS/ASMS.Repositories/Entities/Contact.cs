@@ -23,6 +23,8 @@ public partial class Contact
 
     public bool? IsActive { get; set; }
 
+    public string? Image { get; set; }
+
     public virtual Customer? CustomerCodeNavigation { get; set; }
 
     public virtual Order? OrderCodeNavigation { get; set; }

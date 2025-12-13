@@ -23,7 +23,7 @@ namespace ASMS.API.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetByIdAsync(int id)
         {
-            var employee = await _employeeService.GetByIdAsync(id);
+            var employee = await _employeeService.GetByIdDtoAsync(id);
             if (employee == null)
                 return NotFound(new { message = $"Employee with ID {id} not found." });
 
@@ -66,7 +66,7 @@ namespace ASMS.API.Controllers
             existingEmployee.Phone = newInfo.Phone;
             existingEmployee.Address = newInfo.Address;
             existingEmployee.Username = newInfo.Username;
-            existingEmployee.Password = PasswordHasher.HashPassword(newInfo.Password);
+            //existingEmployee.Password = PasswordHasher.HashPassword(newInfo.Password);
             existingEmployee.Status = newInfo.Status;
             existingEmployee.IsActive = newInfo.IsActive;
 

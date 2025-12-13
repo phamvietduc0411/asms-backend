@@ -234,7 +234,8 @@ namespace ASMS.Services.Services
                     Reason = "Container Placement",
                     Algorithm = "CLP",
                     Notes = $"Placed at Layer {request.Layer}, SerialNumber {request.SerialNumber}" +
-                           (request.RequiresRearrangement ? " (with rearrangement)" : "")
+                           (request.RequiresRearrangement ? " (with rearrangement)" : ""),
+                    OrderDetailId = request.OrderDetailId,
                 };
                 await _unitOfWork.ContainerLocationLogs.AddAsync(log);
                 await _unitOfWork.CompleteAsync();
@@ -382,7 +383,7 @@ namespace ASMS.Services.Services
             try
             {
                 var container = await _unitOfWork.Containers.GetByCodeAsync(containerCode);
-                if(container == null)
+                if (container == null)
                 {
                     return new RemoveContainerResponse
                     {
@@ -407,8 +408,52 @@ namespace ASMS.Services.Services
                         BlockingContainerCode = container.ContainerAboveCode
                     };
                 }
+                string? actualOrderCode = null;
+                if (container.OrderDetailId != null)
+                {
+                    var orderDetail = await _unitOfWork.OrderDetails.GetByIdAsync(container.OrderDetailId.Value);
+                    if (orderDetail != null)
+                    {
+                        actualOrderCode = orderDetail.OrderCode;
+                    }
+                }
                 var oldFloor = container.FloorCode;
                 var oldLayer = container.Layer;
+                var oldOrderDetailId = container.OrderDetailId;
+                if (container.ContainerTypeId != null && !string.IsNullOrEmpty(container.FloorCode))
+                {
+                    try
+                    {
+                        var buildingCode = container.FloorCode.Split('-')[0];
+
+                        var building = await _unitOfWork.Building.GetByCodeAsync(buildingCode);
+                        if (building != null)
+                        {
+                            var containerType = container.ContainerType;
+                            if (containerType != null)
+                            {
+                                bool isACBuilding = building.Name?.ToLower().Contains("ac") ?? false;
+
+                                if (isACBuilding)
+                                {
+                                    containerType.AvailableQuantityInAc = (containerType.AvailableQuantityInAc ?? 0) + 1;
+                                }
+                                else
+                                {
+                                    containerType.AvailableQuantityInNor = (containerType.AvailableQuantityInNor ?? 0) + 1;
+                                }
+
+                                await _unitOfWork.ContainerType.UpdateAsync(containerType);
+                               
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        throw ex;
+                        // Continue với removal
+                    }
+                }
                 container.FloorCode = null;
                 container.Status = "Available";
                 container.Layer = null;
@@ -422,14 +467,15 @@ namespace ASMS.Services.Services
                 {
                     //ContainerLocationLogId = logId,
                     ContainerCode = containerCode,
-                    OrderCode = orderCode,
+                    OrderCode = actualOrderCode,
                     PerformedBy = performedBy,
                     UpdatedDate = DateOnly.FromDateTime(DateTime.Now),
                     OldFloor = oldFloor,
                     CurrentFloor = null,
                     Reason = "Container Removal",
                     Algorithm = null,
-                    Notes = $"Removed from Layer {oldLayer}, returned to Available status"
+                    Notes = $"Removed from Layer {oldLayer}, returned to Available status",
+                    OrderDetailId = oldOrderDetailId,
                 };
 
                 await _unitOfWork.ContainerLocationLogs.AddAsync(log);

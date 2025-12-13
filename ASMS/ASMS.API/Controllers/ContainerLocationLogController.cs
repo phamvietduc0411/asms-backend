@@ -18,10 +18,11 @@ namespace ASMS.API.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll(
     [FromQuery] string? containerCode,
+    [FromQuery] int? orderDetailId,
     [FromQuery] int pageNumber = 1,
     [FromQuery] int pageSize = 10)
         {
-            var result = await _service.GetWithFilterAsync(containerCode, pageNumber, pageSize);
+            var result = await _service.GetWithFilterAsync(containerCode, orderDetailId, pageNumber, pageSize);
             return Ok(result);
         }
 

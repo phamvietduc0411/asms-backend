@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Text.Json;
 
 namespace ASMS.Repositories.Entities;
 
@@ -69,6 +67,10 @@ public partial class Order
     public string? Style { get; set; }
 
     public string? BuildingCode { get; set; }
+
+    public int? Passkey { get; set; }
+
+    public decimal? Refund { get; set; }
 
     public virtual ICollection<Contact> Contacts { get; set; } = new List<Contact>();
 

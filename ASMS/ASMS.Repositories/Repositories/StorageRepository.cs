@@ -169,5 +169,17 @@ namespace ASMS.Repositories.Repositories
                 throw;
             }
         }
+        public async Task<List<Storage>> GetAllStorageWithBuilding(bool asNoTracking = true)
+        {
+            var query = _dbSet
+                .Include(s => s.StorageType)
+                .Include(s => s.Building)
+                .AsQueryable();
+
+            if (asNoTracking)
+                query = query.AsNoTracking();
+
+            return await query.ToListAsync();
+        }
     }
 }

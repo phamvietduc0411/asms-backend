@@ -20,5 +20,6 @@ namespace ASMS.Repositories.Interfaces
         Task<Storage?> GetByCodeAsNoTrackingAsync(string storageCode);
         Task<Storage?> GetByCodeWithoutIncludesAsync(string storageCode);
         Task<List<Storage>> GetAllAsNoTrackingAsync();
+        Task<List<Storage>> GetAllStorageWithBuilding(bool asNoTracking = true);
     }
 }

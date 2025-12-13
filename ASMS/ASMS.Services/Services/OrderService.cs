@@ -427,6 +427,17 @@ namespace ASMS.Services.Services
             await _unitOfWork.CompleteAsync();
 
             await CreateInitialTrackingHistoryAsync(orderCode, request.Style);
+            if (request.Style?.ToLower() == "full")
+            {
+                try
+                {
+                    await UpdateContainerTypeQuantityAsync(request.OrderDetails, isIncrement: false);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"Error updating container type quantity for order {orderCode}");
+                }
+            }
 
             if (request.Style?.ToLower() == "self")
             {
@@ -536,6 +547,17 @@ namespace ASMS.Services.Services
             }
 
             await _unitOfWork.CompleteAsync();
+            if (oldStyle == "full" && detailsToDelete.Any())
+            {
+                try
+                {
+                    await RestoreContainerTypeQuantityFromOldDetailsAsync(detailsToDelete);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"Error restoring container type quantity from deleted details");
+                }
+            }
 
             var orderDetailResponses = new List<OrderDetailItemResponse>();
             bool? isPlacedValue = DetermineIsPlacedByStyle(request.Style);
@@ -545,6 +567,7 @@ namespace ASMS.Services.Services
 
             var productTypesToAdd = new List<OrderDetailProductType>();
             var servicesToAdd = new List<ASMS.Repositories.Entities.OrderDetailService>();
+            var oldDetailsToRestore = new List<(OrderDetail detail, List<OrderDetailProductType> productTypes)>();
 
             foreach (var detailRequest in request.OrderDetails)
             {
@@ -555,6 +578,11 @@ namespace ASMS.Services.Services
                 {
                     orderDetailId = detailRequest.OrderDetailId.Value;
                     orderDetail = existingDetails.First(od => od.OrderDetailId == orderDetailId);
+                    if (oldStyle == "full")
+                    {
+                        var oldProductTypes = await _unitOfWork.OrderDetailProductTypes.GetByOrderDetailIdAsync(orderDetailId);
+                        oldDetailsToRestore.Add((orderDetail, oldProductTypes));
+                    }
 
                     orderDetail.StorageCode = detailRequest.StorageCode;
                     orderDetail.ContainerCode = detailRequest.ContainerCode;
@@ -706,7 +734,40 @@ namespace ASMS.Services.Services
                     Height = detailRequest.Height,
                 });
             }
+            if (oldStyle == "full" && oldDetailsToRestore.Any())
+            {
+                try
+                {
+                    foreach (var (detail, productTypes) in oldDetailsToRestore)
+                    {
+                        if (detail.ContainerType == null || detail.ContainerQuantity == null)
+                            continue;
 
+                        var containerType = await _unitOfWork.ContainerType.GetByIdAsync(detail.ContainerType.Value);
+                        if (containerType == null) continue;
+
+                        bool needAC = productTypes.Any(pt => pt.ProductTypeId == 3);
+                        int quantityRestore = detail.ContainerQuantity.Value;
+
+                        if (needAC)
+                        {
+                            containerType.AvailableQuantityInAc = (containerType.AvailableQuantityInAc ?? 0) + quantityRestore;
+                        }
+                        else
+                        {
+                            containerType.AvailableQuantityInNor = (containerType.AvailableQuantityInNor ?? 0) + quantityRestore;
+                        }
+
+                        await _unitOfWork.ContainerType.UpdateAsync(containerType);
+                    }
+
+                    await _unitOfWork.CompleteAsync();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"Error restoring container type quantity from updated details");
+                }
+            }
             foreach (var productType in productTypesToAdd)
             {
                 await _unitOfWork.OrderDetailProductTypes.AddAsync(productType);
@@ -718,6 +779,28 @@ namespace ASMS.Services.Services
             }
 
             await _unitOfWork.CompleteAsync();
+            if (newStyle == "full")
+            {
+                try
+                {
+                    await UpdateContainerTypeQuantityAsync(request.OrderDetails, isIncrement: false);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"Error updating container type quantity for order {orderCode}");
+                }
+            }
+            if (oldStyle == "full" && newStyle != "full")
+            {
+                try
+                {
+                    await RestoreContainerTypeQuantityFromOldDetailsAsync(existingDetails);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"Error restoring container type quantity when changing style");
+                }
+            }
 
             if (newStyle == "self")
             {
@@ -1243,6 +1326,108 @@ namespace ASMS.Services.Services
             if (normalizedStyle == "full") return "full";
 
             return "self_with_delivery";
+        }
+        /// <summary>
+        /// Update ContainerType quantity khi tạo/update order với style="full"
+        /// </summary>
+        private async Task UpdateContainerTypeQuantityAsync(
+            List<OrderDetailItemRequest> orderDetails,
+            bool isIncrement = false)
+        {
+            foreach (var detail in orderDetails)
+            {
+                if (detail.ContainerType == null || detail.ContainerQuantity == null)
+                    continue;
+
+                var containerType = await _unitOfWork.ContainerType.GetByIdAsync(detail.ContainerType.Value);
+                if (containerType == null)
+                {
+                    _logger.LogWarning($"ContainerType {detail.ContainerType} not found");
+                    continue;
+                }
+
+                bool needAC = detail.ProductTypeIds?.Contains(3) ?? false;
+                int quantityChange = detail.ContainerQuantity.Value * (isIncrement ? 1 : -1);
+
+                if (needAC)
+                {
+                    containerType.AvailableQuantityInAc = (containerType.AvailableQuantityInAc ?? 0) + quantityChange;
+                }
+                else
+                {
+                    containerType.AvailableQuantityInNor = (containerType.AvailableQuantityInNor ?? 0) + quantityChange;
+                }
+
+                await _unitOfWork.ContainerType.UpdateAsync(containerType);
+            }
+
+            await _unitOfWork.CompleteAsync();
+        }
+        private async Task UpdateContainerTypeQuantityAsync(
+    List<UpdateOrderDetailItemRequest> orderDetails,
+    bool isIncrement = false)
+        {
+            foreach (var detail in orderDetails)
+            {
+                if (detail.ContainerType == null || detail.ContainerQuantity == null)
+                    continue;
+
+                var containerType = await _unitOfWork.ContainerType.GetByIdAsync(detail.ContainerType.Value);
+                if (containerType == null)
+                {
+                    _logger.LogWarning($"ContainerType {detail.ContainerType} not found");
+                    continue;
+                }
+
+                bool needAC = detail.ProductTypeIds?.Contains(3) ?? false;
+                int quantityChange = detail.ContainerQuantity.Value * (isIncrement ? 1 : -1);
+
+                if (needAC)
+                {
+                    containerType.AvailableQuantityInAc = (containerType.AvailableQuantityInAc ?? 0) + quantityChange;
+                }
+                else
+                {
+                    containerType.AvailableQuantityInNor = (containerType.AvailableQuantityInNor ?? 0) + quantityChange;
+                }
+
+                await _unitOfWork.ContainerType.UpdateAsync(containerType);
+            }
+
+            await _unitOfWork.CompleteAsync();
+        }
+
+        /// <summary>
+        /// Restore ContainerType quantity từ OrderDetails cũ
+        /// </summary>
+        private async Task RestoreContainerTypeQuantityFromOldDetailsAsync(List<OrderDetail> oldDetails)
+        {
+            foreach (var detail in oldDetails)
+            {
+                if (detail.ContainerType == null || detail.ContainerQuantity == null)
+                    continue;
+
+                var containerType = await _unitOfWork.ContainerType.GetByIdAsync(detail.ContainerType.Value);
+                if (containerType == null) continue;
+
+                var productTypes = await _unitOfWork.OrderDetailProductTypes.GetByOrderDetailIdAsync(detail.OrderDetailId);
+                bool needAC = productTypes.Any(pt => pt.ProductTypeId == 3);
+
+                int quantityRestore = detail.ContainerQuantity.Value;
+
+                if (needAC)
+                {
+                    containerType.AvailableQuantityInAc = (containerType.AvailableQuantityInAc ?? 0) + quantityRestore;
+                }
+                else
+                {
+                    containerType.AvailableQuantityInNor = (containerType.AvailableQuantityInNor ?? 0) + quantityRestore;
+                }
+
+                await _unitOfWork.ContainerType.UpdateAsync(containerType);
+            }
+
+            await _unitOfWork.CompleteAsync();
         }
 
         private DateOnly GetVietnamToday()

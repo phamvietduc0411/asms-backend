@@ -16,21 +16,33 @@ namespace ASMS.API.Controllers
             _dashBoardService = dashBoardService;
         }
 
-        [HttpGet("Get-Number-of-Oders")]
-        public async Task<IActionResult> GetNumberOfOrders([FromQuery] DateOnly? date,[FromQuery] string? status,[FromQuery] bool isWeekly = false)
+        [HttpGet("Get-Number-of-Orders")]
+        public async Task<IActionResult> GetNumberOfOrders(
+    [FromQuery] DateOnly? date,
+    [FromQuery] string? status,
+    [FromQuery] string type = "month")
         {
             try
             {
-                var targetDate = date ?? DateOnly.FromDateTime(DateTime.Today);
+                type = type.ToLower();
 
-                var numberOfOrders = await _dashBoardService.GetOrderStatisticsAsync(targetDate, status, isWeekly);
+                // Validation
+                if (type != "day" && type != "week" && type != "month" && type != "year")
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = "Type must be 'day', 'week', 'month', or 'year'"
+                    });
+                }
+
+                var targetDate = date ?? DateOnly.FromDateTime(DateTime.Today);
+                var result = await _dashBoardService.GetOrderStatisticsAsync(targetDate, status, type);
 
                 return Ok(new
                 {
                     success = true,
-                    date = targetDate.ToString("yyyy-MM-dd"),
-                    isWeekly,
-                    data = numberOfOrders
+                    data = result
                 });
             }
             catch (Exception ex)
@@ -47,6 +59,14 @@ namespace ASMS.API.Controllers
             try
             {
                 type = type.ToLower();
+                if (type != "day" && type != "week" && type != "month" && type != "year")
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = "Type must be 'day', 'week', 'month', or 'year'"
+                    });
+                }
                 var targetDate = date ?? DateOnly.FromDateTime(DateTime.Today);
 
                 var revenue = await _dashBoardService.GetRevenueAsync(targetDate, type);
@@ -64,13 +84,34 @@ namespace ASMS.API.Controllers
                 return StatusCode(500, new { success = false, message = ex.Message });
             }
         }
+        /// <summary>
+        /// Get warehouse usage grouped by Building
+        /// </summary>
+        [HttpGet("building-usage-summary")]
+        public async Task<IActionResult> GetBuildingUsageSummaryAsync()
+        {
+            try
+            {
+                var usage = await _dashBoardService.GetBuildingUsageSummaryAsync();
+                return Ok(new
+                {
+                    success = true,
+                    data = usage
+                });
+            }
+            catch (Exception ex)
+            {
+
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
         [HttpGet("warehouse-usage-percent")]
         public async Task<IActionResult> GetWarehouseUsagePercentAsync()
         {
             try
             {
                 var usage = await _dashBoardService.GetWarehouseUsagePercentAsync();
-
                 return Ok(new
                 {
                     success = true,
