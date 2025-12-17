@@ -18,5 +18,6 @@ namespace ASMS.Repositories.Interfaces
         IQueryable<Order> GetAllToCaculatePrice();
         Task<Order?> GetFullOrder(string orderCode);
         Task<Order?> GetByPassKeyAsync(int passKey);
+        Task<List<Order>> GetByStatusStartsWithAsync(string statusPrefix);
     }
 }

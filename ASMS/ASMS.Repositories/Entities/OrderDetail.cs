@@ -39,6 +39,8 @@ public partial class OrderDetail
 
     public decimal? Height { get; set; }
 
+    public string? ShortCode { get; set; }
+
     public virtual Container? ContainerCodeNavigation { get; set; }
 
     public virtual Order? OrderCodeNavigation { get; set; }

@@ -233,7 +233,7 @@ namespace ASMS.API.Controllers
             return Ok(result);
         }
         /// <summary>
-        /// Hủy đơn hàng (chỉ cho phép khi status = pending)
+        /// Hủy đơn hàng 
         /// </summary>
         [HttpPost("cancel")]
         public async Task<IActionResult> CancelOrder([FromBody] CancelOrderRequest request)
@@ -246,6 +246,36 @@ namespace ASMS.API.Controllers
             }
 
             return Ok(result);
+        }
+        /// <summary>
+        /// Cập nhật số ngày trong kho quá hạn (Backup cho background job)
+        /// </summary>
+        /// <remarks>
+        /// Endpoint backup để manual trigger update số ngày trong expired storage.
+        /// Thường được chạy tự động bởi Hangfire job hàng ngày lúc 00:00.
+        /// </remarks>
+        [HttpPost("update-expired-storage-days")]
+        public async Task<IActionResult> UpdateExpiredStorageDays()
+        {
+            try
+            {
+                await _orderStatusService.UpdateExpiredStorageDaysAsync();
+
+                return Ok(new
+                {
+                    Success = true,
+                    Message = "Đã cập nhật số ngày trong kho quá hạn thành công"
+                });
+            }
+            catch (Exception ex)
+            {
+
+                return BadRequest(new
+                {
+                    Success = false,
+                    Message = $"Lỗi cập nhật số ngày trong kho quá hạn: {ex.Message}"
+                });
+            }
         }
     }
 }

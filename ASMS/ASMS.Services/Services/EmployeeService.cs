@@ -48,11 +48,21 @@ namespace ASMS.Services.Services
             return entity;
         }
 
-        public async Task<Employee> UpdateEmployeeAsync(Employee updateInfo)
+        public async Task<EmployeeDto?> UpdateEmployeeAsync(int id, UpdateEmployeeRequest updateInfo)
         {
-            await _unitOfWork.Employee.UpdateAsync(updateInfo);
+            var existingEmployee = await _unitOfWork.Employee.GetEntityByIdForUpdateAsync(id);
+            if (existingEmployee == null)
+            {
+                return null;
+            }
+
+            _mapper.Map(updateInfo, existingEmployee);
+
+            await _unitOfWork.Employee.UpdateAsync(existingEmployee);
             await _unitOfWork.CompleteAsync();
-            return updateInfo;
+
+            var updatedEmployee = await _unitOfWork.Employee.GetEntityByIdAsync(id);
+            return _mapper.Map<EmployeeDto>(updatedEmployee);
         }
         public async Task<PaginatedList<GetEmployeeResponse>> GetWithFilterAsync(string? roleName,string? status ,int pageNumber, int pageSize)
         {
@@ -74,6 +84,25 @@ namespace ASMS.Services.Services
         {
             var employee = await _unitOfWork.Employee.GetAvailableDeliveryForOrder();
             return employee;
+        }
+        public async Task<bool> SoftDeleteAsync(int id)
+        {
+            var existingEmployee = await _unitOfWork.Employee.GetEntityByIdAsync(id);
+            if (existingEmployee == null)
+            {
+                return false;
+            }
+
+            existingEmployee.IsActive = false;
+
+            //existingEmployee.EmployeeRole = null;
+            //existingEmployee.Building = null;
+            //existingEmployee.RefreshTokens = null;
+
+            await _unitOfWork.Employee.UpdateAsync(existingEmployee);
+            await _unitOfWork.CompleteAsync();
+
+            return true;
         }
     }
 }

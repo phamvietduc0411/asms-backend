@@ -34,10 +34,16 @@ namespace ASMS.Services.Services
                 response.Image = DeserializeImageUrls(th.Image, th.TrackingHistoryId);
                 return response;
             }).ToList();
-
+            string? currentStatus = null;
+            if (!string.IsNullOrEmpty(orderCode))
+            {
+                var order = await _unitOfWork.Orders.GetByCodeAsync(orderCode);
+                currentStatus = order?.Status;
+            }
             return new PaginatedTrackingHistoryResponse
             {
                 Data = mappedHistories,
+                CurrentStatus = currentStatus,
                 Page = pageNumber,
                 PageSize = pageSize,
                 TotalCount = totalCount,

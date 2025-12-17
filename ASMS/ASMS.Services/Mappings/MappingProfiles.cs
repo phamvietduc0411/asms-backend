@@ -237,6 +237,13 @@ namespace ASMS.Services.Mappings
                     opt => opt.MapFrom(src => src.EmployeeRole != null ? src.EmployeeRole.Name : null))
                 .ForMember(dest => dest.BuildingName,
                     opt => opt.MapFrom(src => src.Building != null ? src.Building.Name : null));
+            CreateMap<UpdateEmployeeRequest, Repositories.Entities.Employee>()
+            .ForMember(dest => dest.EmployeeRoleId, opt => opt.MapFrom(src => src.EmployeeRoleId))
+            .ForMember(dest => dest.Password, opt => opt.Ignore())
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.EmployeeRole, opt => opt.Ignore())
+            .ForMember(dest => dest.Building, opt => opt.Ignore())
+            .ForMember(dest => dest.RefreshTokens, opt => opt.Ignore());
         }
 
 

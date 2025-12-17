@@ -164,6 +164,11 @@ namespace ASMS.API
                 //    service => service.MoveOldOverdueOrdersToExpiredStorageAsync(),
                 //    "0 1 * * *",
                 //    new RecurringJobOptions { TimeZone = vietnamTimeZone });
+                recurringJobManager.AddOrUpdate<IOrderStatusService>(
+    "update-expired-storage-days",
+    service => service.UpdateExpiredStorageDaysAsync(),
+    "0 0 * * *",
+    new RecurringJobOptions { TimeZone = vietnamTimeZone });
             }
 
             // Configure the HTTP request pipeline.

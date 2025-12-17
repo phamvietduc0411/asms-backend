@@ -39,6 +39,7 @@ namespace ASMS.Repositories.Infrastructures
         IShippingRateRepository ShippingRates { get; }
         IContactRepository Contacts { get; }
         IBusinessRuleRepository BusinessRules { get; }
+        IShortLinkRepository ShortLinks { get; }
         Task CompleteAsync();
     }
 }

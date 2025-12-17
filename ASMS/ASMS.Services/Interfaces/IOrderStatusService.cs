@@ -49,5 +49,6 @@ namespace ASMS.Services.Interfaces
         Task<UpdatePassKeyResponse> UpdatePassKeyAsync(UpdatePassKeyRequest request);
         Task<UpdateRefundResponse> UpdateRefundAsync(UpdateRefundRequest request);
         Task<CancelOrderResponse> CancelOrderAsync(CancelOrderRequest request);
+        Task UpdateExpiredStorageDaysAsync();
     }
 }

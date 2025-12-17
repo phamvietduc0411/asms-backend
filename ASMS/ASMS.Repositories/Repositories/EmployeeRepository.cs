@@ -54,6 +54,11 @@ namespace ASMS.Repositories.Repositories
                 .Include(e => e.EmployeeRole)
                 .FirstOrDefaultAsync(e => e.Id == id);
         }
+        public virtual async Task<Employee?> GetEntityByIdForUpdateAsync(int id)
+        {
+            return await _dbSet
+                .FirstOrDefaultAsync(e => e.Id == id);
+        }
         public async Task<IEnumerable<Employee>> GetByRoleAsync(string roleName)
         {
             return await _dbSet

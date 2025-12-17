@@ -9,6 +9,7 @@ namespace ASMS.Services.Model.TrackingHistories
     public class PaginatedTrackingHistoryResponse
     {
         public List<TrackingHistoryResponse> Data { get; set; }
+        public string? CurrentStatus { get; set; }
         public int Page { get; set; }
         public int PageSize { get; set; }
         public int TotalCount { get; set; }

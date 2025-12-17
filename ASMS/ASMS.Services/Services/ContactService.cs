@@ -2,13 +2,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using ASMS.Repositories.Entities;
 using ASMS.Repositories.Infrastructures;
 using ASMS.Services.Interfaces;
+using ASMS.Services.Model.Authentication;
 using ASMS.Services.Model.Contact;
+using ASMS.Services.Utilities;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace ASMS.Services.Services
 {
@@ -17,15 +21,21 @@ namespace ASMS.Services.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly ILogger<ContactService> _logger;
+        private readonly IPasswordService _passwordService;
+        private readonly ProjectMailConfig _mailConfig;
 
         public ContactService(
             IUnitOfWork unitOfWork,
             IMapper mapper,
-            ILogger<ContactService> logger)
+            ILogger<ContactService> logger,
+            IPasswordService passwordService,
+            IOptions<ProjectMailConfig> mailConfig)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _logger = logger;
+            _passwordService = passwordService;
+            _mailConfig = mailConfig.Value;
         }
 
         public async Task<PaginatedContactResponse> GetWithFilterAsync(
@@ -53,7 +63,9 @@ namespace ASMS.Services.Services
                 Email = c.Email,
                 Message = c.Message,
                 IsActive = c.IsActive,
-                Image = c.Image,
+                Image = DeserializeImageUrls(c.Image, c.ContactId),
+                ContactDate = c.ContactDate, 
+                RetrievedDate = c.RetrievedDate 
             }).ToList();
 
             return new PaginatedContactResponse
@@ -83,7 +95,11 @@ namespace ASMS.Services.Services
                 Name = contact.Name,
                 PhoneContact = contact.PhoneContact,
                 Email = contact.Email,
-                Message = contact.Message
+                Message = contact.Message,
+                IsActive = contact.IsActive,
+                Image = DeserializeImageUrls(contact.Image, contact.ContactId),
+                ContactDate = contact.ContactDate,
+                RetrievedDate = contact.RetrievedDate 
             };
         }
 
@@ -112,6 +128,19 @@ namespace ASMS.Services.Services
                         throw new ArgumentException($"Order {request.OrderCode} not found");
                     }
                 }
+                string? imageJson = null;
+                if (request.Image != null && request.Image.Any())
+                {
+                    try
+                    {
+                        imageJson = JsonSerializer.Serialize(request.Image);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Error serializing ImageUrls for contact creation");
+                    }
+                }
+
 
                 var contact = new Contact
                 {
@@ -122,7 +151,9 @@ namespace ASMS.Services.Services
                     PhoneContact = request.PhoneContact,
                     Email = request.Email,
                     Message = request.Message,
-                    Image = request.Image
+                    Image = imageJson,
+                    ContactDate = request.ContactDate ?? GetVietnamToday(),
+                    RetrievedDate = request.RetrievedDate
                 };
 
                 await _unitOfWork.Contacts.AddAsync(contact);
@@ -136,6 +167,67 @@ namespace ASMS.Services.Services
             {
                 _logger.LogError(ex, "Error creating contact");
                 throw;
+            }
+        }
+        /// <summary>
+        /// Tạo contact và gửi email xác nhận
+        /// </summary>
+        public async Task<ContactResponse> CreateWithEmailAsync(CreateContactRequest request)
+        {
+            try
+            {
+                var contactResponse = await CreateAsync(request);
+
+                if (!string.IsNullOrEmpty(request.Email))
+                {
+                    try
+                    {
+                        await SendContactConfirmationEmailAsync(request);
+                        _logger.LogInformation($"Confirmation email sent to {request.Email}");
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, $"Error sending confirmation email to {request.Email}");
+                    }
+                }
+
+                return contactResponse;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating contact with email");
+                throw;
+            }
+        }
+        /// <summary>
+        /// Gửi email xác nhận khi tạo contact refund/báo hư hại
+        /// </summary>
+        private async Task<bool> SendContactConfirmationEmailAsync(CreateContactRequest request)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(request.Email)) return false;
+
+                string emailContent = EmailTemplates.ContactRefundRequest(
+                    request.Name ?? "Khách hàng",
+                    request.Message ?? "",
+                    request.OrderCode,
+                    request.Image,
+                    _mailConfig.Email
+                );
+
+                await _passwordService.SendEmailAsync(
+                    request.Email,
+                    $"Xác nhận yêu cầu Refund - Đơn hàng {request.OrderCode ?? "N/A"}",
+                    emailContent
+                );
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error sending contact refund email");
+                return false;
             }
         }
 
@@ -174,6 +266,18 @@ namespace ASMS.Services.Services
                         throw new ArgumentException($"Order {request.OrderCode} not found");
                     }
                 }
+                string? imageJson = null;
+                if (request.Image != null && request.Image.Any())
+                {
+                    try
+                    {
+                        imageJson = JsonSerializer.Serialize(request.Image);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, $"Error serializing ImageUrls for contact {contactId}");
+                    }
+                }
 
                 // Update fields
                 contact.CustomerCode = request.CustomerCode ?? contact.CustomerCode;
@@ -184,7 +288,19 @@ namespace ASMS.Services.Services
                 contact.Email = request.Email ?? contact.Email;
                 contact.Message = request.Message ?? contact.Message;
                 contact.IsActive = request.IsActive ?? contact.IsActive;
-                contact.Image = request.Image ?? contact.Image;
+                if (imageJson != null)
+                {
+                    contact.Image = imageJson;
+                }
+                if (request.ContactDate.HasValue)
+                {
+                    contact.ContactDate = request.ContactDate;
+                }
+
+                if (request.RetrievedDate.HasValue)
+                {
+                    contact.RetrievedDate = request.RetrievedDate;
+                }
 
                 await _unitOfWork.Contacts.UpdateAsync(contact);
                 await _unitOfWork.CompleteAsync();
@@ -233,6 +349,52 @@ namespace ASMS.Services.Services
                 throw;
             }
         }
+
+        /// <summary>
+        /// Helper method để deserialize Image từ JSON string thành List<string>
+        /// </summary>
+        private List<string>? DeserializeImageUrls(string? imageJson, int contactId)
+        {
+            if (string.IsNullOrEmpty(imageJson))
+                return new List<string>();
+
+            try
+            {
+                return JsonSerializer.Deserialize<List<string>>(imageJson);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, $"Error deserializing ImageUrls for contact {contactId}");
+                return new List<string>();
+            }
+        }
+        /// <summary>
+        /// Lấy ngày hiện tại theo múi giờ Việt Nam
+        /// </summary>
+        private DateOnly GetVietnamToday()
+        {
+            try
+            {
+                var vietnamTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+                var vietnamNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vietnamTimeZone);
+                return DateOnly.FromDateTime(vietnamNow);
+            }
+            catch (TimeZoneNotFoundException)
+            {
+                try
+                {
+                    var vietnamTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh");
+                    var vietnamNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vietnamTimeZone);
+                    return DateOnly.FromDateTime(vietnamNow);
+                }
+                catch
+                {
+                    var vietnamNow = DateTime.UtcNow.AddHours(7);
+                    return DateOnly.FromDateTime(vietnamNow);
+                }
+            }
+        }
+
 
     }
 }

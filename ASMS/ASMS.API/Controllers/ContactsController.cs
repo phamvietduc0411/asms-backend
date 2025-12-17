@@ -110,6 +110,15 @@ namespace ASMS.API.Controllers
                 return StatusCode(500, new { message = ex.Message });
             }
         }
+        /// <summary>
+        /// Tạo contact mới và gửi email xác nhận cho refund
+        /// </summary>
+        [HttpPost("with-email")]
+        public async Task<ActionResult<ContactResponse>> CreateContactWithEmail([FromBody] CreateContactRequest request)
+        {
+            var result = await _contactService.CreateWithEmailAsync(request);
+            return CreatedAtAction(nameof(GetById), new { id = result.ContactId }, result);
+        }
 
     }
 }

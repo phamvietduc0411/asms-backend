@@ -137,5 +137,100 @@ namespace ASMS.Services.Utilities
     </div>
 </body>
 </html>";
+        /// <summary>
+        /// Email thông báo khi khách hàng gửi yêu cầu refund/báo hư hại
+        /// </summary>
+        public static string ContactRefundRequest(string customerName, string message, string? orderCode, List<string>? imageUrls, string supportEmail)
+        {
+            var orderInfo = !string.IsNullOrEmpty(orderCode)
+                ? $"<p><strong>Mã đơn hàng:</strong> {orderCode}</p>"
+                : "";
+
+            var imagesHtml = "";
+            if (imageUrls != null && imageUrls.Any())
+            {
+                imagesHtml = @"
+            <div style='margin: 15px 0;'>
+                <p><strong>Hình ảnh minh chứng:</strong></p>
+                <div style='display: flex; flex-wrap: wrap; gap: 10px;'>";
+
+                foreach (var imageUrl in imageUrls)
+                {
+                    imagesHtml += $@"
+                    <div style='width: 150px; height: 150px; border: 1px solid #ddd; overflow: hidden;'>
+                        <img src='{imageUrl}' alt='Evidence' style='width: 100%; height: 100%; object-fit: cover;'>
+                    </div>";
+                }
+
+                imagesHtml += @"
+                </div>
+            </div>";
+            }
+
+            return $@"
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='UTF-8'>
+    <style>
+        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+        .header {{ background-color: #f44336; color: white; padding: 20px; text-align: center; }}
+        .content {{ background-color: #f9f9f9; padding: 20px; margin: 20px 0; }}
+        .alert-box {{ background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 15px 0; }}
+        .message-box {{ background-color: white; border-left: 4px solid #f44336; padding: 15px; margin: 15px 0; }}
+        .info-box {{ background-color: #e3f2fd; border-left: 4px solid #2196F3; padding: 15px; margin: 15px 0; }}
+        .footer {{ text-align: center; color: #666; font-size: 12px; margin-top: 20px; }}
+        .btn {{ display: inline-block; padding: 10px 20px; background-color: #f44336; color: white; text-decoration: none; border-radius: 5px; margin-top: 15px; }}
+    </style>
+</head>
+<body>
+    <div class='container'>
+        <div class='header'>
+            <h1>⚠️ Yêu cầu Refund/Báo hư hại</h1>
+        </div>
+        
+        <div class='content'>
+            <p>Xin chào <strong>{customerName}</strong>,</p>
+            
+            <p>Chúng tôi đã nhận được yêu cầu refund/báo hư hại của bạn. Đội ngũ VStorage ASMS sẽ kiểm tra và xử lý trong vòng <strong>24-48 giờ</strong>.</p>
+            
+            {orderInfo}
+            
+            <div class='message-box'>
+                <p><strong>Nội dung báo cáo:</strong></p>
+                <p>{message}</p>
+            </div>
+            
+            {imagesHtml}
+            
+            <div class='info-box'>
+                <p><strong>Quy trình xử lý:</strong></p>
+                <ol>
+                    <li>Đội ngũ kỹ thuật sẽ kiểm tra hình ảnh và nội dung báo cáo</li>
+                    <li>Xác định mức độ hư hại và trách nhiệm</li>
+                    <li>Tính toán số tiền refund (nếu có)</li>
+                    <li>Thông báo kết quả và tiến hành hoàn tiền</li>
+                </ol>
+            </div>
+            
+            <div class='alert-box'>
+                <p><strong>Lưu ý:</strong> Vui lòng giữ nguyên hiện trạng hàng hóa cho đến khi có nhân viên đến kiểm tra (nếu cần thiết).</p>
+            </div>
+            
+            <p>Mọi thắc mắc vui lòng liên hệ: <a href='mailto:{supportEmail}'>{supportEmail}</a></p>
+            
+            <p>Trân trọng,<br>
+            <strong>VStorage ASMS Support Team</strong></p>
+        </div>
+        
+        <div class='footer'>
+            <p>Email này được gửi tự động. Vui lòng không trả lời email này.</p>
+            <p>&copy; 2025 VStorage ASMS. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>";
+        }
     }
 }

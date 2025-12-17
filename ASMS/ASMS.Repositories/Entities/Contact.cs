@@ -25,6 +25,10 @@ public partial class Contact
 
     public string? Image { get; set; }
 
+    public DateOnly? ContactDate { get; set; }
+
+    public DateOnly? RetrievedDate { get; set; }
+
     public virtual Customer? CustomerCodeNavigation { get; set; }
 
     public virtual Order? OrderCodeNavigation { get; set; }

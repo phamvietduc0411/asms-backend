@@ -130,6 +130,61 @@ namespace ASMS.Services.Services
                 {
                     throw new InvalidOperationException($"Order {orderCode} not found");
                 }
+                if (order.Status?.ToLower() == "waiting refund")
+                {
+                    var oldWaitingStatus = order.Status;
+                    order.Status = "refunded";
+                    await _unitOfWork.Orders.UpdateAsync(order);
+
+                    await AddTrackingHistoryAsync(
+                        orderCode: orderCode,
+                        oldStatus: oldWaitingStatus,
+                        newStatus: "refunded",
+                        actionType: "Refund Completed"
+                    );
+
+                    await _unitOfWork.CompleteAsync();
+                    _logger.LogInformation($"Order {orderCode} refunded successfully");
+                    return;
+                }
+
+                if (order.Status?.ToLower() == "refunded")
+                {
+                    // Tìm status trước khi waiting refund
+                    var trackingHistories = await _unitOfWork.TrackingHistories.GetByOrderCodeAsync(orderCode);
+                    var waitingRefundTracking = trackingHistories
+                        .Where(th => th.NewStatus?.ToLower() == "waiting refund")
+                        .OrderByDescending(th => th.CreateAt)
+                        .ThenByDescending(th => th.TrackingHistoryId)
+                        .FirstOrDefault();
+
+                    string? statusBeforeRefund = waitingRefundTracking?.OldStatus;
+                    string? employeeBeforeRefund = waitingRefundTracking?.CurrentAssign;
+
+                    if (!string.IsNullOrEmpty(statusBeforeRefund))
+                    {
+                        var oldSRefunddedtatus = order.Status;
+                        order.Status = statusBeforeRefund;
+                        await _unitOfWork.Orders.UpdateAsync(order);
+
+                        await AddTrackingHistoryAsync(
+                            orderCode: orderCode,
+                            oldStatus: oldSRefunddedtatus,
+                            newStatus: statusBeforeRefund,
+                            actionType: $"Resume Workflow After Refund - Back to {statusBeforeRefund}",
+                            nextAssign: employeeBeforeRefund
+                        );
+
+                        await _unitOfWork.CompleteAsync();
+                        _logger.LogInformation($"Order {orderCode} resumed to {statusBeforeRefund}");
+                        return;
+                    }
+                    else
+                    {
+                        _logger.LogWarning($"Cannot find status before refund for order {orderCode}");
+                        return;
+                    }
+                }
 
                 // Bỏ qua nếu đang ở trạng thái Waiting for Payment
                 if (order.Status?.ToLower() == "waiting for payment")
@@ -137,46 +192,98 @@ namespace ASMS.Services.Services
                     _logger.LogWarning($"Order {orderCode} is in 'Waiting for Payment' status. Cannot update to next status.");
                     return;
                 }
+                if (order.Status?.ToLower().StartsWith("store in expired storage") == true)
+                {
+                    var previousStatus = order.Status;
+                    order.Status = "retrieved";
 
+                    await _unitOfWork.Orders.UpdateAsync(order);
+
+                    var retrievalActionType = "Customer Retrieved from Expired Storage";
+
+                    await AddTrackingHistoryAsync(
+                        orderCode: orderCode,
+                        oldStatus: previousStatus,
+                        newStatus: "retrieved",
+                        actionType: retrievalActionType
+                    );
+
+                    await _unitOfWork.CompleteAsync();
+
+                    _logger.LogInformation($"Order {orderCode} retrieved from expired storage");
+                    return;
+
+                }
                 // Lấy workflow phù hợp
                 var workflow = await GetWorkflowForOrderAsync(order);
-                var currentIndex = workflow.IndexOf(order.Status?.ToLower() ?? "new");
+                //var currentIndex = workflow.IndexOf(order.Status?.ToLower() ?? "new");
+                //if (currentIndex == -1)
+                //{
+                //    throw new InvalidOperationException($"Current status '{order.Status}' not found in workflow");
+                //}
+
+
+                //if (currentIndex == -1)
+                //{
+                //    if (order.Status?.ToLower().StartsWith("store in expired storage") == true)
+                //    {
+                //        var previousStatus = order.Status;
+                //        order.Status = "retrieved";
+
+                //        await _unitOfWork.Orders.UpdateAsync(order);
+
+                //        var retrievalActionType = "Customer Retrieved from Expired Storage";
+
+                //        await AddTrackingHistoryAsync(
+                //            orderCode: orderCode,
+                //            oldStatus: previousStatus,
+                //            newStatus: "retrieved",
+                //            actionType: retrievalActionType
+                //        );
+
+                //        await _unitOfWork.CompleteAsync();
+
+                //        _logger.LogInformation($"Order {orderCode} retrieved from expired storage");
+
+                //        // Cập nhật OrderActionCount cho tất cả nhân viên
+                //        await UpdateEmployeeActionCountsAsync(orderCode);
+                //        await _unitOfWork.CompleteAsync();
+
+                //        //return;
+                //    }
+
+                //    throw new InvalidOperationException($"Current status '{order.Status}' not found in workflow");
+                //}
+
+                // Kiểm tra xem đã đến cuối quy trình chưa
+                //if (currentIndex >= workflow.Count - 1)
+                //{
+                //    if (order.Status?.ToLower() == "completed")
+                //    {
+                //        await UpdateEmployeeActionCountsAsync(orderCode);
+                //        await _unitOfWork.CompleteAsync();
+                //    }
+
+                //    _logger.LogInformation($"Order {orderCode} is already at final status: {order.Status}");
+                //    return;
+                //}
+                var currentStatus = order.Status?.ToLower();
+
+                int currentIndex = await GetCurrentIndexInWorkflowAsync(orderCode, workflow, currentStatus);
 
                 if (currentIndex == -1)
                 {
-                    if (order.Status?.ToLower() == "store in expired storage")
-                    {
-                        var previousStatus = order.Status;
-                        order.Status = "retrieved";
-
-                        await _unitOfWork.Orders.UpdateAsync(order);
-
-                        var retrievalActionType = "Customer Retrieved from Expired Storage";
-
-                        await AddTrackingHistoryAsync(
-                            orderCode: orderCode,
-                            oldStatus: previousStatus,
-                            newStatus: "retrieved",
-                            actionType: retrievalActionType
-                        );
-
-                        await _unitOfWork.CompleteAsync();
-
-                        _logger.LogInformation($"Order {orderCode} retrieved from expired storage");
-
-                        // Cập nhật OrderActionCount cho tất cả nhân viên
-                        await UpdateEmployeeActionCountsAsync(orderCode);
-                        await _unitOfWork.CompleteAsync();
-
-                        return;
-                    }
-
                     throw new InvalidOperationException($"Current status '{order.Status}' not found in workflow");
                 }
 
-                // Kiểm tra xem đã đến cuối quy trình chưa
                 if (currentIndex >= workflow.Count - 1)
                 {
+                    if (order.Status?.ToLower() == "completed")
+                    {
+                        await UpdateEmployeeActionCountsAsync(orderCode);
+                        await _unitOfWork.CompleteAsync();
+                    }
+
                     _logger.LogInformation($"Order {orderCode} is already at final status: {order.Status}");
                     return;
                 }
@@ -231,7 +338,7 @@ namespace ASMS.Services.Services
                 await _unitOfWork.CompleteAsync();
 
                 _logger.LogInformation($"Order {orderCode} status updated from {oldStatus} to {newStatus}");
-                if (newStatus?.ToLower() == "retrieved")
+                if (newStatus?.ToLower() == "completed")
                 {
                     await UpdateEmployeeActionCountsAsync(orderCode);
                     await _unitOfWork.CompleteAsync();
@@ -348,7 +455,7 @@ namespace ASMS.Services.Services
                 await AddTrackingHistoryAsync(
                     orderCode: orderCode,
                     oldStatus: oldStatus,
-                    newStatus: "store in expired storage",
+                    newStatus: "store in expired storage 0 days",
                     actionType: $"Moved to Expired Storage - Building: {expiredWarehouse.BuildingCode}"
                 );
 
@@ -360,6 +467,46 @@ namespace ASMS.Services.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error moving order {orderCode} to expired storage");
+                throw;
+            }
+        }
+        /// <summary>
+        /// Cập nhật số ngày trong kho quá hạn (gọi hàng ngày bởi background job)
+        /// </summary>
+        public async Task UpdateExpiredStorageDaysAsync()
+        {
+            try
+            {
+                var currentDate = GetVietnamToday();
+                var expiredOrders = await _unitOfWork.Orders.GetByStatusStartsWithAsync("store in expired storage");
+
+                foreach (var order in expiredOrders)
+                {
+                    var trackingHistories = await _unitOfWork.TrackingHistories.GetByOrderCodeAsync(order.OrderCode);
+                    var movedToExpiredTracking = trackingHistories
+                        .Where(th => th.NewStatus?.ToLower().StartsWith("store in expired storage") == true)
+                        .OrderBy(th => th.CreateAt)
+                        .FirstOrDefault();
+
+                    if (movedToExpiredTracking?.CreateAt != null)
+                    {
+                        int daysInExpired = currentDate.DayNumber - movedToExpiredTracking.CreateAt.Value.DayNumber;
+                        var newStatus = $"store in expired storage {daysInExpired} days";
+
+                        if (order.Status != newStatus)
+                        {
+                            order.Status = newStatus;
+                            await _unitOfWork.Orders.UpdateAsync(order);
+                            _logger.LogInformation($"Order {order.OrderCode} expired storage days updated to {daysInExpired}");
+                        }
+                    }
+                }
+
+                await _unitOfWork.CompleteAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating expired storage days");
                 throw;
             }
         }
@@ -656,12 +803,29 @@ namespace ASMS.Services.Services
                     };
                 }
 
+                var oldStatus = order.Status;
                 order.Refund = request.Refund;
+                order.Status = "waiting refund";
 
                 //order.TotalPrice = (order.TotalPrice ?? 0) + request.Refund;
                 //order.UnpaidAmount = (order.UnpaidAmount ?? 0) + request.Refund;
 
                 await _unitOfWork.Orders.UpdateAsync(order);
+                var manager = await _unitOfWork.Employee.GetAvailableEmployeeByRoleAsync("Manager");
+
+                var trackingHistory = new TrackingHistory
+                {
+                    OrderCode = request.OrderCode,
+                    OrderDetailCode = null,
+                    OldStatus = oldStatus,
+                    NewStatus = "waiting refund",
+                    ActionType = $"Waiting Refund - Amount: {request.Refund:N0} VND",
+                    CreateAt = GetVietnamToday(),
+                    CurrentAssign = manager?.EmployeeCode,
+                    NextAssign = manager?.EmployeeCode,
+                    Image = null
+                };
+                await _unitOfWork.TrackingHistories.AddAsync(trackingHistory);
                 await _unitOfWork.CompleteAsync();
 
                 _logger.LogInformation($"Refund updated for order {request.OrderCode}: {request.Refund}");
@@ -687,7 +851,7 @@ namespace ASMS.Services.Services
             }
         }
         /// <summary>
-        /// Hủy đơn hàng (chỉ cho phép khi status = pending)
+        /// Hủy đơn hàng (cho phép tất cả trạng thái với logic phù hợp)
         /// </summary>
         public async Task<CancelOrderResponse> CancelOrderAsync(CancelOrderRequest request)
         {
@@ -703,62 +867,44 @@ namespace ASMS.Services.Services
                     };
                 }
 
-                // Chỉ cho phép hủy khi status = pending
-                if (order.Status?.ToLower() != "pending")
+                var currentStatus = order.Status?.ToLower();
+                var oldStatus = order.Status;
+                if (currentStatus == "pending")
+                {
+                    await CancelPendingOrderAsync(order, request.CancelReason);
+                }
+                // Case 2: Sau khi refunded - Cancel khi đã hoàn tiền
+                else if (currentStatus == "refunded")
+                {
+                    await CancelRefundedOrderAsync(order, request.CancelReason);
+                }
+                // Case 3: Expired storage >= 30 days
+                else if (currentStatus?.StartsWith("store in expired storage") == true)
+                {
+                    int daysInExpired = GetDaysFromExpiredStatus(currentStatus);
+                    if (daysInExpired >= 30)
+                    {
+                        await CancelExpiredOrderAsync(order, request.CancelReason, daysInExpired);
+                    }
+                    else
+                    {
+                        return new CancelOrderResponse
+                        {
+                            Success = false,
+                            Message = $"Chỉ có thể hủy đơn hàng sau 30 ngày trong kho quá hạn. Hiện tại: {daysInExpired} ngày"
+                        };
+                    }
+                }
+                else
                 {
                     return new CancelOrderResponse
                     {
                         Success = false,
-                        Message = $"Chỉ có thể hủy đơn hàng ở trạng thái 'pending'. Trạng thái hiện tại: {order.Status}"
+                        Message = $"Không thể hủy đơn hàng ở trạng thái '{order.Status}'. Chỉ có thể hủy ở trạng thái: pending, refunded, hoặc store in expired storage >= 30 days"
                     };
                 }
 
-                var oldStatus = order.Status;
-                order.Status = "cancelled";
-
-                await _unitOfWork.Orders.UpdateAsync(order);
-
-                // Thêm tracking history
-                string actionType = string.IsNullOrEmpty(request.CancelReason)
-                    ? "Order Cancelled"
-                    : $"Order Cancelled - Reason: {request.CancelReason}";
-
-                await AddTrackingHistoryAsync(
-                    orderCode: request.OrderCode,
-                    oldStatus: oldStatus,
-                    newStatus: "cancelled",
-                    actionType: actionType
-                );
-
-                // Nếu là Self order, release storages
-                if (order.Style?.ToLower() == "self")
-                {
-                    try
-                    {
-                        await ReleaseStoragesForCancelledOrderAsync(request.OrderCode);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, $"Error releasing storages for cancelled order {request.OrderCode}");
-                    }
-                }
-
-                // Nếu là Full order, restore container type quantity
-                if (order.Style?.ToLower() == "full")
-                {
-                    try
-                    {
-                        await RestoreContainerTypeQuantityForCancelledOrderAsync(request.OrderCode);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, $"Error restoring container type quantity for cancelled order {request.OrderCode}");
-                    }
-                }
-
-                await _unitOfWork.CompleteAsync();
-
-                _logger.LogInformation($"Order {request.OrderCode} cancelled successfully");
+                _logger.LogInformation($"Order {request.OrderCode} cancelled successfully from status {oldStatus}");
 
                 return new CancelOrderResponse
                 {
@@ -780,9 +926,145 @@ namespace ASMS.Services.Services
             }
         }
 
+
         #endregion
 
         #region Private Helper Methods
+        // <summary>
+        /// Xác định index hiện tại trong workflow, xử lý duplicate statuses
+        /// </summary>
+        private async Task<int> GetCurrentIndexInWorkflowAsync(string orderCode, List<string> workflow, string? currentStatus)
+        {
+            if (string.IsNullOrEmpty(currentStatus))
+                return -1;
+
+            var statusLower = currentStatus.ToLower();
+
+            var allIndices = workflow
+                .Select((status, index) => new { status, index })
+                .Where(x => x.status == statusLower)
+                .Select(x => x.index)
+                .ToList();
+
+            if (allIndices.Count <= 1)
+            {
+                return workflow.IndexOf(statusLower);
+            }
+
+            var trackingHistories = await _unitOfWork.TrackingHistories.GetByOrderCodeAsync(orderCode);
+
+            var hasStoredOrRenting = trackingHistories
+                .Any(th => th.NewStatus?.ToLower() == "stored" || th.NewStatus?.ToLower() == "renting");
+
+            var hasRetrieved = trackingHistories
+                .Any(th => th.NewStatus?.ToLower() == "retrieved");
+
+
+            if (hasRetrieved)
+            {
+                return allIndices.Max();
+            }
+            else
+            {
+                return allIndices.Min();
+            }
+        }
+        /// <summary>
+        /// Cancel pending order
+        /// </summary>
+        private async Task CancelPendingOrderAsync(Order order, string? cancelReason)
+        {
+            var oldStatus = order.Status;
+            order.Status = "cancelled";
+            await _unitOfWork.Orders.UpdateAsync(order);
+
+            string actionType = string.IsNullOrEmpty(cancelReason)
+                ? "Order Cancelled from Pending"
+                : $"Order Cancelled from Pending - Reason: {cancelReason}";
+
+            await AddTrackingHistoryAsync(
+                orderCode: order.OrderCode,
+                oldStatus: oldStatus,
+                newStatus: "cancelled",
+                actionType: actionType
+            );
+
+            // Release resources
+            if (order.Style?.ToLower() == "self")
+            {
+                await ReleaseStoragesForCancelledOrderAsync(order.OrderCode);
+            }
+
+            if (order.Style?.ToLower() == "full")
+            {
+                await RestoreContainerTypeQuantityForCancelledOrderAsync(order.OrderCode);
+            }
+
+            await _unitOfWork.CompleteAsync();
+        }
+
+        /// <summary>
+        /// Cancel refunded order
+        /// </summary>
+        private async Task CancelRefundedOrderAsync(Order order, string? cancelReason)
+        {
+            var oldStatus = order.Status;
+            order.Status = "cancelled";
+            await _unitOfWork.Orders.UpdateAsync(order);
+
+            string actionType = string.IsNullOrEmpty(cancelReason)
+                ? "Order Cancelled After Refund"
+                : $"Order Cancelled After Refund - Reason: {cancelReason}";
+
+            await AddTrackingHistoryAsync(
+                orderCode: order.OrderCode,
+                oldStatus: oldStatus,
+                newStatus: "cancelled",
+                actionType: actionType
+            );
+
+            await _unitOfWork.CompleteAsync();
+        }
+        /// <summary>
+        /// Cancel expired order (>= 30 days)
+        /// </summary>
+        private async Task CancelExpiredOrderAsync(Order order, string? cancelReason, int daysInExpired)
+        {
+            var oldStatus = order.Status;
+            order.Status = "cancelled";
+            await _unitOfWork.Orders.UpdateAsync(order);
+
+            string actionType = string.IsNullOrEmpty(cancelReason)
+                ? $"Order Cancelled After {daysInExpired} Days in Expired Storage"
+                : $"Order Cancelled After {daysInExpired} Days in Expired Storage - Reason: {cancelReason}";
+
+            await AddTrackingHistoryAsync(
+                orderCode: order.OrderCode,
+                oldStatus: oldStatus,
+                newStatus: "cancelled",
+                actionType: actionType
+            );
+
+            await _unitOfWork.CompleteAsync();
+        }
+        /// <summary>
+        /// Extract số ngày từ status "store in expired storage X days"
+        /// </summary>
+        private int GetDaysFromExpiredStatus(string status)
+        {
+            try
+            {
+                var parts = status.Split(' ');
+                if (parts.Length >= 5 && int.TryParse(parts[4], out int days))
+                {
+                    return days;
+                }
+            }
+            catch { }
+
+            return 0;
+        }
+
         /// <summary>
         /// Release storages khi hủy Self order
         /// </summary>
@@ -943,7 +1225,7 @@ namespace ASMS.Services.Services
             }
 
             var workflow = await GetWorkflowForOrderAsync(order);
-            var currentIndex = workflow.IndexOf(newStatus?.ToLower() ?? "pending");
+            int currentIndex = await GetCurrentIndexInWorkflowAsync(orderCode, workflow, newStatus?.ToLower());
             string? nextAssignEmployee = null;
 
             if (currentIndex >= 0 && currentIndex < workflow.Count - 1)
@@ -994,12 +1276,23 @@ namespace ASMS.Services.Services
                     ? "Warehouse Staff"
                     : "Delivery Staff";
             }
+            if (statusLower == "retrieved" || statusLower == "completed")
+            {
+                var workflow = await GetWorkflowForOrderAsync(order);
+
+                if (workflow == _workflowsByStyle["full"] || workflow == _workflowsByStyle["self_with_delivery"])
+                {
+                    return "Delivery Staff";
+                }
+
+                return "Warehouse Staff";
+            }
 
             return statusLower switch
             {
                 "wait pick up" or "verify" or "checkout" or "pick up" or "delivered" => "Delivery Staff",
                 "processing" or "stored" or "renting" => "Warehouse Staff",
-                "retrieved" or "completed" => "Warehouse Staff",
+                "waiting refund" or "refunded" => "Manager",
                 _ => "Warehouse Staff"
             };
         }
