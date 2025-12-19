@@ -103,7 +103,7 @@ namespace ASMS.Repositories.Repositories
         public async Task<IEnumerable<Order>> GetOverdueOrdersAsync(DateOnly currentDate)
         {
             return await _dbSet
-                .Where(o => (o.Status == "Stored" || o.Status == "Renting")
+                .Where(o => (o.Status == "stored" || o.Status == "renting" || o.Status.StartsWith("overdue"))
                     && o.ReturnDate.HasValue
                     && o.ReturnDate.Value < currentDate)
                 .ToListAsync();
@@ -197,5 +197,12 @@ namespace ASMS.Repositories.Repositories
                 .AsNoTracking()
                 .FirstOrDefaultAsync(o => o.Passkey == passKey && o.Status != "completed");
         }
+        public async Task<List<Order>> GetByStatusStartsWithAsync(string statusPrefix)
+        {
+            return await _dbSet
+                .Where(o => o.Status != null && o.Status.ToLower().StartsWith(statusPrefix.ToLower()))
+                .ToListAsync();
+        }
+
     }
 }

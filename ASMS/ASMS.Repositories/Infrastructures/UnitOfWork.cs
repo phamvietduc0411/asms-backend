@@ -39,6 +39,7 @@ namespace ASMS.Repositories.Infrastructures
         public IShippingRateRepository ShippingRates { get; private set; }
         public IContactRepository Contacts { get; private set; }
         public IBusinessRuleRepository BusinessRules { get; private set; }
+        public IShortLinkRepository ShortLinks { get; private set; }
 
         public UnitOfWork(
             VstorageContext context,
@@ -74,6 +75,7 @@ namespace ASMS.Repositories.Infrastructures
             ShippingRates = new ShippingRateRepository(_context, _logger);
             Contacts = new ContactRepository(_context, _logger);
             BusinessRules = new BusinessRuleRepository(_context, _logger);
+            ShortLinks = new ShortLinkRepository(_context, _logger);
         }
         public async Task CompleteAsync() => await _context.SaveChangesAsync();
     }

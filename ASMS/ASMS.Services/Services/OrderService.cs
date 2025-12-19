@@ -738,30 +738,56 @@ namespace ASMS.Services.Services
             {
                 try
                 {
-                    foreach (var (detail, productTypes) in oldDetailsToRestore)
+                    var containerTypeGroups = oldDetailsToRestore
+                        .Where(x => x.detail.ContainerType != null && x.detail.ContainerQuantity != null)
+                        .GroupBy(x => x.detail.ContainerType!.Value)
+                        .ToList();
+
+                    foreach (var group in containerTypeGroups)
                     {
-                        if (detail.ContainerType == null || detail.ContainerQuantity == null)
+                        int containerTypeId = group.Key;
+
+                        var containerType = await _unitOfWork.ContainerType.GetByIdAsync(containerTypeId);
+                        if (containerType == null)
+                        {
+                            _logger.LogWarning($"ContainerType {containerTypeId} not found");
                             continue;
-
-                        var containerType = await _unitOfWork.ContainerType.GetByIdAsync(detail.ContainerType.Value);
-                        if (containerType == null) continue;
-
-                        bool needAC = productTypes.Any(pt => pt.ProductTypeId == 3);
-                        int quantityRestore = detail.ContainerQuantity.Value;
-
-                        if (needAC)
-                        {
-                            containerType.AvailableQuantityInAc = (containerType.AvailableQuantityInAc ?? 0) + quantityRestore;
                         }
-                        else
+
+                        int totalRestoreAC = 0;
+                        int totalRestoreNormal = 0;
+
+                        foreach (var (detail, productTypes) in group)
                         {
-                            containerType.AvailableQuantityInNor = (containerType.AvailableQuantityInNor ?? 0) + quantityRestore;
+                            bool needAC = productTypes.Any(pt => pt.ProductTypeId == 3);
+                            int quantityRestore = detail.ContainerQuantity!.Value;
+
+                            if (needAC)
+                            {
+                                totalRestoreAC += quantityRestore;
+                            }
+                            else
+                            {
+                                totalRestoreNormal += quantityRestore;
+                            }
+                        }
+                        if (totalRestoreAC > 0)
+                        {
+                            containerType.AvailableQuantityInAc = (containerType.AvailableQuantityInAc ?? 0) + totalRestoreAC;
+                            _logger.LogInformation($"Restored {totalRestoreAC} AC containers for type {containerTypeId}");
+                        }
+
+                        if (totalRestoreNormal > 0)
+                        {
+                            containerType.AvailableQuantityInNor = (containerType.AvailableQuantityInNor ?? 0) + totalRestoreNormal;
+                            _logger.LogInformation($"Restored {totalRestoreNormal} Normal containers for type {containerTypeId}");
                         }
 
                         await _unitOfWork.ContainerType.UpdateAsync(containerType);
                     }
 
                     await _unitOfWork.CompleteAsync();
+                    _logger.LogInformation($"Container type quantities restored for {containerTypeGroups.Count} types");
                 }
                 catch (Exception ex)
                 {

@@ -58,6 +58,8 @@ public partial class VstorageContext : DbContext
 
     public virtual DbSet<ShippingRate> ShippingRates { get; set; }
 
+    public virtual DbSet<ShortLink> ShortLinks { get; set; }
+
     public virtual DbSet<Storage> Storages { get; set; }
 
     public virtual DbSet<StorageType> StorageTypes { get; set; }
@@ -315,10 +317,7 @@ public partial class VstorageContext : DbContext
                 .IsUnicode(false)
                 .HasDefaultValue("");
             entity.Property(e => e.IsActive).HasColumnName("isActive");
-            entity.Property(e => e.Name)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasDefaultValue("");
+            entity.Property(e => e.Name).HasMaxLength(50);
             entity.Property(e => e.Password)
                 .HasMaxLength(500)
                 .IsUnicode(false)
@@ -450,6 +449,7 @@ public partial class VstorageContext : DbContext
             entity.Property(e => e.Refund)
                 .HasDefaultValue(0m)
                 .HasColumnType("decimal(18, 0)");
+            entity.Property(e => e.ShortCode).HasMaxLength(50);
             entity.Property(e => e.Status)
                 .HasMaxLength(50)
                 .IsUnicode(false);
@@ -492,6 +492,7 @@ public partial class VstorageContext : DbContext
                 .IsUnicode(false);
             entity.Property(e => e.Price).HasColumnType("decimal(18, 0)");
             entity.Property(e => e.Quantity).HasMaxLength(500);
+            entity.Property(e => e.ShortCode).HasMaxLength(50);
             entity.Property(e => e.StorageCode)
                 .HasMaxLength(50)
                 .IsUnicode(false);
@@ -724,6 +725,22 @@ public partial class VstorageContext : DbContext
                 .HasColumnType("decimal(5, 2)");
         });
 
+        modelBuilder.Entity<ShortLink>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__ShortLin__3214EC07B99E112D");
+
+            entity.HasIndex(e => e.CreatedAt, "IX_CreatedAt");
+
+            entity.HasIndex(e => e.ExpiresAt, "IX_ExpiresAt");
+
+            entity.HasIndex(e => e.ShortCode, "IX_ShortCode");
+
+            entity.HasIndex(e => e.ShortCode, "UQ__ShortLin__76E6BB821C5C91BB").IsUnique();
+
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
+            entity.Property(e => e.ShortCode).HasMaxLength(50);
+        });
+
         modelBuilder.Entity<Storage>(entity =>
         {
             entity.HasKey(e => e.StorageCode).HasName("PK__Storage__AD8F8BC7D5ABE087");
@@ -806,9 +823,7 @@ public partial class VstorageContext : DbContext
             entity.HasIndex(e => e.OrderCode, "IX_TrackingHistory_OrderCode");
 
             entity.Property(e => e.TrackingHistoryId).HasColumnName("TrackingHistoryID");
-            entity.Property(e => e.ActionType)
-                .HasMaxLength(20)
-                .IsUnicode(false);
+            entity.Property(e => e.ActionType).HasMaxLength(100);
             entity.Property(e => e.CurrentAssign)
                 .HasMaxLength(50)
                 .IsUnicode(false);

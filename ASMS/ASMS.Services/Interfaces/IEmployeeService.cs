@@ -9,8 +9,9 @@ namespace ASMS.Services.Interfaces
         Task<Employee?> GetByIdAsync(int id);
         Task<EmployeeDto?> GetByIdDtoAsync(int id);
         Task<Employee> AddEmployeeAsync(CreateEmployeeRequest request);
-        Task<Employee> UpdateEmployeeAsync(Employee updateInfo);
+        Task<EmployeeDto?> UpdateEmployeeAsync(int id, UpdateEmployeeRequest updateInfo);
         Task<PaginatedList<GetEmployeeResponse>> GetWithFilterAsync(string? roleName,string? status ,int pageNumber, int pageSize);
         Task<Employee?> GetDevliveryEmployeeForOder();
+        Task<bool> SoftDeleteAsync(int id);
     }
 }

@@ -72,6 +72,8 @@ public partial class Order
 
     public decimal? Refund { get; set; }
 
+    public string? ShortCode { get; set; }
+
     public virtual ICollection<Contact> Contacts { get; set; } = new List<Contact>();
 
     public virtual Customer? CustomerCodeNavigation { get; set; }

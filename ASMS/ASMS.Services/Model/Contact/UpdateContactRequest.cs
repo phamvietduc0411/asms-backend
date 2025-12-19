@@ -16,6 +16,8 @@ namespace ASMS.Services.Model.Contact
         public string? Email { get; set; }
         public string? Message { get; set; }
         public bool? IsActive { get; set; }
-        public string? Image { get; set; }
+        public List<string>? Image { get; set; }
+        public DateOnly? ContactDate { get; set; }
+        public DateOnly? RetrievedDate { get; set; }
     }
 }

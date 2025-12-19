@@ -14,7 +14,7 @@ namespace ASMS.Repositories.Interfaces
         Task<Employee?> GetEntityByIdAsync(int id);
         Task<Employee?> GetByCodeAsync(string employeeCode);
         Task<Employee?> GetAvailableDeliveryForOrder();
-
+        Task<Employee?> GetEntityByIdForUpdateAsync(int id);
         Task<IEnumerable<Employee>> GetByRoleAsync(string roleName);
         Task<Employee?> GetAvailableEmployeeByRoleAsync(string roleName);
         Task<IEnumerable<Employee>> GetAllAsync();
