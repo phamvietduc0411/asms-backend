@@ -168,28 +168,92 @@ namespace ASMS.Repositories.Repositories
 
         public async Task<Order?> GetFullOrder(string orderCode)
         {
-            return await _dbSet
+            var order = await _dbSet
                 .Include(o => o.OrderDetails)
                     .ThenInclude(d => d.StorageCodeNavigation)
                         .ThenInclude(s => s.StorageType)
-
                 .Include(o => o.OrderDetails)
                     .ThenInclude(d => d.ContainerCodeNavigation)
                         .ThenInclude(c => c.ContainerType)
-
                 .Include(o => o.OrderDetails)
                     .ThenInclude(d => d.OrderDetailProductTypes)
-
+                        .ThenInclude(pt => pt.ProductType)
                 .Include(o => o.OrderDetails)
                     .ThenInclude(d => d.OrderDetailServices)
-
+                        .ThenInclude(s => s.Service)
                 .Include(o => o.CustomerCodeNavigation)
-
                 .Include(o => o.PaymentHistories)
                 .Include(o => o.TrackingHistories)
                 .Include(o => o.PaymentResults)
-
                 .FirstOrDefaultAsync(o => o.OrderCode == orderCode);
+
+            if (order?.OrderDetails.Any() == true)
+            {
+                var containerTypeIds = order.OrderDetails
+                    .Where(d => d.ContainerType.HasValue)
+                    .Select(d => d.ContainerType!.Value)
+                    .Distinct()
+                    .ToList();
+
+                var shelfTypeIds = order.OrderDetails
+                    .Where(d => d.ShelfTypeId.HasValue)
+                    .Select(d => d.ShelfTypeId!.Value)
+                    .Distinct()
+                    .ToList();
+
+                var storageTypeIds = order.OrderDetails
+                    .Where(d => d.StorageTypeId.HasValue)
+                    .Select(d => d.StorageTypeId!.Value)
+                    .Distinct()
+                    .ToList();
+
+                Dictionary<int, ContainerType> containerTypes = new();
+                if (containerTypeIds.Any())
+                {
+                    containerTypes = await _context.ContainerTypes
+                        .Where(ct => containerTypeIds.Contains(ct.ContainerTypeId))
+                        .ToDictionaryAsync(ct => ct.ContainerTypeId);
+                }
+
+                Dictionary<int, ShelfType> shelfTypes = new();
+                if (shelfTypeIds.Any())
+                {
+                    shelfTypes = await _context.ShelfTypes
+                        .Where(st => shelfTypeIds.Contains(st.ShelfTypeId))
+                        .ToDictionaryAsync(st => st.ShelfTypeId);
+                }
+
+                Dictionary<int, StorageType> storageTypes = new();
+                if (storageTypeIds.Any())
+                {
+                    storageTypes = await _context.StorageTypes
+                        .Where(st => storageTypeIds.Contains(st.StorageTypeId))
+                        .ToDictionaryAsync(st => st.StorageTypeId);
+                }
+
+                foreach (var detail in order.OrderDetails)
+                {
+                    if (detail.ContainerType.HasValue &&
+                        containerTypes.TryGetValue(detail.ContainerType.Value, out var containerType))
+                    {
+                        detail.ContainerTypeNavigation = containerType;
+                    }
+
+                    if (detail.ShelfTypeId.HasValue &&
+                        shelfTypes.TryGetValue(detail.ShelfTypeId.Value, out var shelfType))
+                    {
+                        detail.ShelfTypeNavigation = shelfType;
+                    }
+
+                    if (detail.StorageTypeId.HasValue &&
+                        storageTypes.TryGetValue(detail.StorageTypeId.Value, out var storageType))
+                    {
+                        detail.StorageTypeNavigation = storageType;
+                    }
+                }
+            }
+
+            return order;
         }
         public async Task<Order?> GetByPassKeyAsync(int passKey)
         {
