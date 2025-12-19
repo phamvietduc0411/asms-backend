@@ -53,69 +53,120 @@ namespace ASMS.Services.Utilities
 </body>
 </html>";
 
-        public static string OrderInvoice(
-    Order order,
-    string senderEmail)
+        public static string OrderInvoice(Order order, string senderEmail)
         {
-            var detailRows = new StringBuilder();
 
+            bool hasContainerType = order.OrderDetails.Any(d => d.ContainerTypeNavigation != null);
+            bool hasContainerQuantity = order.OrderDetails.Any(d => d.ContainerQuantity.HasValue && d.ContainerQuantity > 0);
+            bool hasShelfType = order.OrderDetails.Any(d => d.ShelfTypeNavigation != null);
+            bool hasShelfQuantity = order.OrderDetails.Any(d => d.ShelfQuantity.HasValue && d.ShelfQuantity > 0);
+            bool hasStorageType = order.OrderDetails.Any(d => d.StorageTypeNavigation != null);
+            bool hasPrice = order.OrderDetails.Any(d => d.Price.HasValue && d.Price > 0);
+            bool hasQuantity = order.OrderDetails.Any(d => !string.IsNullOrEmpty(d.Quantity));
+            bool hasSubTotal = order.OrderDetails.Any(d => d.SubTotal.HasValue && d.SubTotal > 0);
+
+            var headerCells = new StringBuilder();
+            if (hasContainerType) headerCells.Append("<th>Loại container</th>");
+            if (hasContainerQuantity) headerCells.Append("<th>SL container</th>");
+            if (hasShelfType) headerCells.Append("<th>Loại kệ</th>");
+            if (hasShelfQuantity) headerCells.Append("<th>SL kệ</th>");
+            if (hasStorageType) headerCells.Append("<th>Loại kho</th>");
+            if (hasPrice) headerCells.Append("<th>Giá</th>");
+            if (hasQuantity) headerCells.Append("<th>Số lượng</th>");
+            if (hasSubTotal) headerCells.Append("<th>Tạm tính</th>");
+
+            var detailRows = new StringBuilder();
             foreach (var d in order.OrderDetails)
             {
-                detailRows.Append($@"
-            <tr>
-                <td>{d.ContainerCodeNavigation?.ContainerType?.Type}</td>
-                <td>{d.ContainerQuantity}</td>
-                <td>{d.Price:N0} đ</td>
-                <td>{d.Quantity}</td>
-                <td>{d.ShelfQuantity}</td>
-                <td>{d.SubTotal:N0} đ</td>
-            </tr>");
+                var cells = new StringBuilder();
+
+                if (hasContainerType)
+                {
+                    var value = d.ContainerTypeNavigation?.Type ?? "";
+                    cells.Append($"<td>{value}</td>");
+                }
+
+                if (hasContainerQuantity)
+                {
+                    var value = d.ContainerQuantity ?? 0;
+                    cells.Append($"<td>{value}</td>");
+                }
+
+                if (hasShelfType)
+                {
+                    var value = d.ShelfTypeNavigation?.Name ?? "";
+                    cells.Append($"<td>{value}</td>");
+                }
+
+                if (hasShelfQuantity)
+                {
+                    var value = d.ShelfQuantity ?? 0;
+                    cells.Append($"<td>{value}</td>");
+                }
+
+                if (hasStorageType)
+                {
+                    var value = d.StorageTypeNavigation?.Name ?? "";
+                    cells.Append($"<td>{value}</td>");
+                }
+
+                if (hasPrice)
+                {
+                    var value = d.Price ?? 0;
+                    cells.Append($"<td>{value:N0} đ</td>");
+                }
+
+                if (hasQuantity)
+                {
+                    var value = d.Quantity ?? "";
+                    cells.Append($"<td>{value}</td>");
+                }
+
+                if (hasSubTotal)
+                {
+                    var value = d.SubTotal ?? 0;
+                    cells.Append($"<td>{value:N0} đ</td>");
+                }
+
+                detailRows.Append($"<tr>{cells}</tr>");
             }
+
 
             return $@"
 <html>
 <body style='font-family:Arial,sans-serif;'>
-    <div style='border:1px solid #ccc; padding:20px; border-radius:10px; max-width:700px; margin:auto;'>
-
+    <div style='border:1px solid #ccc; padding:20px; border-radius:10px; max-width:900px; margin:auto;'>
         <h2 style='text-align:center; color:#4285F4;'>ASMS - Xác nhận đơn hàng</h2>
-
-        <p>Chào <b>{order.CustomerName}</b>,</p>
+        <p>Chào <b>{order.CustomerName ?? "Quý khách"}</b>,</p>
         <p>Đơn hàng <b>{order.OrderCode}</b> của bạn đã được tạo thành công.</p>
-
+        
         <h3>📌 Thông tin đơn hàng</h3>
         <table style='width:100%; border-collapse:collapse;'>
-            <tr><td><b>Mã đơn:</b></td><td>{order.OrderCode}</td></tr>
-            <tr><td><b>Mã khách hàng:</b></td><td>{order.CustomerCode}</td></tr>
-            <tr><td><b>Ngày tạo đơn:</b></td><td>{order.OrderDate:dd/MM/yyyy}</td></tr>
-            <tr><td><b>Ngày gửi hàng:</b></td><td>{order.DepositDate:dd/MM/yyyy}</td></tr>
-            <tr><td><b>Ngày trả hàng:</b></td><td>{order.ReturnDate:dd/MM/yyyy}</td></tr>
-            <tr><td><b>Trạng thái thanh toán:</b></td><td>{order.PaymentStatus}</td></tr>
+            <tr><td style='width:40%;'><b>Mã đơn:</b></td><td>{order.OrderCode}</td></tr>
+            <tr><td><b>Mã khách hàng:</b></td><td>{order.CustomerCode ?? ""}</td></tr>
+            <tr><td><b>Ngày tạo đơn:</b></td><td>{order.OrderDate?.ToString("dd/MM/yyyy") ?? ""}</td></tr>
+            <tr><td><b>Ngày gửi hàng:</b></td><td>{order.DepositDate?.ToString("dd/MM/yyyy") ?? ""}</td></tr>
+            <tr><td><b>Ngày trả hàng:</b></td><td>{order.ReturnDate?.ToString("dd/MM/yyyy") ?? ""}</td></tr>
+            <tr><td><b>Trạng thái thanh toán:</b></td><td>{order.PaymentStatus ?? ""}</td></tr>
             <tr><td><b>Tổng tiền:</b></td><td>{order.TotalPrice:N0} đ</td></tr>
             <tr><td><b>Còn nợ:</b></td><td>{order.UnpaidAmount:N0} đ</td></tr>
-            <tr><td><b>Ghi chú:</b></td><td>{order.Note}</td></tr>
-            <tr><td><b>Địa chỉ:</b></td><td>{order.Address}</td></tr>
-            <tr><td><b>Số điện thoại liên hệ:</b></td><td>{order.PhoneContact}</td></tr>
+            {(string.IsNullOrEmpty(order.Note) ? "" : $"<tr><td><b>Ghi chú:</b></td><td>{order.Note}</td></tr>")}
+            {(string.IsNullOrEmpty(order.Address) ? "" : $"<tr><td><b>Địa chỉ:</b></td><td>{order.Address}</td></tr>")}
+            {(string.IsNullOrEmpty(order.PhoneContact) ? "" : $"<tr><td><b>Số điện thoại liên hệ:</b></td><td>{order.PhoneContact}</td></tr>")}
         </table>
-
+        
         <h3 style='margin-top:20px;'>📦 Chi tiết sản phẩm</h3>
-
         <table style='width:100%; border-collapse:collapse;' border='1' cellpadding='8'>
             <tr style='background:#f1f1f1; font-weight:bold;'>
-                <th>Loại container</th>
-                <th>Số lượng container</th>
-                <th>Giá</th>
-                <th>Số lượng</th>
-                <th>Số lượng kệ</th>
-                <th>Tạm tính</th>
+                {headerCells}
             </tr>
             {detailRows}
         </table>
-
+        
         <h3 style='margin-top:20px;'>💰 Tổng cộng: {order.TotalPrice:N0} đ</h3>
-        <p>Nếu còn nợ: <b>{order.UnpaidAmount:N0} đ</b></p>
-
+        {(order.UnpaidAmount > 0 ? $"<p>Còn nợ: <b>{order.UnpaidAmount:N0} đ</b></p>" : "")}
+        
         <p style='margin-top:25px;'>Nếu có thắc mắc hãy liên hệ với chúng tôi.</p>
-
         <p>Trân trọng,<br>ASMS Team ({senderEmail})</p>
     </div>
 </body>

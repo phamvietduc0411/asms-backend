@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ASMS.Repositories.Entities;
 
@@ -45,9 +46,16 @@ public partial class OrderDetail
 
     public virtual Order? OrderCodeNavigation { get; set; }
 
+    [NotMapped]
+    public virtual ContainerType? ContainerTypeNavigation { get; set; }
+    [NotMapped]
+    public virtual ShelfType? ShelfTypeNavigation { get; set; }
+    [NotMapped]
+    public virtual StorageType? StorageTypeNavigation { get; set; }
     public virtual ICollection<OrderDetailProductType> OrderDetailProductTypes { get; set; } = new List<OrderDetailProductType>();
 
     public virtual ICollection<OrderDetailService> OrderDetailServices { get; set; } = new List<OrderDetailService>();
 
     public virtual Storage? StorageCodeNavigation { get; set; }
+
 }
