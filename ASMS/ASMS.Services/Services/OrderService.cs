@@ -1,5 +1,4 @@
-﻿using System.Text.Json;
-using ASMS.Repositories.Entities;
+﻿using ASMS.Repositories.Entities;
 using ASMS.Repositories.Infrastructures;
 using ASMS.Services.Interfaces;
 using ASMS.Services.Model.Authentication;
@@ -11,6 +10,7 @@ using ASMS.Services.Utilities;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System.Text.Json;
 
 namespace ASMS.Services.Services
 {
@@ -881,33 +881,33 @@ namespace ASMS.Services.Services
             var orderDetails = await _unitOfWork.OrderDetails.GetByOrderCodeAsync(orderCode);
 
             return orderDetails.Select(od => new OrderDetailItemResponse
-                {
-                    OrderDetailId = od.OrderDetailId,
+            {
+                OrderDetailId = od.OrderDetailId,
                 //OrderCode = od.OrderCode,
-                    StorageCode = od.StorageCode,
-                    ContainerCode = od.ContainerCode,
-                    FloorCode = od.ContainerCodeNavigation?.FloorCode,
-                    FloorNumber = null,
+                StorageCode = od.StorageCode,
+                ContainerCode = od.ContainerCode,
+                FloorCode = od.ContainerCodeNavigation?.FloorCode,
+                FloorNumber = null,
                 //ServiceId = od.ServiceId,
-                    Price = od.Price,
-                    Quantity = od.Quantity,
-                    SubTotal = od.SubTotal,
+                Price = od.Price,
+                Quantity = od.Quantity,
+                SubTotal = od.SubTotal,
                 //Address = od.Address,
                 Image = od.Image,
-                    ContainerType = od.ContainerType,
-                    ContainerQuantity = od.ContainerQuantity,
-                    StorageTypeId = od.StorageTypeId,
-                    ShelfTypeId = od.ShelfTypeId,
-                    ShelfQuantity = od.ShelfQuantity,
-                    IsPlaced = od.IsPlaced,
-                    Length = od.Length,
-                    Width = od.Width,
-                    Height = od.Height, 
-                    ProductTypeNames = od.OrderDetailProductTypes
+                ContainerType = od.ContainerType,
+                ContainerQuantity = od.ContainerQuantity,
+                StorageTypeId = od.StorageTypeId,
+                ShelfTypeId = od.ShelfTypeId,
+                ShelfQuantity = od.ShelfQuantity,
+                IsPlaced = od.IsPlaced,
+                Length = od.Length,
+                Width = od.Width,
+                Height = od.Height,
+                ProductTypeNames = od.OrderDetailProductTypes
                         .Select(odpt => odpt.ProductType?.Name)
                         .Where(name => name != null)
                         .ToList(),
-                    ServiceNames = od.OrderDetailServices
+                ServiceNames = od.OrderDetailServices
                         .Select(ods => ods.Service?.Name)
                         .Where(name => name != null)
                         .ToList()
@@ -1486,11 +1486,29 @@ namespace ASMS.Services.Services
             try
             {
                 var fullOrder = await _unitOfWork.Orders.GetFullOrder(order.OrderCode);
-                var html = EmailTemplates.OrderInvoice(fullOrder, _mailConfig.Email);
 
-                await _password.SendEmailAsync(customerMail,
-                                                   $"Đơn hàng {order.OrderCode} đã được tạo",
-                                                   html);
+                var qrContent = JsonSerializer.Serialize(new
+                {
+                    orderCode = fullOrder.OrderCode,
+                    customer = fullOrder.CustomerName,
+                    total = fullOrder.TotalPrice
+                });
+
+                var qrBytes = QrHelper.GenerateQrBytes(qrContent);
+
+                var html = EmailTemplates.OrderInvoice(
+                    fullOrder,
+                    _mailConfig.Email,
+                    "cid:order-qr"
+                );
+
+                await _password.SendEmailAsync(
+                    customerMail,
+                    $"Đơn hàng {order.OrderCode} đã được tạo",
+                    html,
+                    qrBytes
+                );
+
 
                 return true;
             }

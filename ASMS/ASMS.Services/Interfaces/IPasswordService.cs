@@ -15,6 +15,6 @@ namespace ASMS.Services.Interfaces
         Task<bool> SendResetLinkAsync(ForgotPasswordRequest request);
         string GenerateRandomPassword(int length);
         Task<bool> SendEmailAsync(string toEmail, string subject, string htmlContent);
-
+        Task<bool> SendEmailAsync(string toEmail, string subject, string htmlContent, byte[]? qrBytes = null);
     }
 }

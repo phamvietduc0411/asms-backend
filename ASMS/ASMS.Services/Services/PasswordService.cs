@@ -1,12 +1,10 @@
 ﻿using ASMS.Repositories.Infrastructures;
-using ASMS.Repositories.Interfaces;
 using ASMS.Services.Interfaces;
 using ASMS.Services.Model.Authentication;
 using ASMS.Services.Model.Password;
 using ASMS.Services.Utilities;
 using MailKit.Net.Smtp;
 using MailKit.Security;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using MimeKit;
 
@@ -144,6 +142,57 @@ public class PasswordService : IPasswordService
             return false;
         }
     }
- 
+
+    public async Task<bool> SendEmailAsync(
+        string toEmail,
+        string subject,
+        string htmlContent,
+        byte[]? qrBytes = null)
+    {
+        try
+        {
+            var message = new MimeMessage();
+            message.From.Add(new MailboxAddress("ASMS", _mailConfig.Email));
+            message.To.Add(MailboxAddress.Parse(toEmail));
+            message.Subject = subject;
+
+            var builder = new BodyBuilder();
+            builder.HtmlBody = htmlContent;
+
+            if (qrBytes != null)
+            {
+                var image = builder.LinkedResources.Add(
+                    "order-qr.png",
+                    qrBytes,
+                    new ContentType("image", "png")
+                );
+
+                image.ContentId = "order-qr";
+                image.ContentDisposition =
+                    new ContentDisposition(ContentDisposition.Inline);
+            }
+
+            message.Body = builder.ToMessageBody();
+
+            using var client = new SmtpClient();
+            await client.ConnectAsync("smtp.gmail.com", 587, SecureSocketOptions.StartTls);
+            await client.AuthenticateAsync(
+                _mailConfig.Email,
+                _mailConfig.ApplicationPass
+            );
+
+            await client.SendAsync(message);
+            await client.DisconnectAsync(true);
+
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+
+
     #endregion
 }
