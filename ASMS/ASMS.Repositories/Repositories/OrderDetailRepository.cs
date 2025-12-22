@@ -19,7 +19,7 @@ namespace ASMS.Repositories.Repositories
         {
         }
 
-        public async Task<PaginatedList<OrderDetail>> GetWithFilterAsync(bool? isPlaced, string? orderCode, string? storageCode, int pageNumber, int pageSize)
+        public async Task<PaginatedList<OrderDetail>> GetWithFilterAsync(bool? isPlaced, string? orderCode, string? storageCode, string? status, bool? isDamaged, int pageNumber, int pageSize)
         {
             var query = _context.OrderDetails
                 .Include(x => x.OrderCodeNavigation)
@@ -40,6 +40,10 @@ namespace ASMS.Repositories.Repositories
             {
                 query = query.Where(od => od.StorageCode == storageCode);
             }
+            if (!string.IsNullOrEmpty(status))
+                query = query.Where(od => od.Status == status);
+            if (isDamaged.HasValue)
+                query = query.Where(od => od.IsDamaged == isDamaged.Value);
 
             query = query.OrderBy(od => od.OrderDetailId);
 
@@ -69,6 +73,19 @@ namespace ASMS.Repositories.Repositories
                     .ThenInclude(ods => ods.Service)
                 .Include(od => od.ContainerCodeNavigation)
                 .AsNoTracking()
+                //.Include (x => x.OrderCodeNavigation)
+                .Where(x => x.OrderCode == orderCode)
+                .ToListAsync();
+        }
+        public async Task<List<OrderDetail>> GetByOrderCodeForUpdateAsync(string orderCode)
+        {
+            return await _context.OrderDetails
+                .Include(od => od.OrderDetailProductTypes)
+                    .ThenInclude(odpt => odpt.ProductType)
+                .Include(od => od.OrderDetailServices)
+                    .ThenInclude(ods => ods.Service)
+                .Include(od => od.ContainerCodeNavigation)
+                //.AsNoTracking()
                 //.Include (x => x.OrderCodeNavigation)
                 .Where(x => x.OrderCode == orderCode)
                 .ToListAsync();

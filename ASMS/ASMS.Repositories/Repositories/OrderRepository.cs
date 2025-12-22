@@ -255,18 +255,36 @@ namespace ASMS.Repositories.Repositories
 
             return order;
         }
-        public async Task<Order?> GetByPassKeyAsync(int passKey)
-        {
-            return await _dbSet
-                .AsNoTracking()
-                .FirstOrDefaultAsync(o => o.Passkey == passKey && o.Status != "completed");
-        }
+        //public async Task<Order?> GetByPassKeyAsync(int passKey)
+        //{
+        //    return await _dbSet
+        //        .AsNoTracking()
+        //        .FirstOrDefaultAsync(o => o.Passkey == passKey && o.Status != "completed");
+        //}
         public async Task<List<Order>> GetByStatusStartsWithAsync(string statusPrefix)
         {
             return await _dbSet
                 .Where(o => o.Status != null && o.Status.ToLower().StartsWith(statusPrefix.ToLower()))
                 .ToListAsync();
         }
-
+        public async Task<List<Order>> GetActiveOrdersWithPassKeyAsync()
+        {
+            try
+            {
+                return await _dbSet
+                    .AsNoTracking()
+                    .Where(o => o.Passkey != null &&
+                               o.Status != null &&
+                               o.Status.ToLower() != "completed" &&
+                               o.Style != null &&
+                               o.Style.ToLower() == "self")
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting active orders with PassKey");
+                throw;
+            }
+        }
     }
 }

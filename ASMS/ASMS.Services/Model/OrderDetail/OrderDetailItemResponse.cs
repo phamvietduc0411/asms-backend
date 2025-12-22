@@ -32,6 +32,9 @@ namespace ASMS.Services.Model.OrderDetail
         public decimal? Width { get; set; }
 
         public decimal? Height { get; set; }
+        public string? Status { get; set; }             
+        public DateOnly? LastUpdatedDate { get; set; } 
+        public bool? IsDamaged { get; set; }
 
         public List<string>? ProductTypeNames { get; set; }
         public List<string>? ServiceNames { get; set; }

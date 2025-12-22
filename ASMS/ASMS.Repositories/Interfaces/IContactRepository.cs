@@ -21,5 +21,6 @@ namespace ASMS.Repositories.Interfaces
             string? customerCode,
             string? employeeCode,
             string? orderCode);
+        Task<int> CountRequestToRetrieveByOrderCodeAsync(string orderCode);
     }
 }

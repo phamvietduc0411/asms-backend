@@ -9,7 +9,7 @@ namespace ASMS.Services.Model.OrderStatus
     public class UpdatePassKeyRequest
     {
         public string OrderCode { get; set; } = null!;
-        public int OldPassKey { get; set; }
-        public int NewPassKey { get; set; }
+        public string OldPassKey { get; set; } 
+        public string NewPassKey { get; set; }
     }
 }

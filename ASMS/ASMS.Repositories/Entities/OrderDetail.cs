@@ -42,6 +42,12 @@ public partial class OrderDetail
 
     public string? ShortCode { get; set; }
 
+    public string? Status { get; set; }
+
+    public DateOnly? LastUpdatedDate { get; set; }
+
+    public bool? IsDamaged { get; set; }
+
     public virtual Container? ContainerCodeNavigation { get; set; }
 
     public virtual Order? OrderCodeNavigation { get; set; }

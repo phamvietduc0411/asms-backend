@@ -20,6 +20,9 @@ namespace ASMS.API.Controllers
         /// </summary>
         /// <param name="isPlaced">Optional filter by placed status (true/false/null)</param>
         /// <param name="orderCode">Optional filter by order code</param>
+        /// <param name="storageCode"></param>
+        /// <param name="status"></param>
+        /// <param name="isDamaged"></param>
         /// <param name="pageNumber">Page number (default: 1)</param>
         /// <param name="pageSize">Page size (default: 10, max: 100)</param>
         /// <returns>List of order details</returns>
@@ -28,13 +31,15 @@ namespace ASMS.API.Controllers
             [FromQuery] bool? isPlaced,
             [FromQuery] string? orderCode,
             [FromQuery] string? storageCode,
+            [FromQuery] string? status,
+            [FromQuery] bool? isDamaged,
             [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 10)
         {
             try
             {
 
-                var result = await _service.GetWithFilterAsync(isPlaced, orderCode, storageCode, pageNumber, pageSize);
+                var result = await _service.GetWithFilterAsync(isPlaced, orderCode, storageCode, status, isDamaged, pageNumber, pageSize);
 
                 return Ok(new
                 {
@@ -89,6 +94,26 @@ namespace ASMS.API.Controllers
         //    var success = await _service.DeleteAsync(id);
         //    return success ? Ok() : NotFound();
         //}
+        [HttpPatch("{id}/status")]
+        public async Task<IActionResult> UpdateStatus(int id, [FromBody] UpdateStatusRequest request)
+        {
+            var result = await _service.UpdateStatusAsync(id, request.Status);
+            if (result == null)
+                return NotFound(new { message = $"OrderDetail {id} not found" });
+
+            return Ok(result);
+        }
+
+        [HttpPatch("{id}/damage")]
+        public async Task<IActionResult> UpdateIsDamaged(int id, [FromBody] UpdateIsDamagedRequest request)
+        {
+            var result = await _service.UpdateIsDamagedAsync(id, request.IsDamaged);
+            if (result == null)
+                return NotFound(new { message = $"OrderDetail {id} not found" });
+
+            return Ok(result);
+        }
+
     }
 
 }

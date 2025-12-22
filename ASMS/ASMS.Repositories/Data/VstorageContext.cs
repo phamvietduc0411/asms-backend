@@ -159,6 +159,9 @@ public partial class VstorageContext : DbContext
 
             entity.ToTable("Contact");
 
+            entity.Property(e => e.ContactType)
+                .HasMaxLength(100)
+                .IsUnicode(false);
             entity.Property(e => e.CustomerCode)
                 .HasMaxLength(50)
                 .IsUnicode(false);
@@ -174,6 +177,7 @@ public partial class VstorageContext : DbContext
             entity.Property(e => e.OrderCode)
                 .HasMaxLength(50)
                 .IsUnicode(false);
+            entity.Property(e => e.OrderDetailId).HasColumnName("OrderDetailID");
             entity.Property(e => e.PhoneContact)
                 .HasMaxLength(20)
                 .IsUnicode(false);
@@ -442,6 +446,9 @@ public partial class VstorageContext : DbContext
             entity.Property(e => e.CustomerName).HasMaxLength(1000);
             entity.Property(e => e.Email).HasMaxLength(500);
             entity.Property(e => e.Note).HasMaxLength(1000);
+            entity.Property(e => e.Passkey)
+                .HasMaxLength(500)
+                .IsUnicode(false);
             entity.Property(e => e.PaymentStatus)
                 .HasMaxLength(20)
                 .IsUnicode(false);
@@ -485,6 +492,9 @@ public partial class VstorageContext : DbContext
             entity.Property(e => e.Image)
                 .HasMaxLength(500)
                 .IsUnicode(false);
+            entity.Property(e => e.IsDamaged)
+                .HasDefaultValue(false)
+                .HasColumnName("isDamaged");
             entity.Property(e => e.IsPlaced).HasColumnName("isPlaced");
             entity.Property(e => e.Length).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.OrderCode)
@@ -493,6 +503,9 @@ public partial class VstorageContext : DbContext
             entity.Property(e => e.Price).HasColumnType("decimal(18, 0)");
             entity.Property(e => e.Quantity).HasMaxLength(500);
             entity.Property(e => e.ShortCode).HasMaxLength(50);
+            entity.Property(e => e.Status)
+                .HasMaxLength(50)
+                .IsUnicode(false);
             entity.Property(e => e.StorageCode)
                 .HasMaxLength(50)
                 .IsUnicode(false);

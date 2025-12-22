@@ -23,10 +23,10 @@ namespace ASMS.Services.Services
             _mapper = mapper;
         }
 
-        public async Task<PaginatedList<OrderDetailItemResponse>> GetWithFilterAsync(bool? isPlaced, string? orderCode, string? storageCode, int pageNumber, int pageSize)
+        public async Task<PaginatedList<OrderDetailItemResponse>> GetWithFilterAsync(bool? isPlaced, string? orderCode, string? storageCode, string? status, bool? isDamaged,int pageNumber, int pageSize)
         {
             var result = await _unitOfWork.OrderDetails.GetWithFilterAsync(
-        isPlaced, orderCode, storageCode, pageNumber, pageSize);
+        isPlaced, orderCode, storageCode, status, isDamaged, pageNumber, pageSize);
 
             var mappedItems = _mapper.Map<List<OrderDetailItemResponse>>(result.Items);
 
@@ -88,5 +88,55 @@ namespace ASMS.Services.Services
         //    await _unitOfWork.CompleteAsync();
         //    return true;
         //}
+        public async Task<OrderDetailResponse?> UpdateStatusAsync(int orderDetailId, string status)
+        {
+            var orderDetail = await _unitOfWork.OrderDetails.GetByIdNoIncludeAsync(orderDetailId);
+            if (orderDetail == null) return null;
+
+            orderDetail.Status = status;
+            orderDetail.LastUpdatedDate = GetVietnamToday();
+
+            await _unitOfWork.OrderDetails.UpdateAsync(orderDetail);
+            await _unitOfWork.CompleteAsync();
+
+            return _mapper.Map<OrderDetailResponse>(orderDetail);
+        }
+
+        public async Task<OrderDetailResponse?> UpdateIsDamagedAsync(int orderDetailId, bool isDamaged)
+        {
+            var orderDetail = await _unitOfWork.OrderDetails.GetByIdNoIncludeAsync(orderDetailId);
+            if (orderDetail == null) return null;
+
+            orderDetail.IsDamaged = isDamaged;
+            orderDetail.LastUpdatedDate = GetVietnamToday();
+
+            await _unitOfWork.OrderDetails.UpdateAsync(orderDetail);
+            await _unitOfWork.CompleteAsync();
+
+            return _mapper.Map<OrderDetailResponse>(orderDetail);
+        }
+        private DateOnly GetVietnamToday()
+        {
+            try
+            {
+                var vietnamTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+                var vietnamNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vietnamTimeZone);
+                return DateOnly.FromDateTime(vietnamNow);
+            }
+            catch (TimeZoneNotFoundException)
+            {
+                try
+                {
+                    var vietnamTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh");
+                    var vietnamNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vietnamTimeZone);
+                    return DateOnly.FromDateTime(vietnamNow);
+                }
+                catch
+                {
+                    var vietnamNow = DateTime.UtcNow.AddHours(7);
+                    return DateOnly.FromDateTime(vietnamNow);
+                }
+            }
+        }
     }
 }

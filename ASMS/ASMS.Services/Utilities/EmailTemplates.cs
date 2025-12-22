@@ -189,34 +189,25 @@ namespace ASMS.Services.Utilities
 </body>
 </html>";
         /// <summary>
-        /// Email thông báo khi khách hàng gửi yêu cầu refund/báo hư hại
+        /// Email xác nhận báo hư hại (từ khách hàng gửi cho hệ thống)
         /// </summary>
-        public static string ContactRefundRequest(string customerName, string message, string? orderCode, List<string>? imageUrls, string supportEmail)
+        public static string DamageReportConfirmation(
+            string customerName,
+            string message,
+            string? orderCode,
+            int? orderDetailId,
+            List<string>? imageUrls,
+            string supportEmail)
         {
             var orderInfo = !string.IsNullOrEmpty(orderCode)
                 ? $"<p><strong>Mã đơn hàng:</strong> {orderCode}</p>"
                 : "";
 
-            var imagesHtml = "";
-            if (imageUrls != null && imageUrls.Any())
-            {
-                imagesHtml = @"
-            <div style='margin: 15px 0;'>
-                <p><strong>Hình ảnh minh chứng:</strong></p>
-                <div style='display: flex; flex-wrap: wrap; gap: 10px;'>";
+            var orderDetailInfo = orderDetailId.HasValue
+                ? $"<p><strong>Mã chi tiết đơn hàng:</strong> #{orderDetailId.Value}</p>"
+                : "";
 
-                foreach (var imageUrl in imageUrls)
-                {
-                    imagesHtml += $@"
-                    <div style='width: 150px; height: 150px; border: 1px solid #ddd; overflow: hidden;'>
-                        <img src='{imageUrl}' alt='Evidence' style='width: 100%; height: 100%; object-fit: cover;'>
-                    </div>";
-                }
-
-                imagesHtml += @"
-                </div>
-            </div>";
-            }
+            var imagesHtml = BuildImagesHtml(imageUrls);
 
             return $@"
 <!DOCTYPE html>
@@ -224,31 +215,24 @@ namespace ASMS.Services.Utilities
 <head>
     <meta charset='UTF-8'>
     <style>
-        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
-        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
-        .header {{ background-color: #f44336; color: white; padding: 20px; text-align: center; }}
-        .content {{ background-color: #f9f9f9; padding: 20px; margin: 20px 0; }}
-        .alert-box {{ background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 15px 0; }}
-        .message-box {{ background-color: white; border-left: 4px solid #f44336; padding: 15px; margin: 15px 0; }}
-        .info-box {{ background-color: #e3f2fd; border-left: 4px solid #2196F3; padding: 15px; margin: 15px 0; }}
-        .footer {{ text-align: center; color: #666; font-size: 12px; margin-top: 20px; }}
-        .btn {{ display: inline-block; padding: 10px 20px; background-color: #f44336; color: white; text-decoration: none; border-radius: 5px; margin-top: 15px; }}
+        {GetCommonStyles()}
     </style>
 </head>
 <body>
     <div class='container'>
-        <div class='header'>
-            <h1>⚠️ Yêu cầu Refund/Báo hư hại</h1>
+        <div class='header' style='background-color: #ff9800;'>
+            <h1>⚠️ Xác nhận báo hư hại</h1>
         </div>
         
         <div class='content'>
             <p>Xin chào <strong>{customerName}</strong>,</p>
             
-            <p>Chúng tôi đã nhận được yêu cầu refund/báo hư hại của bạn. Đội ngũ VStorage ASMS sẽ kiểm tra và xử lý trong vòng <strong>24-48 giờ</strong>.</p>
+            <p>Chúng tôi đã nhận được báo cáo hư hại của bạn. Đội ngũ VStorage ASMS sẽ kiểm tra và xử lý trong vòng <strong>24-48 giờ</strong>.</p>
             
             {orderInfo}
+            {orderDetailInfo}
             
-            <div class='message-box'>
+            <div class='message-box' style='background-color: white; border-left: 4px solid #ff9800;'>
                 <p><strong>Nội dung báo cáo:</strong></p>
                 <p>{message}</p>
             </div>
@@ -259,17 +243,224 @@ namespace ASMS.Services.Utilities
                 <p><strong>Quy trình xử lý:</strong></p>
                 <ol>
                     <li>Đội ngũ kỹ thuật sẽ kiểm tra hình ảnh và nội dung báo cáo</li>
-                    <li>Xác định mức độ hư hại và trách nhiệm</li>
-                    <li>Tính toán số tiền refund (nếu có)</li>
-                    <li>Thông báo kết quả và tiến hành hoàn tiền</li>
+                    <li>Xác định mức độ hư hại và nguyên nhân</li>
+                    <li>Đánh giá trách nhiệm và mức độ bồi thường (nếu có)</li>
+                    <li>Thông báo kết quả và phương án xử lý</li>
                 </ol>
             </div>
             
             <div class='alert-box'>
-                <p><strong>Lưu ý:</strong> Vui lòng giữ nguyên hiện trạng hàng hóa cho đến khi có nhân viên đến kiểm tra (nếu cần thiết).</p>
+                <p><strong>Lưu ý:</strong> Vui lòng giữ nguyên hiện trạng hàng hóa cho đến khi có nhân viên đến kiểm tra.</p>
             </div>
             
             <p>Mọi thắc mắc vui lòng liên hệ: <a href='mailto:{supportEmail}'>{supportEmail}</a></p>
+            
+            <p>Trân trọng,<br>
+            <strong>VStorage ASMS Support Team</strong></p>
+        </div>
+        
+        {GetFooter()}
+    </div>
+</body>
+</html>";
+        }
+
+        /// <summary>
+        /// Email thông báo refund (từ hệ thống gửi cho khách hàng)
+        /// </summary>
+        public static string RefundNotification(
+            string customerName,
+            string reason,
+            string? orderCode,
+            decimal refundAmount,
+            List<string>? imageUrls,
+            string supportEmail)
+        {
+            var orderInfo = !string.IsNullOrEmpty(orderCode)
+                ? $"<p><strong>Mã đơn hàng:</strong> {orderCode}</p>"
+                : "";
+
+            var imagesHtml = BuildImagesHtml(imageUrls);
+
+            return $@"
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='UTF-8'>
+    <style>
+        {GetCommonStyles()}
+    </style>
+</head>
+<body>
+    <div class='container'>
+        <div class='header' style='background-color: #4CAF50;'>
+            <h1>💰 Thông báo đền bù thiệt hại</h1>
+        </div>
+        
+        <div class='content'>
+            <p>Xin chào <strong>{customerName}</strong>,</p>
+            
+            <p>Sau khi kiểm tra và đánh giá, chúng tôi xác nhận sẽ đền bù thiệt hại cho bạn như sau:</p>
+            
+            {orderInfo}
+            
+            <div class='highlight-box' style='background-color: #e8f5e9; border-left: 4px solid #4CAF50; padding: 20px; margin: 20px 0;'>
+                <p style='font-size: 18px; margin: 0;'><strong>Số tiền hoàn trả:</strong></p>
+                <p style='font-size: 28px; color: #4CAF50; font-weight: bold; margin: 10px 0;'>{refundAmount:N0} VNĐ</p>
+            </div>
+            
+            <div class='message-box' style='background-color: white; border-left: 4px solid #2196F3;'>
+                <p><strong>Lý do đền bù:</strong></p>
+                <p>{reason}</p>
+            </div>
+            
+            {imagesHtml}
+            
+            <div class='info-box'>
+                <p><strong>Thông tin chuyển khoản:</strong></p>
+                <ul>
+                    <li>Số tiền sẽ được hoàn vào tài khoản thanh toán ban đầu</li>
+                    <li>Thời gian xử lý: <strong>3-5 ngày làm việc</strong></li>
+                    <li>Bạn sẽ nhận được email xác nhận khi giao dịch hoàn tất</li>
+                </ul>
+            </div>
+            
+            <p>Chúng tôi rất tiếc vì sự cố đã xảy ra và hy vọng bạn tiếp tục tin tưởng sử dụng dịch vụ của VStorage ASMS.</p>
+            
+            <p>Mọi thắc mắc vui lòng liên hệ: <a href='mailto:{supportEmail}'>{supportEmail}</a></p>
+            
+            <p>Trân trọng,<br>
+            <strong>VStorage ASMS Support Team</strong></p>
+        </div>
+        
+        {GetFooter()}
+    </div>
+</body>
+</html>";
+        }
+
+        /// <summary>
+        /// Email yêu cầu nhận hàng (từ hệ thống gửi cho khách hàng)
+        /// </summary>
+        public static string RequestToRetrieve(
+            string customerName,
+            string? orderCode,
+            DateOnly? returnDate,
+            string supportEmail)
+        {
+            var orderInfo = !string.IsNullOrEmpty(orderCode)
+                ? $"<p><strong>Mã đơn hàng:</strong> {orderCode}</p>"
+                : "";
+
+            var returnDateInfo = returnDate.HasValue
+                ? $"<p><strong>Ngày hết hạn thuê:</strong> {returnDate.Value:dd/MM/yyyy}</p>"
+                : "";
+
+            return $@"
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='UTF-8'>
+    <style>
+        {GetCommonStyles()}
+    </style>
+</head>
+<body>
+    <div class='container'>
+        <div class='header' style='background-color: #f44336;'>
+            <h1>📦 Yêu cầu nhận hàng khẩn cấp</h1>
+        </div>
+        
+        <div class='content'>
+            <p>Xin chào <strong>{customerName}</strong>,</p>
+            
+            <p>Chúng tôi nhận thấy đơn hàng của bạn đã <strong>quá thời hạn thuê kho</strong>. Vui lòng sắp xếp nhận hàng sớm nhất.</p>
+            
+            {orderInfo}
+            {returnDateInfo}
+            
+            
+            <div class='info-box'>
+                <p><strong>Lưu ý quan trọng:</strong></p>
+                <ul>
+                    <li>Phí lưu kho sẽ được tính thêm theo số ngày quá hạn</li>
+                    <li>Nếu không nhận hàng sau <strong>7 ngày</strong> kể từ ngày gửi email này, chúng tôi có quyền xử lý hàng hóa theo quy định</li>
+                    <li>Vui lòng liên hệ ngay để sắp xếp lịch nhận hàng</li>
+                </ul>
+            </div>
+            
+            <div class='message-box' style='background-color: white; border-left: 4px solid #2196F3;'>
+                <p><strong>Cách thức nhận hàng:</strong></p>
+                <ol>
+                    <li>Liên hệ hotline hoặc email để đặt lịch</li>
+                    <li>Chuẩn bị giấy tờ tùy thân và mã đơn hàng</li>
+                    <li>Đến kho đúng giờ hẹn để nhận hàng</li>
+                    <li>Thanh toán phí phát sinh (nếu có)</li>
+                </ol>
+            </div>
+            
+            <p style='font-weight: bold; color: #f44336;'>Vui lòng liên hệ ngay: <a href='mailto:{supportEmail}'>{supportEmail}</a></p>
+            
+            <p>Trân trọng,<br>
+            <strong>VStorage ASMS Support Team</strong></p>
+        </div>
+        
+        {GetFooter()}
+    </div>
+</body>
+</html>";
+        }
+        /// <summary>
+        /// Email thông báo cập nhật PassKey
+        /// </summary>
+        public static string PassKeyUpdate(
+            string customerName,
+            string orderCode,
+            string newPassKey,
+            string senderEmail) => $@"
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='UTF-8'>
+    <style>
+        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+        .header {{ background-color: #2196F3; color: white; padding: 20px; text-align: center; }}
+        .content {{ background-color: #f9f9f9; padding: 20px; margin: 20px 0; }}
+        .passkey-box {{ background-color: #e3f2fd; border: 2px solid #2196F3; padding: 20px; text-align: center; margin: 20px 0; border-radius: 8px; }}
+        .warning-box {{ background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 15px 0; }}
+        .footer {{ text-align: center; color: #666; font-size: 12px; margin-top: 20px; }}
+    </style>
+</head>
+<body>
+    <div class='container'>
+        <div class='header'>
+            <h1>🔑 Cập nhật mã truy cập</h1>
+        </div>
+        
+        <div class='content'>
+            <p>Xin chào <strong>{customerName}</strong>,</p>
+            
+            <p>Mã truy cập (PassKey) cho đơn hàng <strong>{orderCode}</strong> của bạn đã được cập nhật thành công.</p>
+            
+            <div class='passkey-box'>
+                <p style='font-size: 16px; margin: 0; color: #666;'>Mã truy cập mới của bạn:</p>
+                <p style='font-size: 36px; font-weight: bold; color: #2196F3; margin: 15px 0; letter-spacing: 8px;'>{newPassKey}</p>
+            </div>
+            
+            <div class='warning-box'>
+                <p><strong>⚠️ Lưu ý quan trọng:</strong></p>
+                <ul>
+                    <li>Vui lòng ghi nhớ mã truy cập mới này</li>
+                    <li>Không chia sẻ mã này với bất kỳ ai</li>
+                    <li>Mã cũ không còn hiệu lực</li>
+                    <li>Sử dụng mã mới để truy cập kho self-storage</li>
+                </ul>
+            </div>
+            
+            <p>Nếu bạn không thực hiện thay đổi này, vui lòng liên hệ ngay với chúng tôi.</p>
+            
+            <p>Mọi thắc mắc vui lòng liên hệ: <a href='mailto:{senderEmail}'>{senderEmail}</a></p>
             
             <p>Trân trọng,<br>
             <strong>VStorage ASMS Support Team</strong></p>
@@ -282,6 +473,116 @@ namespace ASMS.Services.Utilities
     </div>
 </body>
 </html>";
+
+        /// <summary>
+        /// Email thông báo reset PassKey
+        /// </summary>
+        public static string PassKeyReset(
+            string customerName,
+            string orderCode,
+            string newPassKey,
+            string senderEmail) => $@"
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='UTF-8'>
+    <style>
+        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+        .header {{ background-color: #f44336; color: white; padding: 20px; text-align: center; }}
+        .content {{ background-color: #f9f9f9; padding: 20px; margin: 20px 0; }}
+        .passkey-box {{ background-color: #ffebee; border: 2px solid #f44336; padding: 20px; text-align: center; margin: 20px 0; border-radius: 8px; }}
+        .warning-box {{ background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 15px 0; }}
+        .footer {{ text-align: center; color: #666; font-size: 12px; margin-top: 20px; }}
+    </style>
+</head>
+<body>
+    <div class='container'>
+        <div class='header'>
+            <h1>🔄 Reset mã truy cập</h1>
+        </div>
+        
+        <div class='content'>
+            <p>Xin chào <strong>{customerName}</strong>,</p>
+            
+            <p>Mã truy cập (PassKey) cho đơn hàng <strong>{orderCode}</strong> của bạn đã được reset về mặc định bởi quản trị viên.</p>
+            
+            <div class='passkey-box'>
+                <p style='font-size: 16px; margin: 0; color: #666;'>Mã truy cập mặc định:</p>
+                <p style='font-size: 36px; font-weight: bold; color: #f44336; margin: 15px 0; letter-spacing: 8px;'>{newPassKey}</p>
+            </div>
+            
+            <div class='warning-box'>
+                <p><strong>⚠️ Khuyến nghị bảo mật:</strong></p>
+                <ul>
+                    <li><strong>Vui lòng đổi mã truy cập ngay</strong> sau khi đăng nhập</li>
+                    <li>Không sử dụng mã mặc định lâu dài</li>
+                    <li>Chọn mã mới dễ nhớ nhưng khó đoán</li>
+                    <li>Không chia sẻ mã với bất kỳ ai</li>
+                </ul>
+            </div>
+            
+            <p>Nếu bạn không yêu cầu reset mã, vui lòng liên hệ ngay với chúng tôi.</p>
+            
+            <p>Mọi thắc mắc vui lòng liên hệ: <a href='mailto:{senderEmail}'>{senderEmail}</a></p>
+            
+            <p>Trân trọng,<br>
+            <strong>VStorage ASMS Support Team</strong></p>
+        </div>
+        
+        <div class='footer'>
+            <p>Email này được gửi tự động. Vui lòng không trả lời email này.</p>
+            <p>&copy; 2025 VStorage ASMS. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>";
+
+        private static string BuildImagesHtml(List<string>? imageUrls)
+        {
+            if (imageUrls == null || !imageUrls.Any())
+                return "";
+
+            var imagesHtml = @"
+            <div style='margin: 15px 0;'>
+                <p><strong>Hình ảnh minh chứng:</strong></p>
+                <div style='display: flex; flex-wrap: wrap; gap: 10px;'>";
+
+            foreach (var imageUrl in imageUrls)
+            {
+                imagesHtml += $@"
+                    <div style='width: 150px; height: 150px; border: 1px solid #ddd; overflow: hidden;'>
+                        <img src='{imageUrl}' alt='Evidence' style='width: 100%; height: 100%; object-fit: cover;'>
+                    </div>";
+            }
+
+            imagesHtml += @"
+                </div>
+            </div>";
+
+            return imagesHtml;
+        }
+
+        private static string GetCommonStyles()
+        {
+            return @"
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { color: white; padding: 20px; text-align: center; }
+            .content { background-color: #f9f9f9; padding: 20px; margin: 20px 0; }
+            .alert-box { background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 15px 0; }
+            .message-box { padding: 15px; margin: 15px 0; }
+            .info-box { background-color: #e3f2fd; border-left: 4px solid #2196F3; padding: 15px; margin: 15px 0; }
+            .footer { text-align: center; color: #666; font-size: 12px; margin-top: 20px; }";
+        }
+
+        private static string GetFooter()
+        {
+            return @"
+        <div class='footer'>
+            <p>Email này được gửi tự động. Vui lòng không trả lời email này.</p>
+            <p>&copy; 2025 VStorage ASMS. All rights reserved.</p>
+        </div>";
         }
     }
 }
