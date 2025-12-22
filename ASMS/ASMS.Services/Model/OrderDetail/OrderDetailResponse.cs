@@ -18,5 +18,8 @@ namespace ASMS.Services.Model.OrderDetail
         public decimal? SubTotal { get; set; }
         public string? Address { get; set; }
         public string? Image { get; set; }
+        public string? Status { get; set; }       
+        public DateOnly? LastUpdatedDate { get; set; }  
+        public bool? IsDamaged { get; set; }
     }
 }

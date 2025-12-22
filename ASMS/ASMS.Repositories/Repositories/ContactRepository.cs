@@ -14,6 +14,7 @@ namespace ASMS.Repositories.Repositories
 {
     public class ContactRepository : GenericRepository<Contact>, IContactRepository
     {
+        private const string CONTACT_TYPE_REQUEST_TO_RETRIEVE = "request to retrieve";
         public ContactRepository(VstorageContext context, ILogger logger)
             : base(context, logger)
         {
@@ -78,6 +79,22 @@ namespace ASMS.Repositories.Repositories
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting total count with filter");
+                throw;
+            }
+        }
+        public async Task<int> CountRequestToRetrieveByOrderCodeAsync(string orderCode)
+        {
+            try
+            {
+                return await _dbSet
+                    .AsNoTracking()
+                    .Where(c => c.OrderCode == orderCode &&
+                               c.ContactType == CONTACT_TYPE_REQUEST_TO_RETRIEVE)
+                    .CountAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error counting request_to_retrieve contacts for order {Code}", orderCode);
                 throw;
             }
         }

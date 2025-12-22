@@ -19,5 +19,8 @@ namespace ASMS.Services.Model.Contact
         public List<string>? Image { get; set; }
         public DateOnly? ContactDate { get; set; }
         public DateOnly? RetrievedDate { get; set; }
+        public string? ContactType { get; set; }
+
+        public int? OrderDetailId { get; set; }
     }
 }

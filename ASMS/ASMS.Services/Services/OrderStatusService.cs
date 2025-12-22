@@ -312,16 +312,16 @@ namespace ASMS.Services.Services
                 {
                     try
                     {
-                        var passKey = await GenerateUniquePassKeyAsync();  
-
+                        var passKeyPlain = await GenerateUniquePassKeyAsync();
+                        var passKeyHash = PasswordHasher.HashPassword(passKeyPlain);
                         // Cập nhật vào Order
-                        order.Passkey = passKey;  
+                        order.Passkey = passKeyHash;
                         await _unitOfWork.Orders.UpdateAsync(order);
 
                         // Gửi email
                         if (!string.IsNullOrEmpty(order.Email))
                         {
-                            await SendPassKeyEmailAsync(order.Email, order.OrderCode, passKey);
+                            await SendPassKeyEmailAsync(order.Email, order.OrderCode, passKeyPlain);
                         }
 
                         _logger.LogInformation($"PassKey generated and sent for order {orderCode}");
@@ -705,12 +705,12 @@ namespace ASMS.Services.Services
         {
             try
             {
-                if (request.NewPassKey < 100000 || request.NewPassKey > 999999)
+                if (!IsValidPassKey(request.OldPassKey) || !IsValidPassKey(request.NewPassKey))
                 {
                     return new UpdatePassKeyResponse
                     {
                         Success = false,
-                        Message = "PassKey mới phải là số có 6 chữ số (từ 100000 đến 999999)"
+                        Message = "PassKey phải là chuỗi 6 chữ số (từ 000000 đến 999999)"
                     };
                 }
 
@@ -733,7 +733,8 @@ namespace ASMS.Services.Services
                     };
                 }
 
-                if (order.Passkey != request.OldPassKey)
+                if (string.IsNullOrEmpty(order.Passkey) ||
+                    !PasswordHasher.VerifyPassword(request.OldPassKey, order.Passkey))
                 {
                     return new UpdatePassKeyResponse
                     {
@@ -742,8 +743,7 @@ namespace ASMS.Services.Services
                     };
                 }
 
-                var existingOrder = await _unitOfWork.Orders.GetByPassKeyAsync(request.NewPassKey);
-                if (existingOrder != null && existingOrder.OrderCode != request.OrderCode)
+                if (await IsPassKeyInUseAsync(request.NewPassKey, request.OrderCode))
                 {
                     return new UpdatePassKeyResponse
                     {
@@ -751,20 +751,34 @@ namespace ASMS.Services.Services
                         Message = "PassKey mới đã được sử dụng bởi đơn hàng khác. Vui lòng chọn PassKey khác"
                     };
                 }
+                order.Passkey = PasswordHasher.HashPassword(request.NewPassKey);
 
-                // Cập nhật PassKey
-                order.Passkey = request.NewPassKey;
                 await _unitOfWork.Orders.UpdateAsync(order);
                 await _unitOfWork.CompleteAsync();
+
+                if (!string.IsNullOrEmpty(order.Email))
+                {
+                    try
+                    {
+                        await SendPassKeyUpdateEmailAsync(
+                            order.Email,
+                            order.OrderCode,
+                            request.NewPassKey,
+                            order.CustomerName);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, $"Error sending PassKey update email for order {request.OrderCode}");
+                    }
+                }
 
                 _logger.LogInformation($"PassKey updated for order {request.OrderCode}");
 
                 return new UpdatePassKeyResponse
                 {
                     Success = true,
-                    Message = "Cập nhật PassKey thành công",
-                    OrderCode = request.OrderCode,
-                    NewPassKey = request.NewPassKey
+                    Message = "Cập nhật PassKey thành công. Email xác nhận đã được gửi.",
+                    OrderCode = request.OrderCode
                 };
             }
             catch (Exception ex)
@@ -777,6 +791,76 @@ namespace ASMS.Services.Services
                 };
             }
         }
+        /// <summary>
+        /// Reset PassKey về mặc định 
+        /// </summary>
+        public async Task<ResetPassKeyResponse> ResetPassKeyAsync(ResetPassKeyRequest request)
+        {
+            try
+            {
+                var order = await _unitOfWork.Orders.GetByCodeAsync(request.OrderCode);
+                if (order == null)
+                {
+                    return new ResetPassKeyResponse
+                    {
+                        Success = false,
+                        Message = $"Đơn hàng {request.OrderCode} không tồn tại"
+                    };
+                }
+
+                if (order.Style?.ToLower() != "self")
+                {
+                    return new ResetPassKeyResponse
+                    {
+                        Success = false,
+                        Message = "Chỉ đơn hàng Self-Storage mới có PassKey"
+                    };
+                }
+
+                const string DEFAULT_PASSKEY = "000000";
+                order.Passkey = PasswordHasher.HashPassword(DEFAULT_PASSKEY);
+
+                await _unitOfWork.Orders.UpdateAsync(order);
+                await _unitOfWork.CompleteAsync();
+
+                if (!string.IsNullOrEmpty(order.Email))
+                {
+                    try
+                    {
+                        await SendPassKeyResetEmailAsync(
+                            order.Email,
+                            order.OrderCode,
+                            DEFAULT_PASSKEY,
+                            order.CustomerName);
+
+                        _logger.LogInformation($"PassKey reset email sent to {order.Email} for order {request.OrderCode}");
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, $"Error sending PassKey reset email for order {request.OrderCode}");
+                    }
+                }
+
+                _logger.LogInformation($"PassKey reset to default for order {request.OrderCode}");
+
+                return new ResetPassKeyResponse
+                {
+                    Success = true,
+                    Message = $"PassKey đã được reset về mặc định ({DEFAULT_PASSKEY}). Email xác nhận đã được gửi.",
+                    OrderCode = request.OrderCode
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error resetting PassKey for order {request.OrderCode}");
+                return new ResetPassKeyResponse
+                {
+                    Success = false,
+                    Message = $"Lỗi reset PassKey: {ex.Message}"
+                };
+            }
+        }
+
         /// <summary>
         /// Cập nhật Refund (tiền đền bù hư hại) cho Order
         /// </summary>
@@ -1276,7 +1360,7 @@ namespace ASMS.Services.Services
                     ? "Warehouse Staff"
                     : "Delivery Staff";
             }
-            if (statusLower == "retrieved" || statusLower == "completed")
+            if (statusLower == "completed")
             {
                 var workflow = await GetWorkflowForOrderAsync(order);
 
@@ -1458,15 +1542,18 @@ namespace ASMS.Services.Services
 
                 var newStatusLower = newStatus?.ToLower();
                 string? storageStatus = null;
+                //string? orderDetailStatus = null;
 
                 switch (newStatusLower)
                 {
                     case "renting":
                         storageStatus = "Rented";
+                        //orderDetailStatus = "renting";
                         break;
                     case "retrieved":
                     case "completed":
                         storageStatus = "Ready";
+                        //orderDetailStatus = "removed";
                         break;
                 }
 
@@ -1486,6 +1573,18 @@ namespace ASMS.Services.Services
 
                     _logger.LogInformation($"Storage {storageCode} status updated to {storageStatus} for order {orderCode}");
                 }
+                //if (!string.IsNullOrEmpty(orderDetailStatus))
+                //{
+                //    var orderDetailsForUpdate = await _unitOfWork.OrderDetails.GetByOrderCodeForUpdateAsync(orderCode);
+                //    foreach (var orderDetail in orderDetailsForUpdate.Where(od => !string.IsNullOrEmpty(od.StorageCode)))
+                //    {
+                //        orderDetail.Status = orderDetailStatus;
+                //        orderDetail.LastUpdatedDate = GetVietnamToday();
+                //        await _unitOfWork.OrderDetails.UpdateAsync(orderDetail);
+
+                //        _logger.LogInformation($"OrderDetail {orderDetail.OrderDetailId} status updated to {orderDetailStatus}");
+                //    }
+                //}
 
                 await _unitOfWork.CompleteAsync();
             }
@@ -1498,35 +1597,38 @@ namespace ASMS.Services.Services
         /// <summary>
         /// Tạo PassKey ngẫu nhiên 6 chữ số không trùng
         /// </summary>
-        private async Task<int> GenerateUniquePassKeyAsync()
+        private async Task<string> GenerateUniquePassKeyAsync()
         {
             var random = new Random();
-            int passKey;
-            bool isUnique;
+            string passKey;
+            int attempts = 0;
+            const int MAX_ATTEMPTS = 100;
 
             do
             {
-                passKey = random.Next(100000, 999999); 
+                passKey = random.Next(0, 1000000).ToString("D6");
 
-                // Check trùng với order chưa completed
-                var existingOrder = await _unitOfWork.Orders.GetByPassKeyAsync(passKey);
-                isUnique = existingOrder == null || existingOrder.Status?.ToLower() == "completed";
+                attempts++;
+                if (attempts > MAX_ATTEMPTS)
+                {
+                    throw new Exception("Cannot generate unique PassKey after 100 attempts");
+                }
 
-            } while (!isUnique);
+            } while (await IsPassKeyInUseAsync(passKey));
 
             return passKey;
         }
 
         /// <summary>
-        /// Gửi PassKey qua email
+        /// Gửi PassKey qua email khi tạo mới
         /// </summary>
-        private async Task<bool> SendPassKeyEmailAsync(string email, string orderCode, int passKey)
+        private async Task<bool> SendPassKeyEmailAsync(string email, string orderCode, string passKey)
         {
             try
             {
                 if (string.IsNullOrEmpty(email)) return false;
 
-                string emailContent = EmailTemplates.OrderPassKey(orderCode, passKey.ToString(), _mailConfig.Email);
+                string emailContent = EmailTemplates.OrderPassKey(orderCode, passKey, _mailConfig.Email);
                 await _passwordService.SendEmailAsync(
                     email,
                     $"Mã truy cập Self Storage - Đơn hàng {orderCode}",
@@ -1540,6 +1642,78 @@ namespace ASMS.Services.Services
                 _logger.LogError(ex, $"Error sending PassKey email for order {orderCode}");
                 return false;
             }
+        }
+
+        /// <summary>
+        /// Gửi email thông báo cập nhật PassKey
+        /// </summary>
+        private async Task<bool> SendPassKeyUpdateEmailAsync(
+            string email,
+            string orderCode,
+            string newPassKey,
+            string? customerName)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(email)) return false;
+
+                string emailContent = EmailTemplates.PassKeyUpdate(
+                    customerName ?? "Khách hàng",
+                    orderCode,
+                    newPassKey,
+                    _mailConfig.Email);
+
+                await _passwordService.SendEmailAsync(
+                    email,
+                    $"Thông báo cập nhật mã truy cập - Đơn hàng {orderCode}",
+                    emailContent);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error sending PassKey update email for order {orderCode}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Gửi email thông báo reset PassKey
+        /// </summary>
+        private async Task<bool> SendPassKeyResetEmailAsync(
+            string email,
+            string orderCode,
+            string newPassKey,
+            string? customerName)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(email)) return false;
+
+                string emailContent = EmailTemplates.PassKeyReset(
+                    customerName ?? "Khách hàng",
+                    orderCode,
+                    newPassKey,
+                    _mailConfig.Email);
+
+                await _passwordService.SendEmailAsync(
+                    email,
+                    $"Thông báo reset mã truy cập - Đơn hàng {orderCode}",
+                    emailContent);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error sending PassKey reset email for order {orderCode}");
+                return false;
+            }
+        }
+        private bool IsValidPassKey(string passKey)
+        {
+            if (string.IsNullOrEmpty(passKey)) return false;
+            if (passKey.Length != 6) return false;
+            return passKey.All(char.IsDigit);
         }
         /// <summary>
         /// Lấy ngày hiện tại theo múi giờ Việt Nam (UTC+7)
@@ -1566,6 +1740,60 @@ namespace ASMS.Services.Services
                     var vietnamNow = DateTime.UtcNow.AddHours(7);
                     return DateOnly.FromDateTime(vietnamNow);
                 }
+            }
+        }
+        /// <summary>
+        /// Tìm order theo PassKey
+        /// </summary>
+        private async Task<Order?> FindOrderByPassKeyAsync(string passKeyPlainText)
+        {
+            try
+            {
+                var activeOrders = await _unitOfWork.Orders.GetActiveOrdersWithPassKeyAsync();
+
+                foreach (var order in activeOrders)
+                {
+                    if (PasswordHasher.VerifyPassword(passKeyPlainText, order.Passkey))
+                    {
+                        return order;
+                    }
+                }
+
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error finding order by PassKey");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Check xem PassKey đã được dùng chưa
+        /// </summary>
+        private async Task<bool> IsPassKeyInUseAsync(string passKeyPlainText, string? excludeOrderCode = null)
+        {
+            try
+            {
+                var activeOrders = await _unitOfWork.Orders.GetActiveOrdersWithPassKeyAsync();
+
+                foreach (var order in activeOrders)
+                {
+                    if (!string.IsNullOrEmpty(excludeOrderCode) && order.OrderCode == excludeOrderCode)
+                        continue;
+
+                    if (PasswordHasher.VerifyPassword(passKeyPlainText, order.Passkey))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error checking PassKey usage");
+                throw;
             }
         }
 

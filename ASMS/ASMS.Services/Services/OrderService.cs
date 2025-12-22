@@ -910,7 +910,10 @@ namespace ASMS.Services.Services
                 ServiceNames = od.OrderDetailServices
                         .Select(ods => ods.Service?.Name)
                         .Where(name => name != null)
-                        .ToList()
+                        .ToList(),
+                    Status = od.Status,
+                    LastUpdatedDate = od.LastUpdatedDate,
+                    IsDamaged = od.IsDamaged,
             }).ToList();
         }
 

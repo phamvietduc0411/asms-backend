@@ -21,5 +21,6 @@ namespace ASMS.Services.Interfaces
         Task<bool> UpdateAsync(int contactId, UpdateContactRequest request);
         Task<ToggleContactActiveResponse> ToggleActiveAsync(int contactId);
         Task<ContactResponse> CreateWithEmailAsync(CreateContactRequest request);
+        Task<int> CountRequestToRetrieveByOrderCodeAsync(string orderCode);
     }
 }

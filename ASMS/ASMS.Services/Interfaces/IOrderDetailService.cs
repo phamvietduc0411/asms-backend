@@ -10,11 +10,13 @@ namespace ASMS.Services.Interfaces
 {
     public interface IOrderDetailService
     {
-        Task<PaginatedList<OrderDetailItemResponse>> GetWithFilterAsync(bool? isPlaced, string? orderCode, string? storageCode, int pageNumber, int pageSize);
+        Task<PaginatedList<OrderDetailItemResponse>> GetWithFilterAsync(bool? isPlaced, string? orderCode, string? storageCode, string? status, bool? isDamaged ,int pageNumber, int pageSize);
         Task<OrderDetailItemResponse?> GetByIdAsync(int id);
         Task<IEnumerable<OrderDetailItemResponse>> GetByOrderCodeAsync(string orderCode);
         Task<OrderDetailResponse> CreateAsync(CreateOrderDetailRequest request);
         Task<OrderDetailResponse?> UpdateAsync(int id, UpdateOrderDetailRequest request);
         //Task<bool> DeleteAsync(int id);
+        Task<OrderDetailResponse?> UpdateStatusAsync(int orderDetailId, string status);
+        Task<OrderDetailResponse?> UpdateIsDamagedAsync(int orderDetailId, bool isDamaged);
     }
 }

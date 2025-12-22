@@ -119,6 +119,37 @@ namespace ASMS.API.Controllers
             var result = await _contactService.CreateWithEmailAsync(request);
             return CreatedAtAction(nameof(GetById), new { id = result.ContactId }, result);
         }
+        /// <summary>
+        /// Get count of "request_to_retrieve" contacts for an order
+        /// </summary>
+        [HttpGet("count-retrieve-requests/{orderCode}")]
+        public async Task<IActionResult> CountRequestToRetrieveByOrderCode(string orderCode)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(orderCode))
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = "OrderCode is required"
+                    });
+                }
+
+                var count = await _contactService.CountRequestToRetrieveByOrderCodeAsync(orderCode);
+
+                return Ok(new
+                {
+                    success = true,
+                    orderCode = orderCode,
+                    requestToRetrieveCount = count
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
 
     }
 }

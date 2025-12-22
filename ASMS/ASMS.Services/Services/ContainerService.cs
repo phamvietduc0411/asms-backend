@@ -420,6 +420,19 @@ namespace ASMS.Services.Services
                 var oldFloor = container.FloorCode;
                 var oldLayer = container.Layer;
                 var oldOrderDetailId = container.OrderDetailId;
+                if (container.OrderDetailId != null)
+                {
+                    var orderDetail = await _unitOfWork.OrderDetails.GetByIdNoIncludeAsync(container.OrderDetailId.Value);
+                    if (orderDetail != null)
+                    {
+                        if (orderDetail.IsPlaced == true)
+                        {
+                            orderDetail.Status = "removed";
+                            orderDetail.LastUpdatedDate = GetVietnamToday();
+                            await _unitOfWork.OrderDetails.UpdateAsync(orderDetail);
+                        }  
+                    }
+                }
                 if (container.ContainerTypeId != null && !string.IsNullOrEmpty(container.FloorCode))
                 {
                     try
@@ -533,6 +546,29 @@ namespace ASMS.Services.Services
         {
             var lastLog = await _unitOfWork.ContainerLocationLogs.GetLastAsync();
             return (lastLog?.ContainerLocationLogId ?? 0) + 1;
+        }
+        private DateOnly GetVietnamToday()
+        {
+            try
+            {
+                var vietnamTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+                var vietnamNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vietnamTimeZone);
+                return DateOnly.FromDateTime(vietnamNow);
+            }
+            catch (TimeZoneNotFoundException)
+            {
+                try
+                {
+                    var vietnamTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh");
+                    var vietnamNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vietnamTimeZone);
+                    return DateOnly.FromDateTime(vietnamNow);
+                }
+                catch
+                {
+                    var vietnamNow = DateTime.UtcNow.AddHours(7);
+                    return DateOnly.FromDateTime(vietnamNow);
+                }
+            }
         }
     }
 }

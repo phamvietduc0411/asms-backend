@@ -1,5 +1,6 @@
 ﻿using ASMS.Services.Interfaces;
 using ASMS.Services.Model.OrderStatus;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -210,16 +211,40 @@ namespace ASMS.API.Controllers
         [HttpPut("update-passkey")]
         public async Task<IActionResult> UpdatePassKey([FromBody] UpdatePassKeyRequest request)
         {
-            var result = await _orderStatusService.UpdatePassKeyAsync(request);
-
-            if (!result.Success)
+            try
             {
-                return BadRequest(result);
+                var result = await _orderStatusService.UpdatePassKeyAsync(request);
+
+                if (!result.Success)
+                    return BadRequest(result);
+
+                return Ok(result);
             }
-
-            return Ok(result);
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
         }
+        /// <summary>
+        /// Reset PassKey to default "000000"
+        /// </summary>
+        [HttpPost("reset-passkey")]
+        public async Task<IActionResult> ResetPassKey([FromBody] ResetPassKeyRequest request)
+        {
+            try
+            {
+                var result = await _orderStatusService.ResetPassKeyAsync(request);
 
+                if (!result.Success)
+                    return BadRequest(result);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
         [HttpPut("update-refund")]
         public async Task<IActionResult> UpdateRefund([FromBody] UpdateRefundRequest request)
         {
@@ -277,5 +302,6 @@ namespace ASMS.API.Controllers
                 });
             }
         }
+
     }
 }

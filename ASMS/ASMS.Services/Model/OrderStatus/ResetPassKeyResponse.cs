@@ -6,11 +6,10 @@ using System.Threading.Tasks;
 
 namespace ASMS.Services.Model.OrderStatus
 {
-    public class UpdatePassKeyResponse
+    public class ResetPassKeyResponse
     {
         public bool Success { get; set; }
-        public string Message { get; set; } = null!;
+        public string Message { get; set; }
         public string? OrderCode { get; set; }
-        //public int? NewPassKey { get; set; }
     }
 }

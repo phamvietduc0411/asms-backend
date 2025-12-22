@@ -68,7 +68,7 @@ public partial class Order
 
     public string? BuildingCode { get; set; }
 
-    public int? Passkey { get; set; }
+    public string? Passkey { get; set; }
 
     public decimal? Refund { get; set; }
 

@@ -29,6 +29,10 @@ public partial class Contact
 
     public DateOnly? RetrievedDate { get; set; }
 
+    public string? ContactType { get; set; }
+
+    public int? OrderDetailId { get; set; }
+
     public virtual Customer? CustomerCodeNavigation { get; set; }
 
     public virtual Order? OrderCodeNavigation { get; set; }

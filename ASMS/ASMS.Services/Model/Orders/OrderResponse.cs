@@ -27,9 +27,10 @@ namespace ASMS.Services.Model.Orders
         public string? Note { get; set; }
 
         public string? Address { get; set; }
-        public int? Passkey { get; set; }
+        //public int? Passkey { get; set; }
 
         public decimal? Refund { get; set; }
+        public string? ShortCode { get; set; }
 
         public List<string>? ImageUrls { get; set; }
     }
